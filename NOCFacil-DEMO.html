@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOCFácil — Gestão de Chamados e SLA</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+:root{
+  --cy:#06B6D4;--cy2:#0891B2;--cyb:rgba(6,182,212,.12);
+  --gr:#22C55E;--grb:rgba(34,197,94,.1);
+  --re:#EF4444;--reb:rgba(239,68,68,.1);
+  --ye:#F59E0B;--yeb:rgba(245,158,11,.1);
+  --bl:#3B82F6;--blb:rgba(59,130,246,.1);
+  --pu:#8B5CF6;--pub:rgba(139,92,246,.1);
+  --bg:#07080D;--s1:#0D0F16;--s2:#13151E;--s3:#191C27;
+  --b1:#1E2130;--b2:#252840;
+  --tx:#E8EAF2;--mu:#5A6080;--mu2:#3A3F58;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:'Outfit',sans-serif;min-height:100vh;font-size:14px}
+
+/* ── WELCOME ── */
+.wov{position:fixed;inset:0;background:radial-gradient(ellipse at 35% 20%,#0a1520,#07080D 65%);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.wbox{background:var(--s1);border:1px solid var(--b1);border-radius:22px;padding:36px 32px;max-width:560px;width:100%;box-shadow:0 0 80px rgba(6,182,212,.07)}
+.wic{width:58px;height:58px;border-radius:14px;background:linear-gradient(135deg,#06B6D4,#0891B2);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;box-shadow:0 0 32px rgba(6,182,212,.35)}
+.wbox h2{font-size:1.4rem;font-weight:800;text-align:center;margin-bottom:4px;color:var(--tx);letter-spacing:-.5px}
+.wbox h2 em{color:var(--cy);font-style:normal}
+.wsub{font-size:.77rem;color:var(--mu);text-align:center;margin-bottom:22px;line-height:1.55}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
+.wf{display:flex;flex-direction:column;gap:3px}.wf.full{grid-column:1/-1}
+.wf label{font-size:.58rem;color:var(--mu);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.wf input,.wf select{padding:8px 11px;background:var(--bg);border:1.5px solid var(--b1);border-radius:8px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.82rem;transition:border-color .14s;-webkit-appearance:none;outline:none}
+.wf input:focus,.wf select:focus{border-color:var(--cy)}
+.wf input::placeholder{color:var(--mu2)}
+.wslbl{font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mu2);margin:10px 0 6px;padding-bottom:5px;border-bottom:1px solid var(--b1);grid-column:1/-1}
+.wlup{display:flex;flex-direction:column;align-items:center;padding:10px;background:var(--bg);border:1.5px dashed var(--b2);border-radius:8px;cursor:pointer;transition:all .14s;text-align:center;grid-column:1/-1}
+.wlup:hover{border-color:var(--cy);background:var(--cyb)}
+.wlup input{display:none}
+.wlprev{display:none;align-items:center;gap:8px;padding:7px 10px;background:var(--grb);border:1px solid rgba(34,197,94,.25);border-radius:7px;font-size:.7rem;color:var(--gr);grid-column:1/-1}
+.wlprev img{height:24px;object-fit:contain}
+.wlprev button{margin-left:auto;background:none;border:none;color:var(--gr);cursor:pointer}
+.wbtn{width:100%;padding:12px;background:linear-gradient(135deg,#06B6D4,#0891B2);color:#fff;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:800;cursor:pointer;margin-top:8px;transition:all .14s}
+.wbtn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(6,182,212,.3)}
+.wbtn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.wfoot{margin-top:14px;text-align:center;font-size:.58rem;color:var(--mu2);line-height:1.6}
+.wfoot strong{color:var(--mu)}.wfoot a{color:var(--cy);text-decoration:none}
+
+/* ── HEADER ── */
+header{background:var(--s1);border-bottom:1px solid var(--b1);padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100}
+.hlogo{display:flex;align-items:center;gap:11px}
+.hic{width:32px;height:32px;background:linear-gradient(135deg,#06B6D4,#0891B2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 0 14px rgba(6,182,212,.3)}
+.hn{font-size:.9rem;font-weight:800;color:var(--tx);line-height:1}
+.hn em{color:var(--cy);font-style:normal}
+.hs{font-size:.56rem;color:var(--mu)}
+.hright{display:flex;align-items:center;gap:8px}
+.emp-badge{display:flex;align-items:center;gap:7px;background:var(--s2);border:1px solid var(--b1);border-radius:20px;padding:4px 12px;font-size:.66rem;font-weight:600}
+.emp-badge img{height:17px;object-fit:contain}
+.hver{font-size:.58rem;color:var(--mu2);border:1px solid var(--b1);padding:2px 6px;border-radius:20px}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;background:var(--s1);border-bottom:1px solid var(--b1);padding:8px 22px 0;overflow-x:auto}
+.tab{padding:9px 15px;background:transparent;border:none;color:var(--mu);font-family:'Outfit',sans-serif;font-size:.74rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .14s}
+.tab.on{color:var(--cy);border-bottom-color:var(--cy)}
+.tab:hover:not(.on){color:var(--tx)}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 80px}
+.sec{display:none;animation:fi .17s ease}.sec.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ── CARD ── */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:16px;margin-bottom:12px}
+.card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-t{font-size:.84rem;font-weight:700;display:flex;align-items:center;gap:7px}
+
+/* ── KPI ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:var(--s1);border:1px solid var(--b1);border-radius:13px;padding:14px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.cy::before{background:var(--cy)}.kpi.gr::before{background:var(--gr)}
+.kpi.re::before{background:var(--re)}.kpi.ye::before{background:var(--ye)}
+.kpi.bl::before{background:var(--bl)}.kpi.pu::before{background:var(--pu)}
+.kv{font-size:1.5rem;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
+.kl{font-size:.62rem;color:var(--mu);margin-top:4px}
+.ks{font-size:.64rem;margin-top:3px}
+
+/* ── FORM ── */
+.fg{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px}
+.f{flex:1;min-width:110px;display:flex;flex-direction:column;gap:3px}
+.f label{font-size:.6rem;color:var(--mu);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+input[type=text],input[type=number],input[type=date],input[type=datetime-local],select,textarea{width:100%;padding:8px 10px;background:var(--s2);border:1.5px solid var(--b1);border-radius:8px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.8rem;transition:border-color .14s;-webkit-appearance:none;outline:none;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--cy);background:var(--s3)}
+input::placeholder,textarea::placeholder{color:var(--mu2)}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 14px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .13s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.bcy{background:linear-gradient(135deg,#06B6D4,#0891B2);color:#fff}.bcy:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(6,182,212,.3)}
+.bgr{background:var(--grb);color:var(--gr);border:1px solid rgba(34,197,94,.25)}.bgr:hover{background:rgba(34,197,94,.18)}
+.bbl{background:var(--blb);color:var(--bl);border:1px solid rgba(59,130,246,.25)}.bbl:hover{background:rgba(59,130,246,.18)}
+.bgh{background:var(--s2);color:var(--tx);border:1px solid var(--b1)}.bgh:hover{border-color:var(--b2)}
+.bre{background:var(--reb);color:var(--re);border:1px solid rgba(239,68,68,.2);padding:5px 9px}.bre:hover{background:rgba(239,68,68,.18)}
+.bye{background:var(--yeb);color:var(--ye);border:1px solid rgba(245,158,11,.25)}.bye:hover{background:rgba(245,158,11,.18)}
+
+/* ── TABELA ── */
+.tbl{width:100%;border-collapse:collapse;font-size:.77rem}
+.tbl th{background:var(--s2);padding:8px 10px;text-align:left;font-size:.6rem;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--b1);white-space:nowrap}
+.tbl td{padding:7px 10px;border-bottom:1px solid var(--b1);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.012)}
+
+/* ── PRIORIDADE ── */
+.p1{background:rgba(239,68,68,.15);color:#EF4444;border:1px solid rgba(239,68,68,.4);font-size:.62rem;font-weight:800;padding:3px 9px;border-radius:20px}
+.p2{background:rgba(245,158,11,.15);color:#F59E0B;border:1px solid rgba(245,158,11,.4);font-size:.62rem;font-weight:800;padding:3px 9px;border-radius:20px}
+.p3{background:rgba(59,130,246,.12);color:#3B82F6;border:1px solid rgba(59,130,246,.35);font-size:.62rem;font-weight:800;padding:3px 9px;border-radius:20px}
+.st-aberto{background:var(--reb);color:var(--re);font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px}
+.st-andamento{background:var(--yeb);color:var(--ye);font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px}
+.st-resolvido{background:var(--grb);color:var(--gr);font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px}
+.st-fechado{background:var(--cyb);color:var(--cy);font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px}
+.sla-ok{color:var(--gr);font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700}
+.sla-risco{color:var(--ye);font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700}
+.sla-estourado{color:var(--re);font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700}
+
+/* ── UPTIME BAR ── */
+.uptime-bar{background:var(--s2);border-radius:20px;height:8px;overflow:hidden;margin-top:5px}
+.uptime-fill{height:100%;border-radius:20px;transition:width .4s}
+
+/* ── TUTORIAL ── */
+.tov{position:fixed;inset:0;background:rgba(7,8,13,.95);z-index:8888;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.tov.on{display:flex}
+.tbox{background:var(--s1);border:1px solid var(--b1);border-radius:17px;padding:26px;max-width:680px;width:100%;max-height:90vh;overflow-y:auto}
+.tbox h3{font-size:.95rem;font-weight:800;margin-bottom:3px}
+.tsub{font-size:.72rem;color:var(--mu);margin-bottom:16px;line-height:1.5}
+.tstep{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;margin-bottom:8px}
+.tsn{width:26px;height:26px;background:linear-gradient(135deg,#06B6D4,#0891B2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;color:#fff;flex-shrink:0}
+.tsb h4{font-size:.78rem;font-weight:800;color:var(--tx);margin-bottom:3px}
+.tsb p{font-size:.7rem;color:var(--mu);line-height:1.55;margin:0}
+.tsb code{background:var(--bg);border:1px solid var(--b1);border-radius:3px;padding:1px 5px;font-size:.65rem;color:var(--cy)}
+.ttip{background:var(--cyb);border:1px solid rgba(6,182,212,.2);border-radius:7px;padding:8px 11px;font-size:.7rem;color:var(--cy);line-height:1.5;margin:10px 0 14px}
+.tclose{width:100%;padding:9px;background:linear-gradient(135deg,#06B6D4,#0891B2);color:#fff;border:none;border-radius:7px;font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer}
+
+/* ── TOAST / FOOTER ── */
+#tst{position:fixed;bottom:18px;right:14px;background:var(--s2);border:1px solid var(--b2);border-radius:9px;padding:8px 14px;font-size:.74rem;font-weight:600;transform:translateY(55px);opacity:0;transition:all .2s;z-index:9999;max-width:280px;pointer-events:none;color:var(--tx)}
+#tst.on{transform:translateY(0);opacity:1}
+footer{position:fixed;bottom:0;left:0;right:0;background:var(--s1);border-top:1px solid var(--b1);padding:7px 22px;display:flex;align-items:center;justify-content:space-between;font-size:.58rem;color:var(--mu);z-index:100;flex-wrap:wrap;gap:4px}
+footer strong{color:var(--mu2)}
+footer a{color:var(--cy);text-decoration:none;font-weight:600}
+footer button{background:var(--cyb);border:1px solid rgba(6,182,212,.2);color:var(--cy);border-radius:5px;padding:3px 8px;font-size:.57rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif}
+.mono{font-family:'JetBrains Mono',monospace;font-size:.76rem}
+.empty-st{text-align:center;padding:24px;color:var(--mu);font-size:.78rem}
+.empty-st .ei{font-size:1.8rem;margin-bottom:6px}
+.exp-row{display:flex;gap:8px;flex-wrap:wrap}
+
+@media(max-width:600px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .fg{flex-direction:column}
+  .tab{font-size:.64rem;padding:7px 9px}
+  footer{flex-direction:column;gap:2px;text-align:center}
+}
+</style>
+<script>
+(function(){
+  var cfg = JSON.parse(localStorage.getItem('noc_cfg')||'null');
+  if(cfg && cfg.nome) return;
+  localStorage.setItem('noc_cfg', JSON.stringify({
+    nome:'TI Soluções Belém LTDA', cnpj:'98.765.432/0001-10',
+    resp:'João Gomes', tel:'(91) 99987-9932',
+    email:'contato@tisolucoes.com.br',
+    sla1:4, sla2:8, sla3:24, slaMeta:98, logo:''
+  }));
+  localStorage.setItem('noc_data', JSON.stringify({
+    clientes:[
+      {id:1,nome:'Supermercado São João',cnpj:'11.222.333/0001-44',contato:'Marcos Oliveira',tel:'(91) 98888-1111',email:'ti@saojao.com.br',contrato:'Mensal',servico:'TI Gerenciada'},
+      {id:2,nome:'Distribuidora Norte',cnpj:'22.333.444/0001-55',contato:'Ana Paula',tel:'(91) 98888-2222',email:'suporte@distnorte.com.br',contrato:'Mensal',servico:'Suporte Técnico'},
+      {id:3,nome:'Atacadão Belém',cnpj:'33.444.555/0001-66',contato:'Roberto Silva',tel:'(91) 98888-3333',email:'ti@atacadao.com.br',contrato:'Anual',servico:'Internet'}
+    ],
+    chamados:[
+      {id:101,num:'CH0001',cliId:1,cliNome:'Supermercado São João',prioridade:'p1',categoria:'Internet',descricao:'Internet caiu no caixa principal — sistema de pagamento parado',tecnico:'João Gomes',contato:'Marcos (91) 98888-1111',abertura:new Date(Date.now()-2*3600000).toISOString(),status:'andamento',solucao:'',resolvidoEm:null},
+      {id:102,num:'CH0002',cliId:2,cliNome:'Distribuidora Norte',prioridade:'p2',categoria:'Email',descricao:'E-mail do gerente não está enviando mensagens desde ontem',tecnico:'João Gomes',contato:'Ana Paula',abertura:new Date(Date.now()-5*3600000).toISOString(),status:'aberto',solucao:'',resolvidoEm:null},
+      {id:103,num:'CH0003',cliId:3,cliNome:'Atacadão Belém',prioridade:'p3',categoria:'Hardware',descricao:'Impressora do estoque travando ao imprimir etiquetas',tecnico:'Carlos',contato:'Roberto',abertura:new Date(Date.now()-28*3600000).toISOString(),status:'resolvido',solucao:'Substituído cabo USB e reinstalado driver. Impressora funcionando normalmente.',resolvidoEm:new Date(Date.now()-24*3600000).toISOString()},
+      {id:104,num:'CH0004',cliId:1,cliNome:'Supermercado São João',prioridade:'p2',categoria:'Software',descricao:'Sistema de PDV travando no fechamento do caixa',tecnico:'João Gomes',contato:'Marcos',abertura:new Date(Date.now()-3*24*3600000).toISOString(),status:'fechado',solucao:'Atualizado o sistema PDV para versão 4.2.1 e limpado cache do banco de dados.',resolvidoEm:new Date(Date.now()-2*24*3600000).toISOString()}
+    ],
+    manutencoes:[
+      {id:201,cliId:1,cliNome:'Supermercado São João',tipo:'Atualização',inicio:new Date(Date.now()+2*24*3600000).toISOString().slice(0,16),fim:new Date(Date.now()+2*24*3600000+2*3600000).toISOString().slice(0,16),desc:'Atualização do firewall e sistema de backup — indisponibilidade de 2h às 02h',resp:'João Gomes',status:'agendada'}
+    ],
+    base:[
+      {id:301,categoria:'Internet',titulo:'Internet caindo a cada 30 minutos',solucao:'1. Reiniciar o roteador (aguardar 2 min)\n2. Verificar cabo entre roteador e ONU\n3. Se persistir, acessar portal da operadora e verificar sinal\n4. Contato nível 2: (91) 3333-0000',data:'15/04/2026'},
+      {id:302,categoria:'Email',titulo:'Outlook não consegue enviar e-mails',solucao:'1. Verificar senha do e-mail (pode ter expirado)\n2. Desabilitar e reabilitar a conta no Outlook\n3. Verificar se antivírus está bloqueando porta 587\n4. Reconfigurar SMTP: smtp.gmail.com porta 587 TLS',data:'20/04/2026'}
+    ],
+    seqChamado:5
+  }));
+})();
+</script>
+</head>
+<body>
+<div style="position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#F59E0B,#EF4444);color:#000;text-align:center;font-size:.7rem;font-weight:800;padding:5px;z-index:99999;letter-spacing:.5px">
+⚡ VERSÃO DEMO — Dados fictícios para demonstração &nbsp;·&nbsp; Adquira pelo WhatsApp: (91) 99987-9932
+</div>
+<div style="height:25px"></div>
+<div id="tst"></div>
+
+<!-- WELCOME -->
+<div class="wov" id="wov">
+  <div class="wbox">
+    <div class="wic">🖥️</div>
+    <h2>NOC<em>Fácil</em></h2>
+    <p class="wsub">Gestão de Chamados, SLA e Relatório para o Cliente<br>Para provedores de TI, internet e suporte técnico</p>
+    <div class="wgrid">
+      <div class="wslbl">🏢 Sua Empresa de TI</div>
+      <div class="wf full"><label>Nome da Empresa *</label><input id="wn" type="text" placeholder="Ex: TI Soluções João LTDA" oninput="chkW()"></div>
+      <div class="wf"><label>CNPJ</label><input id="wc" type="text" placeholder="00.000.000/0001-00" oninput="mCNPJ(this)"></div>
+      <div class="wf"><label>Responsável Técnico</label><input id="wresp" type="text" placeholder="Nome do responsável"></div>
+      <div class="wf"><label>Telefone / WhatsApp</label><input id="wtel" type="text" placeholder="(91) 99999-9999"></div>
+      <div class="wf"><label>E-mail</label><input id="wemail" type="text" placeholder="contato@suaempresa.com.br"></div>
+      <div class="wslbl">⏱️ Tempo de SLA por Prioridade</div>
+      <div class="wf">
+        <label>🔴 P1 — Crítico (horas)</label>
+        <select id="wsla1"><option value="1">1 hora</option><option value="2">2 horas</option><option value="4" selected>4 horas</option><option value="8">8 horas</option></select>
+      </div>
+      <div class="wf">
+        <label>🟡 P2 — Urgente (horas)</label>
+        <select id="wsla2"><option value="4">4 horas</option><option value="8" selected>8 horas</option><option value="12">12 horas</option><option value="24">24 horas</option></select>
+      </div>
+      <div class="wf">
+        <label>🔵 P3 — Normal (horas)</label>
+        <select id="wsla3"><option value="8">8 horas</option><option value="24" selected>24 horas</option><option value="48">48 horas</option><option value="72">72 horas</option></select>
+      </div>
+      <div class="wf">
+        <label>Meta de SLA a cumprir %</label>
+        <select id="wslameta"><option value="95">95%</option><option value="98" selected>98%</option><option value="99">99%</option><option value="100">100%</option></select>
+      </div>
+      <div class="wslbl">🖼️ Logo da Empresa</div>
+      <label class="wlup" for="wlogo"><input type="file" id="wlogo" accept="image/*" onchange="pLogo(this)">
+        <div style="font-size:1.2rem;margin-bottom:3px">🖼️</div>
+        <div style="font-size:.72rem;font-weight:600;color:var(--tx)">Clique para adicionar sua logo</div>
+        <div style="font-size:.6rem;color:var(--mu)">Aparece nos relatórios para o cliente</div>
+      </label>
+      <div class="wlprev" id="wlprev"><img id="wlimg" src="" alt=""><span id="wlfn"></span><button onclick="rLogo()">✕</button></div>
+    </div>
+    <button class="wbtn" id="wbtn" onclick="startApp()" disabled>Entrar no Sistema →</button>
+    <div class="wfoot"><strong>NOCFácil v1.0</strong> — Gestão de Chamados e SLA<br>Desenvolvido por <strong>João Gomes</strong> · <a href="https://wa.me/5591999879932" target="_blank">📱 (91) 99987-9932</a></div>
+  </div>
+</div>
+
+<!-- TUTORIAL -->
+<div class="tov" id="tov">
+  <div class="tbox">
+    <h3>📖 Como usar o NOCFácil — Guia Simples</h3>
+    <p class="tsub">Tudo explicado sem termos técnicos. Basta seguir os passos.</p>
+
+    <div class="tstep"><div class="tsn">1</div><div class="tsb">
+      <h4>O que é um "Chamado"?</h4>
+      <p>Chamado é qualquer problema que o seu cliente reportar — a internet caiu, o sistema travou, o computador não liga. Cada problema vira um chamado com número e prazo para resolver.</p>
+    </div></div>
+
+    <div class="tstep"><div class="tsn">2</div><div class="tsb">
+      <h4>Cadastre seus Clientes primeiro — aba Clientes</h4>
+      <p>Antes de abrir chamados, cadastre cada empresa ou pessoa que você atende. Coloque o nome, contato e contrato. Isso faz o relatório mensal sair com o nome certo do cliente.</p>
+    </div></div>
+
+    <div class="tstep"><div class="tsn">3</div><div class="tsb">
+      <h4>Abra um Chamado — aba Chamados</h4>
+      <p>Quando um cliente ligar com problema, clique em <code>+ Abrir Chamado</code>. Escolha:<br>
+      🔴 <strong>P1 Crítico</strong> — sistema totalmente fora do ar<br>
+      🟡 <strong>P2 Urgente</strong> — sistema lento ou parcialmente parado<br>
+      🔵 <strong>P3 Normal</strong> — problema pequeno, não urgente<br>
+      O app já começa a contar o tempo automaticamente.</p>
+    </div></div>
+
+    <div class="tstep"><div class="tsn">4</div><div class="tsb">
+      <h4>O que é SLA?</h4>
+      <p>SLA é o prazo que você prometeu para resolver o problema. Por exemplo: <em>"problemas críticos resolvidos em até 4 horas"</em>. O app avisa quando o prazo está próximo de acabar (🟡) e quando estourou (🔴). Isso ajuda você a não esquecer nenhum chamado aberto.</p>
+    </div></div>
+
+    <div class="tstep"><div class="tsn">5</div><div class="tsb">
+      <h4>Atualize e Resolva o Chamado</h4>
+      <p>Conforme você for trabalhando no problema, mude o status:<br>
+      <code>Em Andamento</code> → quando já começou a resolver<br>
+      <code>Resolvido</code> → quando o problema foi resolvido<br>
+      <code>Fechado</code> → quando o cliente confirmou<br>
+      Sempre escreva o que foi feito no campo <strong>Solução</strong>.</p>
+    </div></div>
+
+    <div class="tstep"><div class="tsn">6</div><div class="tsb">
+      <h4>Uptime — O que é?</h4>
+      <p>Uptime é a porcentagem de tempo que o sistema do cliente ficou funcionando. 100% = sem nenhuma queda. 99% = ficou fora cerca de 7 horas no mês. O app calcula automaticamente com base nos chamados resolvidos.</p>
+    </div></div>
+
+    <div class="tstep"><div class="tsn">7</div><div class="tsb">
+      <h4>Gere o Relatório Mensal para o Cliente — aba Relatório</h4>
+      <p>No final do mês, selecione o cliente e clique em <code>📄 Gerar Relatório PDF</code>. Sai um documento profissional mostrando: quantos chamados teve, quanto tempo levou para resolver, % do SLA cumprido e uptime do mês. O cliente vê que você está trabalhando!</p>
+    </div></div>
+
+    <div class="tstep"><div class="tsn">8</div><div class="tsb">
+      <h4>Base de Conhecimento — aba Soluções</h4>
+      <p>Sempre que resolver um problema que pode voltar a acontecer, salve a solução na Base de Conhecimento. Na próxima vez que o mesmo problema aparecer, você resolve em minutos consultando o que foi feito antes.</p>
+    </div></div>
+
+    <div class="ttip">💡 <strong>Dica principal:</strong> não deixe chamados abertos sem atualização por mais de 2 horas. O cliente fica mais tranquilo quando vê que alguém está trabalhando no problema, mesmo que ainda não tenha resolução.</div>
+    <button class="tclose" onclick="document.getElementById('tov').classList.remove('on')">✓ Entendido — Fechar Tutorial</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="hlogo">
+    <div class="hic">🖥️</div>
+    <div><div class="hn">NOC<em>Fácil</em></div><div class="hs">Gestão de Chamados e SLA</div></div>
+  </div>
+  <div class="hright">
+    <div class="emp-badge" id="emp-badge"><span id="emp-h">—</span></div>
+    <span class="hver">v1.0</span>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab on" onclick="goTab('dash',this)">📊 Dashboard</button>
+  <button class="tab" onclick="goTab('cham',this)">🎫 Chamados</button>
+  <button class="tab" onclick="goTab('cli',this)">👥 Clientes</button>
+  <button class="tab" onclick="goTab('manut',this)">🔧 Manutenções</button>
+  <button class="tab" onclick="goTab('base',this)">📚 Base de Soluções</button>
+  <button class="tab" onclick="goTab('rel',this)">📄 Relatório</button>
+  <button class="tab" onclick="goTab('tut',this)">📖 Tutorial</button>
+</div>
+
+<div class="wrap">
+
+  <!-- ══ DASHBOARD ══ -->
+  <div id="sec-dash" class="sec on">
+    <div class="kpi-grid">
+      <div class="kpi re"><div class="kv" id="kpi-abertos">0</div><div class="kl">🎫 Chamados Abertos</div></div>
+      <div class="kpi ye"><div class="kv" id="kpi-andamento">0</div><div class="kl">⚙️ Em Andamento</div></div>
+      <div class="kpi gr"><div class="kv" id="kpi-resolvidos">0</div><div class="kl">✅ Resolvidos Hoje</div></div>
+      <div class="kpi cy"><div class="kv" id="kpi-sla">0%</div><div class="kl">📊 SLA Cumprido</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">
+      <div class="kpi re"><div class="kv" id="kpi-p1" style="color:var(--re)">0</div><div class="kl">🔴 P1 Críticos em aberto</div></div>
+      <div class="kpi ye"><div class="kv" id="kpi-p2" style="color:var(--ye)">0</div><div class="kl">🟡 P2 Urgentes em aberto</div></div>
+      <div class="kpi bl"><div class="kv" id="kpi-p3" style="color:var(--bl)">0</div><div class="kl">🔵 P3 Normais em aberto</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="card">
+        <div class="card-h"><div class="card-t">🚨 Chamados com SLA em Risco</div></div>
+        <div id="dash-risco"><div class="empty-st"><div class="ei">✅</div>Nenhum chamado em risco no momento</div></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div class="card-t">📈 Uptime por Cliente</div></div>
+        <div id="dash-uptime"><div class="empty-st"><div class="ei">📈</div>Cadastre clientes para ver o uptime</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CHAMADOS ══ -->
+  <div id="sec-cham" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">➕ Abrir Novo Chamado</div></div>
+      <div class="fg">
+        <div class="f" style="flex:2"><label>Cliente *</label>
+          <select id="ch-cli"><option value="">Selecione o cliente...</option></select>
+        </div>
+        <div class="f"><label>Prioridade *</label>
+          <select id="ch-pri">
+            <option value="p1">🔴 P1 — Crítico (sistema totalmente fora)</option>
+            <option value="p2">🟡 P2 — Urgente (sistema parcialmente fora)</option>
+            <option value="p3" selected>🔵 P3 — Normal (problema pequeno)</option>
+          </select>
+        </div>
+        <div class="f"><label>Categoria</label>
+          <select id="ch-cat">
+            <option value="Internet">🌐 Internet / Conectividade</option>
+            <option value="Servidor">🖥️ Servidor / Sistema</option>
+            <option value="Email">📧 E-mail</option>
+            <option value="Hardware">💻 Hardware / Equipamento</option>
+            <option value="Software">📦 Software / Aplicativo</option>
+            <option value="Rede">🔌 Rede Interna</option>
+            <option value="Outros">📋 Outros</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <div class="f" style="flex:2"><label>Descrição do Problema *</label>
+          <input id="ch-desc" type="text" placeholder="Descreva o que está acontecendo. Ex: Internet caiu no setor financeiro">
+        </div>
+        <div class="f"><label>Técnico Responsável</label>
+          <input id="ch-tec" type="text" placeholder="Nome do técnico">
+        </div>
+        <div class="f"><label>Contato do Cliente</label>
+          <input id="ch-cont" type="text" placeholder="Nome / telefone de quem abriu">
+        </div>
+      </div>
+      <button class="btn bcy" onclick="abrirChamado()">🎫 Abrir Chamado</button>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">Todos os Chamados <span id="cham-count" style="font-size:.62rem;padding:2px 7px;border-radius:20px;background:var(--cyb);color:var(--cy);font-weight:700">0</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <select id="filtro-status" onchange="renderChamados()" style="font-size:.7rem;padding:5px 8px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;color:var(--tx)">
+            <option value="">Todos Status</option>
+            <option value="aberto">Abertos</option>
+            <option value="andamento">Em Andamento</option>
+            <option value="resolvido">Resolvidos</option>
+            <option value="fechado">Fechados</option>
+          </select>
+          <select id="filtro-pri" onchange="renderChamados()" style="font-size:.7rem;padding:5px 8px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;color:var(--tx)">
+            <option value="">Todas Prioridades</option>
+            <option value="p1">🔴 P1 Crítico</option>
+            <option value="p2">🟡 P2 Urgente</option>
+            <option value="p3">🔵 P3 Normal</option>
+          </select>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Cliente</th><th>Problema</th><th>Categoria</th><th>Prioridade</th><th>Abertura</th><th>SLA</th><th>Status</th><th>Técnico</th><th>Ações</th></tr></thead>
+          <tbody id="tbody-cham"><tr><td colspan="10"><div class="empty-st"><div class="ei">🎫</div>Nenhum chamado aberto ainda</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MODAL DETALHE CHAMADO -->
+    <div id="modal-cham" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;align-items:center;justify-content:center;padding:16px">
+      <div style="background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:22px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-size:.88rem;font-weight:800" id="modal-title">Chamado #0000</div>
+          <button class="btn bre" onclick="fecharModal()">✕ Fechar</button>
+        </div>
+        <div id="modal-info" style="margin-bottom:14px"></div>
+        <div class="fg" style="margin-bottom:10px">
+          <div class="f"><label>Atualizar Status</label>
+            <select id="modal-status">
+              <option value="aberto">🔴 Aberto</option>
+              <option value="andamento">🟡 Em Andamento</option>
+              <option value="resolvido">✅ Resolvido</option>
+              <option value="fechado">🔵 Fechado</option>
+            </select>
+          </div>
+          <div class="f"><label>Técnico</label><input id="modal-tec" type="text" placeholder="Nome do técnico"></div>
+        </div>
+        <div class="f" style="margin-bottom:10px"><label>Solução / O que foi feito</label>
+          <textarea id="modal-sol" placeholder="Descreva o que foi feito para resolver o problema..." style="min-height:80px"></textarea>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn bcy" onclick="salvarModal()">💾 Salvar Atualização</button>
+          <button class="btn bgr" onclick="salvarBaseConhecimento()" id="btn-base" style="display:none">📚 Salvar na Base de Soluções</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CLIENTES ══ -->
+  <div id="sec-cli" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">➕ Cadastrar Cliente</div></div>
+      <div class="fg">
+        <div class="f" style="flex:2"><label>Nome da Empresa *</label><input id="cl-nome" type="text" placeholder="Ex: Empresa do João LTDA"></div>
+        <div class="f"><label>CNPJ</label><input id="cl-cnpj" type="text" placeholder="00.000.000/0001-00" oninput="mCNPJ(this)"></div>
+        <div class="f"><label>Contato Principal</label><input id="cl-cont" type="text" placeholder="Nome do responsável"></div>
+      </div>
+      <div class="fg">
+        <div class="f"><label>Telefone</label><input id="cl-tel" type="text" placeholder="(91) 99999-9999"></div>
+        <div class="f"><label>E-mail</label><input id="cl-email" type="text" placeholder="contato@empresa.com"></div>
+        <div class="f"><label>Tipo de Contrato</label>
+          <select id="cl-contrato">
+            <option value="Mensal">Mensal</option>
+            <option value="Anual">Anual</option>
+            <option value="Avulso">Avulso (sem contrato)</option>
+          </select>
+        </div>
+        <div class="f"><label>Serviço Prestado</label>
+          <select id="cl-serv">
+            <option value="Internet">🌐 Provedor de Internet</option>
+            <option value="TI Gerenciada">🖥️ TI Gerenciada</option>
+            <option value="Suporte Técnico">🔧 Suporte Técnico</option>
+            <option value="Cloud">☁️ Cloud / Hospedagem</option>
+            <option value="Misto">📋 Misto</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn bcy" onclick="addCliente()">➕ Cadastrar</button>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">Clientes Cadastrados <span id="cli-count" style="font-size:.62rem;padding:2px 7px;border-radius:20px;background:var(--cyb);color:var(--cy);font-weight:700">0</span></div></div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>Empresa</th><th>Contato</th><th>Telefone</th><th>Serviço</th><th>Contrato</th><th>Chamados</th><th>Uptime</th><th>Ações</th></tr></thead>
+          <tbody id="tbody-cli"><tr><td colspan="8"><div class="empty-st"><div class="ei">👥</div>Nenhum cliente cadastrado ainda</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MANUTENÇÕES ══ -->
+  <div id="sec-manut" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">🔧 Agendar Manutenção</div></div>
+      <p style="font-size:.76rem;color:var(--mu);margin-bottom:14px;line-height:1.55">
+        Manutenção é quando você precisa desligar ou reiniciar um sistema do cliente de forma <strong>planejada</strong>. Agendar ajuda a avisar o cliente com antecedência e não contar como chamado de problema.
+      </p>
+      <div class="fg">
+        <div class="f" style="flex:2"><label>Cliente *</label>
+          <select id="mn-cli"><option value="">Selecione o cliente...</option></select>
+        </div>
+        <div class="f"><label>Tipo de Manutenção</label>
+          <select id="mn-tipo">
+            <option value="Atualização">💾 Atualização de Sistema</option>
+            <option value="Backup">📦 Backup / Restauração</option>
+            <option value="Rede">🔌 Manutenção de Rede</option>
+            <option value="Servidor">🖥️ Manutenção de Servidor</option>
+            <option value="Preventiva">🔧 Manutenção Preventiva</option>
+            <option value="Outros">📋 Outros</option>
+          </select>
+        </div>
+        <div class="f"><label>Data e Hora Início *</label><input id="mn-inicio" type="datetime-local"></div>
+        <div class="f"><label>Data e Hora Fim *</label><input id="mn-fim" type="datetime-local"></div>
+      </div>
+      <div class="fg">
+        <div class="f" style="flex:2"><label>Descrição *</label><input id="mn-desc" type="text" placeholder="Ex: Atualização do firewall — sistema ficará indisponível por 30 min"></div>
+        <div class="f"><label>Responsável</label><input id="mn-resp" type="text" placeholder="Nome do técnico"></div>
+      </div>
+      <button class="btn bcy" onclick="addManut()">🔧 Agendar Manutenção</button>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">📅 Manutenções Agendadas</div></div>
+      <div id="manut-list"><div class="empty-st"><div class="ei">🔧</div>Nenhuma manutenção agendada</div></div>
+    </div>
+  </div>
+
+  <!-- ══ BASE DE SOLUÇÕES ══ -->
+  <div id="sec-base" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">📚 Base de Conhecimento — Soluções Salvas</div></div>
+      <p style="font-size:.76rem;color:var(--mu);margin-bottom:14px;line-height:1.55">
+        Aqui ficam salvas as soluções de problemas que já foram resolvidos. Na próxima vez que aparecer o mesmo problema, consulte aqui e resolva em minutos. As soluções são adicionadas automaticamente quando você marca um chamado como resolvido.
+      </p>
+      <div class="fg" style="margin-bottom:10px">
+        <div class="f"><label>Buscar solução</label><input id="base-busca" type="text" placeholder="Digite o problema que está procurando..." oninput="renderBase()"></div>
+      </div>
+    </div>
+    <div id="base-list"><div class="empty-st"><div class="ei">📚</div>Nenhuma solução salva ainda. Elas aparecerão aqui conforme você resolver chamados.</div></div>
+    <div style="margin-top:12px">
+      <div class="card">
+        <div class="card-h"><div class="card-t">➕ Adicionar Solução Manualmente</div></div>
+        <div class="fg">
+          <div class="f"><label>Categoria do Problema</label>
+            <select id="bs-cat">
+              <option value="Internet">🌐 Internet</option><option value="Servidor">🖥️ Servidor</option>
+              <option value="Email">📧 E-mail</option><option value="Hardware">💻 Hardware</option>
+              <option value="Software">📦 Software</option><option value="Rede">🔌 Rede</option>
+            </select>
+          </div>
+          <div class="f" style="flex:2"><label>Título do Problema *</label><input id="bs-titulo" type="text" placeholder="Ex: Internet caindo a cada 30 minutos"></div>
+        </div>
+        <div class="f" style="margin-bottom:10px"><label>Como Resolver (passo a passo) *</label>
+          <textarea id="bs-sol" placeholder="Descreva o passo a passo da solução..." style="min-height:80px"></textarea>
+        </div>
+        <button class="btn bcy" onclick="addBase()">📚 Salvar na Base</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RELATÓRIO ══ -->
+  <div id="sec-rel" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">📄 Gerar Relatório Mensal para o Cliente</div></div>
+      <p style="font-size:.76rem;color:var(--mu);margin-bottom:14px;line-height:1.55">
+        Selecione o cliente e o mês. O sistema monta automaticamente um relatório profissional com todos os chamados, tempo de resolução, % de SLA cumprido e uptime. Perfeito para enviar por e-mail ou entregar impresso.
+      </p>
+      <div class="fg">
+        <div class="f"><label>Cliente *</label>
+          <select id="rel-cli"><option value="">Selecione o cliente...</option></select>
+        </div>
+        <div class="f"><label>Mês</label>
+          <select id="rel-mes"><option>Janeiro</option><option>Fevereiro</option><option>Março</option><option>Abril</option><option selected>Maio</option><option>Junho</option><option>Julho</option><option>Agosto</option><option>Setembro</option><option>Outubro</option><option>Novembro</option><option>Dezembro</option></select>
+        </div>
+        <div class="f"><label>Ano</label><input id="rel-ano" type="number" value="2026"></div>
+      </div>
+      <div id="rel-preview" style="margin:14px 0"></div>
+      <div class="exp-row">
+        <button class="btn bcy" onclick="previewRel()">👁️ Visualizar</button>
+        <button class="btn bgr" onclick="expRelPDF()">📄 Gerar PDF</button>
+        <button class="btn bbl" onclick="expRelXLS()">📊 Exportar Excel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TUTORIAL ══ -->
+  <div id="sec-tut" class="sec">
+    <div class="card" style="text-align:center;padding:28px">
+      <div style="font-size:2rem;margin-bottom:10px">📖</div>
+      <div style="font-size:.9rem;font-weight:700;margin-bottom:6px">Tutorial Completo — Tudo Explicado Sem Termos Técnicos</div>
+      <div style="font-size:.76rem;color:var(--mu);margin-bottom:18px">Do cadastro do cliente até o relatório mensal — passo a passo simples</div>
+      <button class="btn bcy" onclick="document.getElementById('tov').classList.add('on')" style="margin:0 auto">📖 Abrir Tutorial</button>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">📋 Guia de Prioridades — Quando usar cada uma?</div></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+        <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:14px">
+          <div style="font-size:.9rem;margin-bottom:6px">🔴</div>
+          <div style="font-size:.8rem;font-weight:800;color:var(--re);margin-bottom:6px">P1 — Crítico</div>
+          <div style="font-size:.7rem;color:var(--mu);line-height:1.6">✔ Internet totalmente fora<br>✔ Servidor principal caído<br>✔ Sistema financeiro parado<br>✔ Não tem acesso a nada<br><br><strong style="color:var(--re)">SLA: resolver em até 4h</strong></div>
+        </div>
+        <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:14px">
+          <div style="font-size:.9rem;margin-bottom:6px">🟡</div>
+          <div style="font-size:.8rem;font-weight:800;color:var(--ye);margin-bottom:6px">P2 — Urgente</div>
+          <div style="font-size:.7rem;color:var(--mu);line-height:1.6">✔ Internet lenta<br>✔ Um setor sem acesso<br>✔ Sistema lento<br>✔ E-mail com problema<br><br><strong style="color:var(--ye)">SLA: resolver em até 8h</strong></div>
+        </div>
+        <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:14px">
+          <div style="font-size:.9rem;margin-bottom:6px">🔵</div>
+          <div style="font-size:.8rem;font-weight:800;color:var(--bl);margin-bottom:6px">P3 — Normal</div>
+          <div style="font-size:.7rem;color:var(--mu);line-height:1.6">✔ Computador lento<br>✔ Impressora com problema<br>✔ Dúvida de uso<br>✔ Pedido de instalação<br><br><strong style="color:var(--bl)">SLA: resolver em até 24h</strong></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="text-align:center;padding:22px">
+      <div style="font-size:1.2rem;margin-bottom:5px">💬</div>
+      <div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Suporte com o Desenvolvedor</div>
+      <div style="font-size:.74rem;color:var(--mu);margin-bottom:14px">Dúvidas, ajustes ou sugestões</div>
+      <a href="https://wa.me/5591999879932" target="_blank" class="btn bcy" style="text-decoration:none;margin:0 auto">💬 João Gomes · (91) 99987-9932</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div><strong>NOCFácil v1.0</strong> &nbsp;·&nbsp; Gestão de Chamados e SLA</div>
+  <button onclick="document.getElementById('tov').classList.add('on')">📖 Tutorial</button>
+  <div>Desenvolvido por <strong>João Gomes</strong> &nbsp;·&nbsp; <a href="https://wa.me/5591999879932" target="_blank">📱 (91) 99987-9932</a></div>
+</footer>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────
+var cfg={nome:'',cnpj:'',resp:'',tel:'',email:'',sla1:4,sla2:8,sla3:24,slaMeta:98,logo:''};
+var clientes=[],chamados=[],manutencoes=[],base=[];
+var chamadoAtual=null;
+var _logo='';
+var seqChamado=1;
+
+// ── WELCOME ────────────────────────────────────────────────
+function chkW(){document.getElementById('wbtn').disabled=document.getElementById('wn').value.trim().length<2;}
+function mCNPJ(el){var v=el.value.replace(/\D/g,'').slice(0,14);if(v.length>12)v=v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/,'$1.$2.$3/$4-$5');else if(v.length>8)v=v.replace(/(\d{2})(\d{3})(\d{3})(\d{0,4})/,'$1.$2.$3/$4');else if(v.length>5)v=v.replace(/(\d{2})(\d{3})(\d{0,3})/,'$1.$2.$3');else if(v.length>2)v=v.replace(/(\d{2})(\d{0,3})/,'$1.$2');el.value=v;}
+function pLogo(inp){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){document.getElementById('wlimg').src=e.target.result;document.getElementById('wlfn').textContent=f.name;document.getElementById('wlprev').style.display='flex';_logo=e.target.result;};r.readAsDataURL(f);}
+function rLogo(){document.getElementById('wlprev').style.display='none';document.getElementById('wlogo').value='';_logo='';}
+function startApp(){
+  cfg.nome=document.getElementById('wn').value.trim();
+  cfg.cnpj=document.getElementById('wc').value.trim();
+  cfg.resp=document.getElementById('wresp').value.trim();
+  cfg.tel=document.getElementById('wtel').value.trim();
+  cfg.email=document.getElementById('wemail').value.trim();
+  cfg.sla1=parseInt(document.getElementById('wsla1').value);
+  cfg.sla2=parseInt(document.getElementById('wsla2').value);
+  cfg.sla3=parseInt(document.getElementById('wsla3').value);
+  cfg.slaMeta=parseInt(document.getElementById('wslameta').value);
+  cfg.logo=_logo;
+  localStorage.setItem('noc_cfg',JSON.stringify(cfg));
+  var ov=document.getElementById('wov');ov.style.transition='opacity .3s';ov.style.opacity='0';setTimeout(function(){ov.style.display='none';},320);
+  document.getElementById('emp-h').textContent='🖥️ '+cfg.nome;
+  carregarDados();updateDash();
+}
+function loadCfg(){
+  try{
+    var c=JSON.parse(localStorage.getItem('noc_cfg')||'null');if(!c)return false;
+    Object.assign(cfg,c);_logo=c.logo||'';
+    document.getElementById('wov').style.display='none';
+    document.getElementById('emp-h').textContent='🖥️ '+cfg.nome;
+    carregarDados();updateDash();
+    return true;
+  }catch(e){return false;}
+}
+function salvarDados(){localStorage.setItem('noc_data',JSON.stringify({clientes,chamados,manutencoes,base,seqChamado}));}
+function carregarDados(){
+  try{
+    var d=JSON.parse(localStorage.getItem('noc_data')||'null');
+    if(d){clientes=d.clientes||[];chamados=d.chamados||[];manutencoes=d.manutencoes||[];base=d.base||[];seqChamado=d.seqChamado||1;}
+    renderChamados();renderClientes();renderManut();renderBase();updateSelects();updateDash();
+  }catch(e){}
+}
+
+// ── TABS ───────────────────────────────────────────────────
+function goTab(n,b){document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('on')});document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on')});document.getElementById('sec-'+n).classList.add('on');b.classList.add('on');if(n==='dash')updateDash();}
+
+// ── TOAST ──────────────────────────────────────────────────
+function toast(m){var t=document.getElementById('tst');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on');},2800);}
+
+// ── SLA ────────────────────────────────────────────────────
+function getSLAhoras(pri){return pri==='p1'?cfg.sla1:pri==='p2'?cfg.sla2:cfg.sla3;}
+function calcSLA(ch){
+  if(ch.status==='fechado'||ch.status==='resolvido')return{status:'ok',texto:'Resolvido'};
+  var abertura=new Date(ch.abertura);var agora=new Date();
+  var horasPassadas=(agora-abertura)/3600000;
+  var limite=getSLAhoras(ch.prioridade);
+  var restante=limite-horasPassadas;
+  if(restante<0){var atrasado=Math.abs(restante);return{status:'estourado',texto:'⚠️ +'+fmtHoras(atrasado)+' atrasado'};}
+  if(restante<limite*0.25){return{status:'risco',texto:'⚡ '+fmtHoras(restante)+' restantes'};}
+  return{status:'ok',texto:'✅ '+fmtHoras(restante)+' restantes'};
+}
+function fmtHoras(h){if(h<1)return Math.round(h*60)+'min';if(h<24)return h.toFixed(1)+'h';return(h/24).toFixed(1)+'d';}
+function calcUptime(cliId){
+  var mes=new Date();var inicio=new Date(mes.getFullYear(),mes.getMonth(),1);var fim=new Date(mes.getFullYear(),mes.getMonth()+1,0,23,59,59);
+  var totalHoras=(fim-inicio)/3600000;
+  var horasDown=chamados.filter(function(ch){
+    if(ch.clienteId!==cliId)return false;
+    if(ch.prioridade!=='p1')return false;
+    if(!ch.resolvidoEm)return false;
+    var ab=new Date(ch.abertura);var res=new Date(ch.resolvidoEm);
+    return ab>=inicio&&res<=fim;
+  }).reduce(function(s,ch){return s+(new Date(ch.resolvidoEm)-new Date(ch.abertura))/3600000;},0);
+  return Math.max(0,((totalHoras-horasDown)/totalHoras*100));
+}
+
+// ── CHAMADOS ───────────────────────────────────────────────
+function abrirChamado(){
+  var cliId=document.getElementById('ch-cli').value;
+  var pri=document.getElementById('ch-pri').value;
+  var desc=document.getElementById('ch-desc').value.trim();
+  if(!cliId){toast('⚠️ Selecione o cliente');return;}
+  if(!desc){toast('⚠️ Descreva o problema');return;}
+  var cli=clientes.find(function(c){return c.id==cliId;});
+  var num='CH'+String(seqChamado).padStart(4,'0');seqChamado++;
+  chamados.unshift({
+    id:Date.now(),num,cliId:parseInt(cliId),cliNome:cli.nome,
+    prioridade:pri,categoria:document.getElementById('ch-cat').value,
+    descricao:desc,tecnico:document.getElementById('ch-tec').value.trim()||'—',
+    contato:document.getElementById('ch-cont').value.trim()||'—',
+    abertura:new Date().toISOString(),status:'aberto',solucao:'',resolvidoEm:null
+  });
+  ['ch-desc','ch-tec','ch-cont'].forEach(function(id){document.getElementById(id).value='';});
+  renderChamados();updateDash();salvarDados();
+  toast('🎫 Chamado '+num+' aberto! SLA: '+getSLAhoras(pri)+' horas');
+}
+function renderChamados(){
+  document.getElementById('cham-count').textContent=chamados.length;
+  var fst=document.getElementById('filtro-status').value;
+  var fpri=document.getElementById('filtro-pri').value;
+  var items=chamados.filter(function(ch){
+    if(fst&&ch.status!==fst)return false;
+    if(fpri&&ch.prioridade!==fpri)return false;
+    return true;
+  });
+  var tb=document.getElementById('tbody-cham');
+  if(!items.length){tb.innerHTML='<tr><td colspan="10"><div class="empty-st"><div class="ei">🎫</div>Nenhum chamado encontrado</div></td></tr>';return;}
+  tb.innerHTML=items.map(function(ch){
+    var sla=calcSLA(ch);
+    var slaHtml='<span class="sla-'+sla.status+'">'+sla.texto+'</span>';
+    var priHtml=ch.prioridade==='p1'?'<span class="p1">🔴 P1</span>':ch.prioridade==='p2'?'<span class="p2">🟡 P2</span>':'<span class="p3">🔵 P3</span>';
+    var stHtml=ch.status==='aberto'?'<span class="st-aberto">Aberto</span>':ch.status==='andamento'?'<span class="st-andamento">Em Andamento</span>':ch.status==='resolvido'?'<span class="st-resolvido">Resolvido</span>':'<span class="st-fechado">Fechado</span>';
+    return'<tr><td class="mono" style="color:var(--cy);font-size:.7rem">'+ch.num+'</td>'+
+    '<td style="font-weight:500">'+esc(ch.cliNome)+'</td>'+
+    '<td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+esc(ch.descricao)+'">'+esc(ch.descricao)+'</td>'+
+    '<td style="font-size:.72rem;color:var(--mu)">'+ch.categoria+'</td>'+
+    '<td>'+priHtml+'</td>'+
+    '<td class="mono" style="font-size:.68rem;color:var(--mu)">'+fmtDT(ch.abertura)+'</td>'+
+    '<td>'+slaHtml+'</td>'+
+    '<td>'+stHtml+'</td>'+
+    '<td style="font-size:.72rem;color:var(--mu)">'+esc(ch.tecnico)+'</td>'+
+    '<td><button class="btn bcy" style="padding:3px 8px;font-size:.66rem" onclick="abrirModal('+ch.id+')">✏️ Atualizar</button></td></tr>';
+  }).join('');
+}
+function abrirModal(id){
+  chamadoAtual=chamados.find(function(c){return c.id===id;});if(!chamadoAtual)return;
+  document.getElementById('modal-title').textContent='Chamado '+chamadoAtual.num+' — '+chamadoAtual.cliNome;
+  document.getElementById('modal-status').value=chamadoAtual.status;
+  document.getElementById('modal-tec').value=chamadoAtual.tecnico==='—'?'':chamadoAtual.tecnico;
+  document.getElementById('modal-sol').value=chamadoAtual.solucao||'';
+  document.getElementById('btn-base').style.display=chamadoAtual.status==='resolvido'?'inline-flex':'none';
+  var sla=calcSLA(chamadoAtual);
+  document.getElementById('modal-info').innerHTML=
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'+
+    (chamadoAtual.prioridade==='p1'?'<span class="p1">🔴 P1 Crítico</span>':chamadoAtual.prioridade==='p2'?'<span class="p2">🟡 P2 Urgente</span>':'<span class="p3">🔵 P3 Normal</span>')+
+    '<span style="background:var(--cyb);color:var(--cy);font-size:.62rem;padding:3px 8px;border-radius:20px">'+chamadoAtual.categoria+'</span>'+
+    '<span class="sla-'+sla.status+'">SLA: '+sla.texto+'</span>'+
+    '</div>'+
+    '<div style="background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:10px;font-size:.76rem;color:var(--mu);line-height:1.5;margin-bottom:8px">'+
+    '<strong style="color:var(--tx)">Problema:</strong> '+esc(chamadoAtual.descricao)+'<br>'+
+    '<strong style="color:var(--tx)">Aberto em:</strong> '+fmtDT(chamadoAtual.abertura)+'<br>'+
+    '<strong style="color:var(--tx)">Contato:</strong> '+esc(chamadoAtual.contato)+'</div>';
+  var modal=document.getElementById('modal-cham');modal.style.display='flex';
+}
+function fecharModal(){document.getElementById('modal-cham').style.display='none';chamadoAtual=null;}
+function salvarModal(){
+  if(!chamadoAtual)return;
+  var novoStatus=document.getElementById('modal-status').value;
+  chamadoAtual.status=novoStatus;
+  chamadoAtual.tecnico=document.getElementById('modal-tec').value.trim()||'—';
+  chamadoAtual.solucao=document.getElementById('modal-sol').value.trim();
+  if((novoStatus==='resolvido'||novoStatus==='fechado')&&!chamadoAtual.resolvidoEm){
+    chamadoAtual.resolvidoEm=new Date().toISOString();
+  }
+  document.getElementById('btn-base').style.display=novoStatus==='resolvido'||novoStatus==='fechado'?'inline-flex':'none';
+  renderChamados();updateDash();salvarDados();
+  toast('✅ Chamado '+chamadoAtual.num+' atualizado!');
+}
+function salvarBaseConhecimento(){
+  if(!chamadoAtual||!chamadoAtual.solucao){toast('⚠️ Preencha a solução antes de salvar');return;}
+  base.unshift({id:Date.now(),categoria:chamadoAtual.categoria,titulo:chamadoAtual.descricao,solucao:chamadoAtual.solucao,data:hoje()});
+  renderBase();salvarDados();fecharModal();
+  toast('📚 Solução salva na Base de Conhecimento!');
+}
+
+// ── CLIENTES ───────────────────────────────────────────────
+function addCliente(){
+  var nome=document.getElementById('cl-nome').value.trim();
+  if(!nome){toast('⚠️ Informe o nome da empresa');return;}
+  clientes.push({id:Date.now(),nome,cnpj:document.getElementById('cl-cnpj').value.trim(),contato:document.getElementById('cl-cont').value.trim()||'—',tel:document.getElementById('cl-tel').value.trim()||'—',email:document.getElementById('cl-email').value.trim()||'—',contrato:document.getElementById('cl-contrato').value,servico:document.getElementById('cl-serv').value});
+  ['cl-nome','cl-cnpj','cl-cont','cl-tel','cl-email'].forEach(function(id){document.getElementById(id).value='';});
+  renderClientes();updateSelects();salvarDados();toast('✅ '+nome+' cadastrado!');
+}
+function delCliente(id){clientes=clientes.filter(function(c){return c.id!==id;});renderClientes();updateSelects();salvarDados();toast('🗑 Cliente removido');}
+function renderClientes(){
+  document.getElementById('cli-count').textContent=clientes.length;
+  var tb=document.getElementById('tbody-cli');
+  if(!clientes.length){tb.innerHTML='<tr><td colspan="8"><div class="empty-st"><div class="ei">👥</div>Nenhum cliente cadastrado ainda</div></td></tr>';return;}
+  tb.innerHTML=clientes.map(function(c){
+    var nCham=chamados.filter(function(ch){return ch.clienteId===c.id||ch.cliId===c.id;}).length;
+    var uptime=calcUptime(c.id);
+    var uptimeColor=uptime>=99?'var(--gr)':uptime>=95?'var(--ye)':'var(--re)';
+    return'<tr><td style="font-weight:500">'+esc(c.nome)+'</td>'+
+    '<td style="font-size:.72rem;color:var(--mu)">'+esc(c.contato)+'</td>'+
+    '<td class="mono" style="font-size:.72rem">'+esc(c.tel)+'</td>'+
+    '<td style="font-size:.72rem;color:var(--mu)">'+c.servico+'</td>'+
+    '<td style="font-size:.72rem;color:var(--mu)">'+c.contrato+'</td>'+
+    '<td class="mono" style="text-align:center">'+nCham+'</td>'+
+    '<td><div style="font-size:.72rem;font-weight:700;color:'+uptimeColor+'">'+uptime.toFixed(2)+'%</div><div class="uptime-bar"><div class="uptime-fill" style="width:'+uptime+'%;background:'+uptimeColor+'"></div></div></td>'+
+    '<td><button class="btn bre" style="padding:3px 7px;font-size:.64rem" onclick="delCliente('+c.id+')">✕</button></td></tr>';
+  }).join('');
+}
+function updateSelects(){
+  var opts='<option value="">Selecione o cliente...</option>'+clientes.map(function(c){return'<option value="'+c.id+'">'+esc(c.nome)+'</option>';}).join('');
+  ['ch-cli','mn-cli','rel-cli'].forEach(function(id){document.getElementById(id).innerHTML=opts;});
+}
+
+// ── MANUTENÇÕES ────────────────────────────────────────────
+function addManut(){
+  var cliId=document.getElementById('mn-cli').value;
+  var inicio=document.getElementById('mn-inicio').value;
+  var fim=document.getElementById('mn-fim').value;
+  var desc=document.getElementById('mn-desc').value.trim();
+  if(!cliId||!inicio||!fim||!desc){toast('⚠️ Preencha todos os campos obrigatórios');return;}
+  var cli=clientes.find(function(c){return c.id==cliId;});
+  manutencoes.unshift({id:Date.now(),cliId:parseInt(cliId),cliNome:cli.nome,tipo:document.getElementById('mn-tipo').value,inicio,fim,desc,resp:document.getElementById('mn-resp').value.trim()||'—',status:'agendada'});
+  ['mn-desc','mn-resp','mn-inicio','mn-fim'].forEach(function(id){document.getElementById(id).value='';});
+  renderManut();salvarDados();toast('🔧 Manutenção agendada!');
+}
+function renderManut(){
+  var el=document.getElementById('manut-list');
+  if(!manutencoes.length){el.innerHTML='<div class="empty-st"><div class="ei">🔧</div>Nenhuma manutenção agendada</div>';return;}
+  el.innerHTML=manutencoes.map(function(m){
+    var agora=new Date();var inicio=new Date(m.inicio);var fim=new Date(m.fim);
+    var status=agora<inicio?'agendada':agora<=fim?'em execução':'concluída';
+    var cor=status==='agendada'?'var(--bl)':status==='em execução'?'var(--ye)':'var(--gr)';
+    return'<div style="background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:13px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start">'+
+    '<div style="flex:1"><div style="font-size:.8rem;font-weight:700;margin-bottom:4px">'+m.tipo+' — '+esc(m.cliNome)+'</div>'+
+    '<div style="font-size:.72rem;color:var(--mu);line-height:1.5">'+esc(m.desc)+'<br>📅 '+fmtDT(m.inicio)+' → '+fmtDT(m.fim)+'<br>👤 '+esc(m.resp)+'</div></div>'+
+    '<div style="text-align:right"><span style="background:'+cor+'22;color:'+cor+';border:1px solid '+cor+'55;font-size:.62rem;font-weight:700;padding:3px 9px;border-radius:20px">'+status+'</span>'+
+    '<div style="margin-top:6px"><button class="btn bre" style="padding:3px 7px;font-size:.62rem" onclick="delManut('+m.id+')">✕</button></div></div></div>';
+  }).join('');
+}
+function delManut(id){manutencoes=manutencoes.filter(function(m){return m.id!==id;});renderManut();salvarDados();toast('🗑 Manutenção removida');}
+
+// ── BASE DE CONHECIMENTO ───────────────────────────────────
+function addBase(){
+  var titulo=document.getElementById('bs-titulo').value.trim();
+  var sol=document.getElementById('bs-sol').value.trim();
+  if(!titulo||!sol){toast('⚠️ Preencha o título e a solução');return;}
+  base.unshift({id:Date.now(),categoria:document.getElementById('bs-cat').value,titulo,solucao:sol,data:hoje()});
+  document.getElementById('bs-titulo').value='';document.getElementById('bs-sol').value='';
+  renderBase();salvarDados();toast('📚 Solução salva!');
+}
+function renderBase(){
+  var busca=(document.getElementById('base-busca').value||'').toLowerCase().trim();
+  var items=busca?base.filter(function(b){return b.titulo.toLowerCase().includes(busca)||b.solucao.toLowerCase().includes(busca)||b.categoria.toLowerCase().includes(busca);}):base;
+  var el=document.getElementById('base-list');
+  if(!items.length){el.innerHTML='<div class="empty-st"><div class="ei">📚</div>'+(busca?'Nenhuma solução encontrada para "'+esc(busca)+'"':'Nenhuma solução salva ainda')+'</div>';return;}
+  el.innerHTML=items.map(function(b){
+    return'<div style="background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:14px;margin-bottom:8px">'+
+    '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px">'+
+    '<div><div style="font-size:.8rem;font-weight:700;margin-bottom:4px">'+esc(b.titulo)+'</div>'+
+    '<div style="display:flex;gap:6px"><span style="background:var(--cyb);color:var(--cy);font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px">'+b.categoria+'</span><span style="font-size:.6rem;color:var(--mu)">'+b.data+'</span></div></div>'+
+    '<button class="btn bre" style="padding:3px 7px;font-size:.62rem;flex-shrink:0" onclick="delBase('+b.id+')">✕</button></div>'+
+    '<div style="background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:10px;font-size:.74rem;color:var(--mu);line-height:1.6;white-space:pre-wrap">'+esc(b.solucao)+'</div></div>';
+  }).join('');
+}
+function delBase(id){base=base.filter(function(b){return b.id!==id;});renderBase();salvarDados();toast('🗑 Solução removida');}
+
+// ── DASHBOARD ──────────────────────────────────────────────
+function updateDash(){
+  var abertos=chamados.filter(function(c){return c.status==='aberto';});
+  var andamento=chamados.filter(function(c){return c.status==='andamento';});
+  var hoje_=new Date();hoje_.setHours(0,0,0,0);
+  var resolvidosHoje=chamados.filter(function(c){return(c.status==='resolvido'||c.status==='fechado')&&new Date(c.resolvidoEm||0)>=hoje_;}).length;
+  var total=chamados.filter(function(c){return c.status==='fechado'||c.status==='resolvido';}).length;
+  var dentroSLA=chamados.filter(function(c){
+    if(c.status!=='fechado'&&c.status!=='resolvido')return false;
+    if(!c.resolvidoEm)return false;
+    var horas=(new Date(c.resolvidoEm)-new Date(c.abertura))/3600000;
+    return horas<=getSLAhoras(c.prioridade);
+  }).length;
+  var pctSLA=total>0?Math.round(dentroSLA/total*100):100;
+  document.getElementById('kpi-abertos').textContent=abertos.length;
+  document.getElementById('kpi-andamento').textContent=andamento.length;
+  document.getElementById('kpi-resolvidos').textContent=resolvidosHoje;
+  document.getElementById('kpi-sla').textContent=pctSLA+'%';
+  document.getElementById('kpi-p1').textContent=abertos.filter(function(c){return c.prioridade==='p1';}).length;
+  document.getElementById('kpi-p2').textContent=abertos.filter(function(c){return c.prioridade==='p2';}).length;
+  document.getElementById('kpi-p3').textContent=abertos.filter(function(c){return c.prioridade==='p3';}).length;
+  // Risco SLA
+  var risco=[...abertos,...andamento].filter(function(c){var s=calcSLA(c);return s.status==='risco'||s.status==='estourado';}).sort(function(a,b){return new Date(a.abertura)-new Date(b.abertura);});
+  var dr=document.getElementById('dash-risco');
+  if(!risco.length){dr.innerHTML='<div class="empty-st"><div class="ei">✅</div>Nenhum chamado em risco</div>';}
+  else{dr.innerHTML=risco.map(function(c){var s=calcSLA(c);return'<div style="background:var(--'+(s.status==='estourado'?'re':'ye')+'b);border:1px solid rgba('+(s.status==='estourado'?'239,68,68':'245,158,11')+',.3);border-radius:9px;padding:9px 12px;margin-bottom:7px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:.76rem;font-weight:700">'+c.num+' — '+esc(c.cliNome)+'</span><span class="sla-'+s.status+'">'+s.texto+'</span></div><div style="font-size:.68rem;color:var(--mu)">'+esc(c.descricao)+'</div></div>';}).join('');}
+  // Uptime
+  var du=document.getElementById('dash-uptime');
+  if(!clientes.length){du.innerHTML='<div class="empty-st"><div class="ei">📈</div>Cadastre clientes para ver o uptime</div>';}
+  else{du.innerHTML=clientes.slice(0,5).map(function(c){var up=calcUptime(c.id);var cor=up>=99?'var(--gr)':up>=95?'var(--ye)':'var(--re)';return'<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:3px"><span style="font-weight:500">'+esc(c.nome)+'</span><span style="color:'+cor+';font-weight:700;font-family:JetBrains Mono,monospace">'+up.toFixed(2)+'%</span></div><div class="uptime-bar"><div class="uptime-fill" style="width:'+up+'%;background:'+cor+'"></div></div></div>';}).join('');}
+}
+
+// ── RELATÓRIO ──────────────────────────────────────────────
+function previewRel(){
+  var cliId=document.getElementById('rel-cli').value;
+  var mes=document.getElementById('rel-mes').value;
+  var ano=document.getElementById('rel-ano').value;
+  if(!cliId){toast('⚠️ Selecione o cliente');return;}
+  var cli=clientes.find(function(c){return c.id==cliId;});
+  var mIdx=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'].indexOf(mes);
+  var inicio=new Date(parseInt(ano),mIdx,1);var fim=new Date(parseInt(ano),mIdx+1,0,23,59,59);
+  var chsMes=chamados.filter(function(c){return c.cliId==cliId&&new Date(c.abertura)>=inicio&&new Date(c.abertura)<=fim;});
+  var resolvidos=chsMes.filter(function(c){return c.status==='resolvido'||c.status==='fechado';});
+  var dentroSLA=resolvidos.filter(function(c){if(!c.resolvidoEm)return false;var h=(new Date(c.resolvidoEm)-new Date(c.abertura))/3600000;return h<=getSLAhoras(c.prioridade);}).length;
+  var pctSLA=resolvidos.length>0?Math.round(dentroSLA/resolvidos.length*100):100;
+  var mttr=resolvidos.length>0?resolvidos.reduce(function(s,c){return c.resolvidoEm?s+(new Date(c.resolvidoEm)-new Date(c.abertura))/3600000:s;},0)/resolvidos.length:0;
+  var uptime=calcUptime(parseInt(cliId));
+  document.getElementById('rel-preview').innerHTML=
+    '<div style="background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:16px">'+
+    '<div style="font-size:.82rem;font-weight:700;margin-bottom:12px;color:var(--cy)">📋 Prévia — '+esc(cli.nome)+' · '+mes+'/'+ano+'</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'+
+    '<div style="background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:10px;text-align:center"><div style="font-size:1.2rem;font-weight:800;font-family:JetBrains Mono,monospace">'+chsMes.length+'</div><div style="font-size:.6rem;color:var(--mu);margin-top:2px">Total Chamados</div></div>'+
+    '<div style="background:var(--grb);border:1px solid rgba(34,197,94,.25);border-radius:8px;padding:10px;text-align:center"><div style="font-size:1.2rem;font-weight:800;color:var(--gr);font-family:JetBrains Mono,monospace">'+resolvidos.length+'</div><div style="font-size:.6rem;color:var(--mu);margin-top:2px">Resolvidos</div></div>'+
+    '<div style="background:var(--cyb);border:1px solid rgba(6,182,212,.25);border-radius:8px;padding:10px;text-align:center"><div style="font-size:1.2rem;font-weight:800;color:var(--cy);font-family:JetBrains Mono,monospace">'+pctSLA+'%</div><div style="font-size:.6rem;color:var(--mu);margin-top:2px">SLA Cumprido</div></div>'+
+    '<div style="background:'+(uptime>=99?'var(--grb)':'var(--yeb)')+';border:1px solid rgba('+(uptime>=99?'34,197,94':'245,158,11')+',.25);border-radius:8px;padding:10px;text-align:center"><div style="font-size:1.2rem;font-weight:800;color:'+(uptime>=99?'var(--gr)':'var(--ye)')+';font-family:JetBrains Mono,monospace">'+uptime.toFixed(2)+'%</div><div style="font-size:.6rem;color:var(--mu);margin-top:2px">Uptime</div></div>'+
+    '</div><div style="margin-top:8px;font-size:.72rem;color:var(--mu)">⏱️ Tempo médio de resolução (MTTR): <strong style="color:var(--tx)">'+fmtHoras(mttr)+'</strong></div></div>';
+}
+function expRelPDF(){
+  var cliId=document.getElementById('rel-cli').value;
+  var mes=document.getElementById('rel-mes').value;
+  var ano=document.getElementById('rel-ano').value;
+  if(!cliId){toast('⚠️ Selecione o cliente');return;}
+  var cli=clientes.find(function(c){return c.id==cliId;});
+  var mIdx=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'].indexOf(mes);
+  var inicio=new Date(parseInt(ano),mIdx,1);var fim=new Date(parseInt(ano),mIdx+1,0,23,59,59);
+  var chsMes=chamados.filter(function(c){return c.cliId==cliId&&new Date(c.abertura)>=inicio&&new Date(c.abertura)<=fim;});
+  var resolvidos=chsMes.filter(function(c){return c.status==='resolvido'||c.status==='fechado';});
+  var dentroSLA=resolvidos.filter(function(c){if(!c.resolvidoEm)return false;var h=(new Date(c.resolvidoEm)-new Date(c.abertura))/3600000;return h<=getSLAhoras(c.prioridade);}).length;
+  var pctSLA=resolvidos.length>0?Math.round(dentroSLA/resolvidos.length*100):100;
+  var mttr=resolvidos.length>0?resolvidos.reduce(function(s,c){return c.resolvidoEm?s+(new Date(c.resolvidoEm)-new Date(c.abertura))/3600000:s;},0)/resolvidos.length:0;
+  var uptime=calcUptime(parseInt(cliId));
+  var logo=_logo?'<img src="'+_logo+'" style="height:38px;object-fit:contain">':'<div style="font-size:9px;color:#94a3b8">'+esc(cfg.nome)+'</div>';
+  var rows=chsMes.map(function(c){
+    var bg=c.prioridade==='p1'?'#fff1f2':c.prioridade==='p2'?'#fffbeb':'#eff6ff';
+    var pri=c.prioridade==='p1'?'🔴 P1':c.prioridade==='p2'?'🟡 P2':'🔵 P3';
+    var st=c.status==='resolvido'?'✅ Resolvido':c.status==='fechado'?'✅ Fechado':c.status==='andamento'?'⚙️ Em Andamento':'🔴 Aberto';
+    var tempo=c.resolvidoEm?fmtHoras((new Date(c.resolvidoEm)-new Date(c.abertura))/3600000):'—';
+    var slaOK=c.resolvidoEm&&((new Date(c.resolvidoEm)-new Date(c.abertura))/3600000)<=getSLAhoras(c.prioridade);
+    return'<tr style="background:'+bg+'"><td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:10px;font-weight:700">'+c.num+'</td>'+
+    '<td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:11px">'+pri+'</td>'+
+    '<td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:11px">'+esc(c.descricao)+'</td>'+
+    '<td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:10px">'+esc(c.categoria)+'</td>'+
+    '<td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:10px">'+fmtDT(c.abertura)+'</td>'+
+    '<td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:10px">'+tempo+'</td>'+
+    '<td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:10px;color:'+(slaOK?'#16a34a':'#dc2626')+';font-weight:700">'+(c.resolvidoEm?slaOK?'✅ Sim':'❌ Não':'—')+'</td>'+
+    '<td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:10px">'+st+'</td></tr>';
+  }).join('');
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório NOCFácil — '+esc(cli.nome)+'</title>'+
+  '<style>body{font-family:Arial,sans-serif;margin:24px;color:#111}h2{font-size:14px;color:#06B6D4;margin-bottom:3px}h3{font-size:12px;margin:14px 0 6px}table{width:100%;border-collapse:collapse}thead th{background:#06B6D4;color:#fff;padding:5px 8px;font-size:10px;text-align:left;border:1px solid #0891B2}.kpi{display:inline-block;padding:10px 16px;border-radius:8px;text-align:center;margin:4px}.kn{font-size:18px;font-weight:800;display:block}.kl{font-size:9px;color:#555;margin-top:2px}.ass{border-top:1.5px solid #111;padding-top:6px;font-size:10px;font-weight:600;text-align:center}@media print{body{margin:10px}}</style></head><body>'+
+  '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:2px solid #06B6D4;margin-bottom:14px">'+logo+
+  '<div style="text-align:right"><div style="font-size:13px;font-weight:800">'+esc(cfg.nome)+'</div>'+
+  '<div style="font-size:10px;color:#64748b">'+esc(cfg.resp||'—')+' &nbsp;·&nbsp; '+esc(cfg.tel||'—')+'</div>'+
+  '<div style="font-size:10px;color:#64748b">'+esc(cfg.email||'—')+'</div></div></div>'+
+  '<h2>📊 Relatório de Atendimento — '+esc(mes)+'/'+esc(ano)+'</h2>'+
+  '<p style="font-size:11px;color:#374151;margin-bottom:12px"><strong>Cliente:</strong> '+esc(cli.nome)+(cli.cnpj?' &nbsp;·&nbsp; CNPJ: '+esc(cli.cnpj):'')+' &nbsp;·&nbsp; <strong>Serviço:</strong> '+esc(cli.servico)+'</p>'+
+  '<div style="margin-bottom:14px">'+
+  '<div class="kpi" style="background:#e0f7fa"><span class="kn" style="color:#0891B2">'+chsMes.length+'</span><span class="kl">Total Chamados</span></div>'+
+  '<div class="kpi" style="background:#f0fdf4"><span class="kn" style="color:#16a34a">'+resolvidos.length+'</span><span class="kl">Resolvidos</span></div>'+
+  '<div class="kpi" style="background:'+(pctSLA>=cfg.slaMeta?'#f0fdf4':'#fff1f2')+'"><span class="kn" style="color:'+(pctSLA>=cfg.slaMeta?'#16a34a':'#dc2626')+'">'+pctSLA+'%</span><span class="kl">SLA Cumprido</span></div>'+
+  '<div class="kpi" style="background:'+(uptime>=99?'#f0fdf4':'#fffbeb')+'"><span class="kn" style="color:'+(uptime>=99?'#16a34a':'#d97706')+'">'+uptime.toFixed(2)+'%</span><span class="kl">Uptime do Mês</span></div>'+
+  '<div class="kpi" style="background:#f8fafc"><span class="kn">'+fmtHoras(mttr)+'</span><span class="kl">Tempo Médio de Resolução</span></div>'+
+  '</div>'+
+  (chsMes.length?'<h3>📋 Chamados do Mês</h3><table><thead><tr><th>#</th><th>Prioridade</th><th>Problema</th><th>Categoria</th><th>Abertura</th><th>Tempo Resol.</th><th>SLA OK?</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table>':'<p style="font-size:11px;color:#64748b">Nenhum chamado aberto neste período.</p>')+
+  '<div style="margin-top:36px;display:grid;grid-template-columns:1fr 1fr;gap:20px">'+
+  '<div style="text-align:center"><div class="ass">Responsável Técnico / '+esc(cfg.nome)+'</div><div style="font-size:9px;color:#9ca3af;margin-top:3px">Data: ___ / ___ / ______</div></div>'+
+  '<div style="text-align:center"><div class="ass">Aprovado pelo Cliente / '+esc(cli.nome)+'</div><div style="font-size:9px;color:#9ca3af;margin-top:3px">Data: ___ / ___ / ______</div></div></div>'+
+  '<div style="margin-top:14px;padding-top:8px;border-top:1px solid #e2e8f0;font-size:.58rem;color:#94a3b8;text-align:center">'+esc(cfg.nome)+' &nbsp;·&nbsp; NOCFácil v1.0 &nbsp;·&nbsp; João Gomes · (91) 99987-9932 &nbsp;·&nbsp; Gerado em '+hoje()+'</div>'+
+  '</body></html>';
+  var w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(function(){w.print();},600);
+  toast('📄 Relatório PDF aberto!');
+}
+function expRelXLS(){
+  var cliId=document.getElementById('rel-cli').value;
+  var mes=document.getElementById('rel-mes').value;var ano=document.getElementById('rel-ano').value;
+  if(!cliId){toast('⚠️ Selecione o cliente');return;}
+  var cli=clientes.find(function(c){return c.id==cliId;});
+  var mIdx=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'].indexOf(mes);
+  var inicio=new Date(parseInt(ano),mIdx,1);var fim=new Date(parseInt(ano),mIdx+1,0,23,59,59);
+  var chs=chamados.filter(function(c){return c.cliId==cliId&&new Date(c.abertura)>=inicio&&new Date(c.abertura)<=fim;});
+  var data=[['NOCFácil v1.0 — Relatório '+mes+'/'+ano+' — '+cli.nome],[],
+    ['#','Prioridade','Categoria','Descrição','Abertura','Resolvido em','Tempo (h)','SLA OK?','Status','Técnico','Solução'],
+    ...chs.map(function(c){var h=c.resolvidoEm?(new Date(c.resolvidoEm)-new Date(c.abertura))/3600000:null;var sla=h!==null&&h<=getSLAhoras(c.prioridade)?'Sim':'Não';return[c.num,c.prioridade.toUpperCase(),c.categoria,c.descricao,fmtDT(c.abertura),c.resolvidoEm?fmtDT(c.resolvidoEm):'',h?h.toFixed(1):'',c.resolvidoEm?sla:'',c.status,c.tecnico,c.solucao];})
+  ];
+  var wb=XLSX.utils.book_new();var ws=XLSX.utils.aoa_to_sheet(data);ws['!cols']=[{wch:8},{wch:10},{wch:14},{wch:36},{wch:16},{wch:16},{wch:10},{wch:8},{wch:12},{wch:14},{wch:36}];
+  XLSX.utils.book_append_sheet(wb,ws,'Chamados');
+  XLSX.writeFile(wb,'NOCFacil-'+cli.nome.replace(/\s/g,'-')+'-'+mes+'-'+ano+'.xlsx');
+  toast('📊 Excel exportado!');
+}
+
+
+// ── CALENDÁRIO FISCAL ─────────────────────────────────────
+var CAL_BASE=[
+  {dia:7,nome:'FGTS',desc:'Recolhimento do FGTS — competência anterior',tipo:'federal'},
+  {dia:10,nome:'DAS Simples',desc:'Pagamento do DAS — Simples Nacional',tipo:'federal'},
+  {dia:15,nome:'DCTF',desc:'Declaração de Débitos e Créditos Tributários Federais',tipo:'federal'},
+  {dia:20,nome:'INSS Patronal',desc:'GPS — Contribuição patronal sobre folha',tipo:'federal'},
+  {dia:20,nome:'IRRF',desc:'Recolhimento do IRRF sobre salários (DARF)',tipo:'federal'},
+  {dia:25,nome:'PIS/COFINS',desc:'Lucro Real/Presumido — competência anterior',tipo:'federal'},
+  {dia:25,nome:'ICMS',desc:'ICMS estadual — prazo padrão maioria dos estados',tipo:'estadual'},
+  {dia:10,nome:'ISS',desc:'Imposto Sobre Serviços — Municipal',tipo:'municipal'},
+];
+var obExtra=[];
+
+function gerarCal(){
+  var agora=new Date();
+  var todas=[...CAL_BASE,...obExtra];
+  todas.sort(function(a,b){return(a.dia||0)-(b.dia||0);});
+  var grid=document.getElementById('cal-grid');
+  if(!grid)return;
+  var corTipo={federal:'var(--re)',estadual:'var(--bl)',municipal:'var(--pu)',acessoria:'var(--cy)'};
+  grid.innerHTML=todas.map(function(ob){
+    var dia=ob.dia||0;
+    var dataOb=new Date(agora.getFullYear(),agora.getMonth(),dia);
+    var diff=Math.floor((dataOb-agora)/(1000*60*60*24));
+    var cls=ob.pago?'ok':diff<0?'vencido':diff<=3?'proximo':'';
+    var status=ob.pago?'<span style="color:var(--gr);font-size:.6rem;font-weight:700">✅ OK</span>':diff<0?'<span style="color:var(--re);font-size:.6rem;font-weight:700">❌ Vencido</span>':diff<=3?'<span style="color:var(--ye);font-size:.6rem;font-weight:700">⚡ Em '+diff+'d</span>':'<span style="color:var(--mu);font-size:.6rem">'+diff+'d</span>';
+    var cor=corTipo[ob.tipo||'federal'];
+    return '<div class="cal-item '+cls+'" style="background:var(--s2);border:1px solid var(--b1);border-radius:11px;padding:12px;position:relative;overflow:hidden"><div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:'+cor+'"></div><div style="font-family:JetBrains Mono,monospace;font-size:.66rem;color:var(--mu);margin-bottom:3px">'+String(dia).padStart(2,'0')+'/'+String(agora.getMonth()+1).padStart(2,'0')+'/'+agora.getFullYear()+'</div><div style="font-size:.8rem;font-weight:700;margin-bottom:2px">'+ob.nome+'</div><div style="font-size:.65rem;color:var(--mu);line-height:1.4;margin-bottom:7px">'+ob.desc+'</div><div style="display:flex;align-items:center;justify-content:space-between">'+status+'<span style="font-size:.56rem;padding:2px 7px;background:'+cor+'22;color:'+cor+';border-radius:20px;font-weight:700">'+(ob.tipo||'federal')+'</span></div></div>';
+  }).join('');
+}
+
+function addOb(){
+  var desc=document.getElementById('ob-desc').value.trim();
+  var data=document.getElementById('ob-data').value;
+  var tipo=document.getElementById('ob-tipo').value;
+  if(!desc||!data){toast('⚠️ Preencha descrição e data');return;}
+  var parts=data.split('-');
+  obExtra.push({nome:desc,desc:'Obrigação personalizada',dia:parseInt(parts[2]),tipo:tipo});
+  document.getElementById('ob-desc').value='';
+  document.getElementById('ob-data').value='';
+  gerarCal();toast('✅ Obrigação adicionada!');
+}
+
+// ── UTILS ──────────────────────────────────────────────────
+function hoje(){var d=new Date();return d.toISOString().slice(0,10).split('-').reverse().join('/');}
+function fmtDT(s){if(!s)return'—';var d=new Date(s);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── INIT ───────────────────────────────────────────────────
+if(!loadCfg()){/* aguarda welcome */}
+gerarCal();
+</script>
+</body>
+</html>

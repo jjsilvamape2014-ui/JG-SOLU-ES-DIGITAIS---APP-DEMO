@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BônusFácil — Gestão de Bonificação por Meta</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+:root{
+  --go:#F59E0B;--go2:#D97706;--gob:rgba(245,158,11,.12);
+  --si:#94A3B8;--sib:rgba(148,163,184,.12);
+  --br:#CD7F32;--brb:rgba(205,127,50,.12);
+  --gr:#22C55E;--grb:rgba(34,197,94,.1);
+  --re:#EF4444;--reb:rgba(239,68,68,.1);
+  --bl:#3B82F6;--blb:rgba(59,130,246,.1);
+  --pu:#8B5CF6;--pub:rgba(139,92,246,.1);
+  --bg:#07080C;--s1:#0D0F15;--s2:#13151D;--s3:#191C25;
+  --b1:#1E2030;--b2:#252838;
+  --tx:#E8EAF2;--mu:#5A6080;--mu2:#3A3F55;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:'Outfit',sans-serif;min-height:100vh;font-size:14px}
+
+/* ── WELCOME ── */
+.wov{position:fixed;inset:0;background:radial-gradient(ellipse at 40% 20%,#0f1020,#07080C 65%);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.wbox{background:var(--s1);border:1px solid var(--b1);border-radius:22px;padding:36px 32px;max-width:560px;width:100%;box-shadow:0 0 80px rgba(245,158,11,.07)}
+.wic{width:58px;height:58px;border-radius:14px;background:linear-gradient(135deg,#F59E0B,#D97706);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;box-shadow:0 0 32px rgba(245,158,11,.35)}
+.wbox h2{font-size:1.4rem;font-weight:800;text-align:center;margin-bottom:4px;color:var(--tx);letter-spacing:-.5px}
+.wbox h2 em{color:var(--go);font-style:normal}
+.wsub{font-size:.77rem;color:var(--mu);text-align:center;margin-bottom:22px;line-height:1.55}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
+.wf{display:flex;flex-direction:column;gap:3px}.wf.full{grid-column:1/-1}
+.wf label{font-size:.58rem;color:var(--mu);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.wf input,.wf select,.wf textarea{padding:8px 11px;background:var(--bg);border:1.5px solid var(--b1);border-radius:8px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.82rem;transition:border-color .14s;-webkit-appearance:none;outline:none;resize:vertical}
+.wf input:focus,.wf select:focus,.wf textarea:focus{border-color:var(--go)}
+.wf input::placeholder,.wf textarea::placeholder{color:var(--mu2)}
+.wslbl{font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mu2);margin:10px 0 6px;padding-bottom:5px;border-bottom:1px solid var(--b1);grid-column:1/-1}
+.wlup{display:flex;flex-direction:column;align-items:center;padding:10px;background:var(--bg);border:1.5px dashed var(--b2);border-radius:8px;cursor:pointer;transition:all .14s;text-align:center;grid-column:1/-1}
+.wlup:hover{border-color:var(--go);background:var(--gob)}
+.wlup input{display:none}
+.wlprev{display:none;align-items:center;gap:8px;padding:7px 10px;background:var(--grb);border:1px solid rgba(34,197,94,.25);border-radius:7px;font-size:.7rem;color:var(--gr);grid-column:1/-1}
+.wlprev img{height:24px;object-fit:contain}
+.wlprev button{margin-left:auto;background:none;border:none;color:var(--gr);cursor:pointer}
+.wbtn{width:100%;padding:12px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#000;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:800;cursor:pointer;margin-top:8px;transition:all .14s}
+.wbtn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(245,158,11,.3)}
+.wbtn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.wfoot{margin-top:14px;text-align:center;font-size:.58rem;color:var(--mu2);line-height:1.6}
+.wfoot strong{color:var(--mu)}.wfoot a{color:var(--go);text-decoration:none}
+
+/* ── HEADER ── */
+header{background:var(--s1);border-bottom:1px solid var(--b1);padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100}
+.hlogo{display:flex;align-items:center;gap:11px}
+.hic{width:32px;height:32px;background:linear-gradient(135deg,#F59E0B,#D97706);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 0 14px rgba(245,158,11,.3)}
+.hn{font-size:.9rem;font-weight:800;color:var(--tx);line-height:1}
+.hn em{color:var(--go);font-style:normal}
+.hs{font-size:.56rem;color:var(--mu)}
+.hright{display:flex;align-items:center;gap:8px}
+.emp-badge{display:flex;align-items:center;gap:7px;background:var(--s2);border:1px solid var(--b1);border-radius:20px;padding:4px 12px;font-size:.66rem;font-weight:600}
+.emp-badge img{height:17px;object-fit:contain}
+.hver{font-size:.58rem;color:var(--mu2);border:1px solid var(--b1);padding:2px 6px;border-radius:20px}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;background:var(--s1);border-bottom:1px solid var(--b1);padding:8px 22px 0;overflow-x:auto}
+.tab{padding:9px 15px;background:transparent;border:none;color:var(--mu);font-family:'Outfit',sans-serif;font-size:.74rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .14s}
+.tab.on{color:var(--go);border-bottom-color:var(--go)}
+.tab:hover:not(.on){color:var(--tx)}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 80px}
+.sec{display:none;animation:fi .17s ease}.sec.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ── CARD ── */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:16px;margin-bottom:12px}
+.card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-t{font-size:.84rem;font-weight:700;display:flex;align-items:center;gap:7px}
+
+/* ── KPI ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:var(--s1);border:1px solid var(--b1);border-radius:13px;padding:14px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.go::before{background:var(--go)}.kpi.si::before{background:var(--si)}
+.kpi.br::before{background:var(--br)}.kpi.gr::before{background:var(--gr)}
+.kpi.re::before{background:var(--re)}.kpi.bl::before{background:var(--bl)}
+.kv{font-size:1.5rem;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
+.kl{font-size:.62rem;color:var(--mu);margin-top:4px}
+.ks{font-size:.64rem;margin-top:3px}
+
+/* ── FORM ── */
+.fg{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px}
+.f{flex:1;min-width:110px;display:flex;flex-direction:column;gap:3px}
+.f label{font-size:.6rem;color:var(--mu);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+input[type=text],input[type=number],input[type=date],select{width:100%;padding:8px 10px;background:var(--s2);border:1.5px solid var(--b1);border-radius:7px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.8rem;transition:border-color .14s;-webkit-appearance:none;outline:none}
+input:focus,select:focus{border-color:var(--go);background:var(--s3)}
+input::placeholder{color:var(--mu2)}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 14px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .13s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.bgo{background:linear-gradient(135deg,#F59E0B,#D97706);color:#000}.bgo:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(245,158,11,.3)}
+.bgr{background:var(--grb);color:var(--gr);border:1px solid rgba(34,197,94,.25)}.bgr:hover{background:rgba(34,197,94,.18)}
+.bbl{background:var(--blb);color:var(--bl);border:1px solid rgba(59,130,246,.25)}.bbl:hover{background:rgba(59,130,246,.18)}
+.bgh{background:var(--s2);color:var(--tx);border:1px solid var(--b1)}.bgh:hover{border-color:var(--b2)}
+.bre{background:var(--reb);color:var(--re);border:1px solid rgba(239,68,68,.2);padding:5px 9px}.bre:hover{background:rgba(239,68,68,.18)}
+.bpu{background:var(--pub);color:var(--pu);border:1px solid rgba(139,92,246,.25)}.bpu:hover{background:rgba(139,92,246,.18)}
+
+/* ── TABELA ── */
+.tbl{width:100%;border-collapse:collapse;font-size:.77rem}
+.tbl th{background:var(--s2);padding:8px 10px;text-align:left;font-size:.6rem;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--b1);white-space:nowrap}
+.tbl td{padding:7px 10px;border-bottom:1px solid var(--b1);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.01)}
+
+/* ── NÍVEL BADGES ── */
+.nivel-ouro{background:rgba(245,158,11,.15);color:#F59E0B;border:1px solid rgba(245,158,11,.4);font-size:.64rem;font-weight:800;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
+.nivel-prata{background:rgba(148,163,184,.12);color:#94A3B8;border:1px solid rgba(148,163,184,.35);font-size:.64rem;font-weight:800;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
+.nivel-bronze{background:rgba(205,127,50,.12);color:#CD7F32;border:1px solid rgba(205,127,50,.35);font-size:.64rem;font-weight:800;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
+.nivel-inelegivel{background:var(--reb);color:var(--re);border:1px solid rgba(239,68,68,.3);font-size:.64rem;font-weight:800;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
+.status-apto{background:var(--grb);color:var(--gr);font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px}
+.status-inapto{background:var(--reb);color:var(--re);font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px}
+
+/* ── SETOR TABS ── */
+.setor-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.setor-tab{padding:6px 14px;background:var(--s2);border:1px solid var(--b1);border-radius:20px;font-size:.72rem;font-weight:600;cursor:pointer;color:var(--mu);transition:all .13s}
+.setor-tab.on{background:var(--gob);border-color:rgba(245,158,11,.4);color:var(--go)}
+
+/* ── OCORRÊNCIA ICONS ── */
+.oc-falta{color:var(--re)}
+.oc-suspensao{color:#EF4444}
+.oc-advertencia{color:#F97316}
+.oc-atestado{color:var(--bl)}
+
+/* ── TUTORIAL ── */
+.tov{position:fixed;inset:0;background:rgba(7,8,12,.95);z-index:8888;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.tov.on{display:flex}
+.tbox{background:var(--s1);border:1px solid var(--b1);border-radius:17px;padding:26px;max-width:660px;width:100%;max-height:90vh;overflow-y:auto}
+.tbox h3{font-size:.95rem;font-weight:800;margin-bottom:3px}
+.tsub{font-size:.72rem;color:var(--mu);margin-bottom:16px;line-height:1.5}
+.tstep{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;margin-bottom:8px}
+.tsn{width:26px;height:26px;background:linear-gradient(135deg,#F59E0B,#D97706);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;color:#000;flex-shrink:0}
+.tsb h4{font-size:.78rem;font-weight:800;color:var(--tx);margin-bottom:3px}
+.tsb p{font-size:.7rem;color:var(--mu);line-height:1.5;margin:0}
+.tsb code{background:var(--bg);border:1px solid var(--b1);border-radius:3px;padding:1px 5px;font-size:.65rem;color:var(--go)}
+.ttip{background:var(--gob);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:8px 11px;font-size:.7rem;color:var(--go);line-height:1.5;margin:10px 0 14px}
+.tclose{width:100%;padding:9px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#000;border:none;border-radius:7px;font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer}
+
+/* ── TOAST / FOOTER ── */
+#tst{position:fixed;bottom:18px;right:14px;background:var(--s2);border:1px solid var(--b2);border-radius:9px;padding:8px 14px;font-size:.74rem;font-weight:600;transform:translateY(55px);opacity:0;transition:all .2s;z-index:9999;max-width:280px;pointer-events:none;color:var(--tx)}
+#tst.on{transform:translateY(0);opacity:1}
+footer{position:fixed;bottom:0;left:0;right:0;background:var(--s1);border-top:1px solid var(--b1);padding:7px 22px;display:flex;align-items:center;justify-content:space-between;font-size:.58rem;color:var(--mu);z-index:100;flex-wrap:wrap;gap:4px}
+footer strong{color:var(--mu2)}
+footer a{color:var(--go);text-decoration:none;font-weight:600}
+footer button{background:var(--gob);border:1px solid rgba(245,158,11,.2);color:var(--go);border-radius:5px;padding:3px 8px;font-size:.57rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif}
+.mono{font-family:'JetBrains Mono',monospace;font-size:.76rem}
+.empty-st{text-align:center;padding:24px;color:var(--mu);font-size:.78rem}
+.empty-st .ei{font-size:1.8rem;margin-bottom:6px}
+.exp-row{display:flex;gap:8px;flex-wrap:wrap}
+.pbar-wrap{background:var(--s2);border-radius:20px;height:6px;overflow:hidden;margin-top:4px}
+.pbar{height:100%;border-radius:20px;transition:width .4s}
+
+@media(max-width:600px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .fg{flex-direction:column}
+  .tab{font-size:.64rem;padding:7px 9px}
+  footer{flex-direction:column;gap:2px;text-align:center}
+}
+</style>
+<script>
+(function(){
+  var cfg = JSON.parse(localStorage.getItem('bonus_cfg')||'null');
+  if(cfg && cfg.nome) return;
+  localStorage.setItem('bonus_cfg', JSON.stringify({
+    nome:'Transportes Belém LTDA', cnpj:'12.345.678/0001-90', resp:'João Gomes',
+    mes:'Maio', ano:'2026', diasMin:15, ateTol:2,
+    vOuro:500, vPrata:300, vBronze:150, vGest:200, logo:''
+  }));
+  localStorage.setItem('bonus_data', JSON.stringify({
+    colaboradores:[
+      {id:1,nome:'Alexandre Souza',setor:'SAC',cargo:'Analista SAC',gestor:false},
+      {id:2,nome:'Bruna Lima',setor:'SAC',cargo:'Analista SAC',gestor:false},
+      {id:3,nome:'Carlos Mendes',setor:'SAC',cargo:'Supervisor SAC',gestor:true},
+      {id:4,nome:'Diana Farias',setor:'Cobrança',cargo:'Analista Cobrança',gestor:false},
+      {id:5,nome:'Eduardo Costa',setor:'Cobrança',cargo:'Analista Cobrança',gestor:false},
+      {id:6,nome:'Fernanda Reis',setor:'Cobrança',cargo:'Supervisora Cobrança',gestor:true},
+      {id:7,nome:'Gustavo Nunes',setor:'Comercial',cargo:'Vendedor',gestor:false},
+      {id:8,nome:'Helena Moura',setor:'Comercial',cargo:'Vendedora',gestor:false},
+      {id:9,nome:'Igor Pinheiro',setor:'Comercial',cargo:'Gerente Comercial',gestor:true},
+      {id:10,nome:'Juliana Alves',setor:'Gestão',cargo:'Coordenadora DP',gestor:false}
+    ],
+    ocorrencias:[
+      {id:1,cid:2,cnome:'Bruna Lima',csetor:'SAC',tipo:'falta',data:'2026-05-12',dias:1,obs:'Falta injustificada'},
+      {id:2,cid:5,cnome:'Eduardo Costa',csetor:'Cobrança',tipo:'atestado',data:'2026-05-08',dias:3,obs:'Atestado médico 3 dias'},
+      {id:3,cid:7,cnome:'Gustavo Nunes',csetor:'Comercial',tipo:'advertencia',data:'2026-05-03',dias:1,obs:'Advertência verbal'}
+    ],
+    frequencias:{1:22,2:21,3:22,4:22,5:22,6:22,7:22,8:22,9:22,10:22},
+    metas:{SAC:95,Cobrança:88,Comercial:102,Gestão:100}
+  }));
+})();
+</script>
+</head>
+<body>
+<div style="position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#F59E0B,#EF4444);color:#000;text-align:center;font-size:.7rem;font-weight:800;padding:5px;z-index:99999;letter-spacing:.5px">
+⚡ VERSÃO DEMO — Dados fictícios para demonstração &nbsp;·&nbsp; Adquira pelo WhatsApp: (91) 99987-9932
+</div>
+<div style="height:25px"></div>
+<div id="tst"></div>
+
+<!-- ══ WELCOME ══ -->
+<div class="wov" id="wov">
+  <div class="wbox">
+    <div class="wic">🏆</div>
+    <h2>Bônus<em>Fácil</em></h2>
+    <p class="wsub">Sistema de Bonificação por Meta — Bronze, Prata e Ouro<br>Configure a empresa e o período de apuração</p>
+    <div class="wgrid">
+      <div class="wslbl">🏢 Dados da Empresa</div>
+      <div class="wf full"><label>Nome da Empresa *</label><input id="wn" type="text" placeholder="Ex: Empresa João LTDA" oninput="chkW()"></div>
+      <div class="wf"><label>CNPJ</label><input id="wc" type="text" placeholder="00.000.000/0001-00" oninput="mCNPJ(this)"></div>
+      <div class="wf"><label>Responsável pelo RH/DP</label><input id="wresp" type="text" placeholder="Seu nome"></div>
+      <div class="wslbl">📅 Período de Apuração</div>
+      <div class="wf"><label>Mês</label>
+        <select id="wm"><option>Janeiro</option><option>Fevereiro</option><option>Março</option><option>Abril</option><option selected>Maio</option><option>Junho</option><option>Julho</option><option>Agosto</option><option>Setembro</option><option>Outubro</option><option>Novembro</option><option>Dezembro</option></select>
+      </div>
+      <div class="wf"><label>Ano</label><input id="wano" type="number" value="2026" min="2020" max="2035"></div>
+      <div class="wslbl">🎯 Regras de Elegibilidade</div>
+      <div class="wf"><label>Mínimo de Dias Trabalhados</label><input id="wdias" type="number" value="15" min="1" max="31"></div>
+      <div class="wf"><label>Tolerância de Atestados (dias)</label><input id="wate" type="number" value="2" min="0" max="31"></div>
+      <div class="wslbl">🥇 Valores de Bonificação</div>
+      <div class="wf"><label>🥇 Ouro R$</label><input id="wvouro" type="number" step="0.01" placeholder="Ex: 500,00" value="500"></div>
+      <div class="wf"><label>🥈 Prata R$</label><input id="wvprata" type="number" step="0.01" placeholder="Ex: 300,00" value="300"></div>
+      <div class="wf"><label>🥉 Bronze R$</label><input id="wvbronze" type="number" step="0.01" placeholder="Ex: 150,00" value="150"></div>
+      <div class="wf"><label>Valor extra para Gestores R$</label><input id="wvgest" type="number" step="0.01" placeholder="Ex: 200,00" value="200"></div>
+      <div class="wslbl">🖼️ Logo da Empresa</div>
+      <label class="wlup" for="wlogo"><input type="file" id="wlogo" accept="image/*" onchange="pLogo(this)">
+        <div style="font-size:1.2rem;margin-bottom:3px">🖼️</div>
+        <div style="font-size:.72rem;font-weight:600;color:var(--tx)">Clique para adicionar a logo</div>
+        <div style="font-size:.6rem;color:var(--mu)">Aparece nos relatórios PDF</div>
+      </label>
+      <div class="wlprev" id="wlprev"><img id="wlimg" src="" alt=""><span id="wlfn"></span><button onclick="rLogo()">✕</button></div>
+    </div>
+    <button class="wbtn" id="wbtn" onclick="startApp()" disabled>Entrar no Sistema →</button>
+    <div class="wfoot"><strong>BônusFácil v1.0</strong> — Sistema de Bonificação por Meta<br>Desenvolvido por <strong>João Gomes</strong> · <a href="https://wa.me/5591999879932" target="_blank">📱 (91) 99987-9932</a></div>
+  </div>
+</div>
+
+<!-- ══ TUTORIAL ══ -->
+<div class="tov" id="tov">
+  <div class="tbox">
+    <h3>📖 Como usar o BônusFácil</h3>
+    <p class="tsub">Sistema completo de bonificação por meta — Bronze, Prata e Ouro — para SAC, Cobrança, Comercial e Gestores</p>
+    <div class="tstep"><div class="tsn">1</div><div class="tsb"><h4>Configure na tela inicial</h4><p>Informe o nome da empresa, período de apuração, mínimo de dias trabalhados (padrão 15), tolerância de atestados e os valores de cada nível (Bronze, Prata e Ouro). Configure uma vez e use todo mês.</p></div></div>
+    <div class="tstep"><div class="tsn">2</div><div class="tsb"><h4>Cadastre os colaboradores — aba Colaboradores</h4><p>Cadastre cada colaborador com nome, setor (SAC, Cobrança, Comercial, Gestão), cargo e se é gestor. Você também pode importar via Excel/CSV com as colunas: Nome, Setor, Cargo, Gestor (S/N).</p></div></div>
+    <div class="tstep"><div class="tsn">3</div><div class="tsb"><h4>Lance as ocorrências — aba Ocorrências</h4><p>Registre faltas, suspensões, advertências e atestados de cada colaborador. Cada tipo tem impacto diferente na elegibilidade. <code>Falta</code>, <code>Suspensão</code> e <code>Advertência</code> tornam o colaborador inelegível. <code>Atestado</code> só impede se ultrapassar a tolerância configurada.</p></div></div>
+    <div class="tstep"><div class="tsn">4</div><div class="tsb"><h4>Lance os dias trabalhados — aba Frequência</h4><p>Informe quantos dias cada colaborador trabalhou no mês. Quem não atingir o mínimo configurado (padrão 15 dias) fica inelegível automaticamente.</p></div></div>
+    <div class="tstep"><div class="tsn">5</div><div class="tsb"><h4>Configure as metas por setor — aba Metas</h4><p>Lance o percentual de meta atingido por cada setor. O nível de bonificação é definido pela % de meta: Bronze (≥70%), Prata (≥85%), Ouro (≥100%). O gestor recebe o mesmo nível da equipe + valor extra.</p></div></div>
+    <div class="tstep"><div class="tsn">6</div><div class="tsb"><h4>Veja o resultado — aba Resultado</h4><p>O sistema calcula automaticamente quem é elegível e o nível de cada um. Veja o resumo por setor, a lista completa e o valor total a pagar.</p></div></div>
+    <div class="tstep"><div class="tsn">7</div><div class="tsb"><h4>Gere os documentos para aprovação</h4><p>Clique em <code>📋 Planilha para Diretoria</code> para gerar o Excel com nome, setor, nível e valor — pronto para enviar para aprovação. Clique em <code>📄 Relatório PDF</code> para o documento que a diretoria assina autorizando os pagamentos.</p></div></div>
+    <div class="tstep"><div class="tsn">8</div><div class="tsb"><h4>Planilha de Pagamento</h4><p>Após a aprovação da diretoria, clique em <code>💳 Planilha de Pagamento</code> para gerar o Excel final com nome, banco, agência, conta e valor — pronto para processar no financeiro.</p></div></div>
+    <div class="ttip">💡 <strong>Regras de elegibilidade:</strong> Falta injustificada → inelegível · Suspensão → inelegível · Advertência → inelegível · Atestado acima da tolerância → inelegível · Dias trabalhados abaixo do mínimo → inelegível. Apenas quem não tem nenhuma ocorrência negativa E atingiu o mínimo de dias E o setor bateu a meta recebe bonificação.</div>
+    <button class="tclose" onclick="document.getElementById('tov').classList.remove('on')">✓ Entendido — Fechar Tutorial</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="hlogo">
+    <div class="hic">🏆</div>
+    <div><div class="hn">Bônus<em>Fácil</em></div><div class="hs">Bonificação por Meta</div></div>
+  </div>
+  <div class="hright">
+    <div class="emp-badge" id="emp-badge"><span id="emp-h">—</span></div>
+    <span class="hver">v1.0</span>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab on" onclick="goTab('dash',this)">📊 Dashboard</button>
+  <button class="tab" onclick="goTab('colab',this)">👥 Colaboradores</button>
+  <button class="tab" onclick="goTab('ocor',this)">⚠️ Ocorrências</button>
+  <button class="tab" onclick="goTab('freq',this)">📅 Frequência</button>
+  <button class="tab" onclick="goTab('meta',this)">🎯 Metas</button>
+  <button class="tab" onclick="goTab('res',this)">🏆 Resultado</button>
+  <button class="tab" onclick="goTab('tut',this)">📖 Tutorial</button>
+</div>
+
+<div class="wrap">
+
+  <!-- ══ DASHBOARD ══ -->
+  <div id="sec-dash" class="sec on">
+    <div class="kpi-grid">
+      <div class="kpi bl"><div class="kv" id="kpi-total">0</div><div class="kl">Total de Colaboradores</div></div>
+      <div class="kpi gr"><div class="kv" id="kpi-eleg">0</div><div class="kl">✅ Elegíveis</div></div>
+      <div class="kpi re"><div class="kv" id="kpi-inap">0</div><div class="kl">❌ Inelegíveis</div></div>
+      <div class="kpi go"><div class="kv" id="kpi-total-val">R$ 0</div><div class="kl">💰 Total a Pagar</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">
+      <div class="kpi go"><div style="font-size:1.1rem;margin-bottom:3px">🥇</div><div class="kv" id="kpi-ouro" style="color:var(--go)">0</div><div class="kl">Nível Ouro</div></div>
+      <div class="kpi si"><div style="font-size:1.1rem;margin-bottom:3px">🥈</div><div class="kv" id="kpi-prata" style="color:var(--si)">0</div><div class="kl">Nível Prata</div></div>
+      <div class="kpi br"><div style="font-size:1.1rem;margin-bottom:3px">🥉</div><div class="kv" id="kpi-bronze" style="color:var(--br)">0</div><div class="kl">Nível Bronze</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="card">
+        <div class="card-h"><div class="card-t">🎯 Meta por Setor</div></div>
+        <div id="dash-metas"><div class="empty-st"><div class="ei">🎯</div>Configure as metas na aba <strong>Metas</strong></div></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div class="card-t">⚠️ Resumo de Ocorrências</div></div>
+        <div id="dash-ocor"><div class="empty-st"><div class="ei">✅</div>Nenhuma ocorrência lançada</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ COLABORADORES ══ -->
+  <div id="sec-colab" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">➕ Cadastrar Colaborador</div></div>
+      <div class="fg">
+        <div class="f" style="flex:2"><label>Nome Completo *</label><input id="cn" type="text" placeholder="Ex: João da Silva Santos"></div>
+        <div class="f"><label>Setor *</label>
+          <select id="cs"><option value="SAC">SAC</option><option value="Cobrança">Cobrança</option><option value="Comercial">Comercial</option><option value="Gestão">Gestão</option><option value="Outro">Outro</option></select>
+        </div>
+        <div class="f"><label>Cargo</label><input id="cc" type="text" placeholder="Ex: Analista, Supervisor..."></div>
+        <div class="f" style="max-width:100px"><label>É Gestor?</label>
+          <select id="cg"><option value="nao">Não</option><option value="sim">Sim</option></select>
+        </div>
+        <button class="btn bgo" onclick="addColab()" style="margin-top:19px">＋ Add</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="btn bbl" onclick="importColab()">📂 Importar Excel/CSV</button>
+        <input type="file" id="file-colab" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleColabFile(this)">
+        <span style="font-size:.66rem;color:var(--mu);align-self:center">Colunas: Nome · Setor · Cargo · Gestor (S/N)</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">Colaboradores <span id="colab-count" style="font-size:.62rem;padding:2px 7px;border-radius:20px;background:var(--gob);color:var(--go);font-weight:700">0</span></div>
+        <div style="display:flex;gap:6px">
+          <select id="filtro-setor" onchange="renderColab()" style="font-size:.7rem;padding:5px 8px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;color:var(--tx)">
+            <option value="">Todos Setores</option>
+            <option value="SAC">SAC</option><option value="Cobrança">Cobrança</option>
+            <option value="Comercial">Comercial</option><option value="Gestão">Gestão</option>
+          </select>
+          <button class="btn bre" onclick="clrColab()">🗑 Limpar</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Nome</th><th>Setor</th><th>Cargo</th><th>Gestor</th><th>Ações</th></tr></thead>
+          <tbody id="tbody-colab"><tr><td colspan="6"><div class="empty-st"><div class="ei">👥</div>Nenhum colaborador cadastrado ainda</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ OCORRÊNCIAS ══ -->
+  <div id="sec-ocor" class="sec">
+    <div class="card" style="background:var(--reb);border-color:rgba(239,68,68,.3)">
+      <div style="font-size:.76rem;color:var(--re);line-height:1.6">
+        <strong>📋 Regras de impacto das ocorrências:</strong><br>
+        ❌ <strong>Falta injustificada</strong> → Inelegível imediatamente &nbsp;·&nbsp;
+        ❌ <strong>Suspensão</strong> → Inelegível imediatamente &nbsp;·&nbsp;
+        ❌ <strong>Advertência</strong> → Inelegível imediatamente &nbsp;·&nbsp;
+        ⚠️ <strong>Atestado</strong> → Inelegível apenas se ultrapassar a tolerância configurada (padrão: <strong id="tol-dias">2</strong> dias)
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">➕ Registrar Ocorrência</div></div>
+      <div class="fg">
+        <div class="f" style="flex:2"><label>Colaborador *</label>
+          <select id="on"><option value="">Selecione...</option></select>
+        </div>
+        <div class="f"><label>Tipo *</label>
+          <select id="ot">
+            <option value="falta">❌ Falta Injustificada</option>
+            <option value="suspensao">❌ Suspensão</option>
+            <option value="advertencia">❌ Advertência</option>
+            <option value="atestado">⚠️ Atestado Médico</option>
+          </select>
+        </div>
+        <div class="f"><label>Data</label><input id="od" type="date"></div>
+        <div class="f"><label>Dias (atestado)</label><input id="oqd" type="number" min="1" max="30" placeholder="1"></div>
+        <div class="f"><label>Observação</label><input id="oobs" type="text" placeholder="Detalhes..."></div>
+        <button class="btn bgo" onclick="addOcor()" style="margin-top:19px">➕ Registrar</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">Ocorrências Registradas <span id="ocor-count" style="font-size:.62rem;padding:2px 7px;border-radius:20px;background:var(--reb);color:var(--re);font-weight:700">0</span></div>
+        <select id="filtro-ot" onchange="renderOcor()" style="font-size:.7rem;padding:5px 8px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;color:var(--tx)">
+          <option value="">Todos Tipos</option>
+          <option value="falta">Faltas</option><option value="suspensao">Suspensões</option>
+          <option value="advertencia">Advertências</option><option value="atestado">Atestados</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>Colaborador</th><th>Setor</th><th>Tipo</th><th>Data</th><th>Dias</th><th>Observação</th><th>Impacto</th><th>Ações</th></tr></thead>
+          <tbody id="tbody-ocor"><tr><td colspan="8"><div class="empty-st"><div class="ei">✅</div>Nenhuma ocorrência registrada</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FREQUÊNCIA ══ -->
+  <div id="sec-freq" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">📅 Lançar Dias Trabalhados</div><span style="font-size:.7rem;color:var(--mu)">Mínimo: <strong id="freq-min" style="color:var(--go)">15</strong> dias</span></div>
+      <div class="fg" style="margin-bottom:10px">
+        <div class="f" style="flex:2"><label>Colaborador</label>
+          <select id="fn-col"><option value="">Selecione...</option></select>
+        </div>
+        <div class="f" style="max-width:120px"><label>Dias Trabalhados *</label>
+          <input id="fn-dias" type="number" min="0" max="31" placeholder="Ex: 22">
+        </div>
+        <button class="btn bgo" onclick="addFreq()" style="margin-top:19px">✓ Salvar</button>
+        <button class="btn bbl" onclick="preencherTodos()" style="margin-top:19px">⚡ Preencher todos com dias úteis</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">Frequência de Colaboradores</div></div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>Nome</th><th>Setor</th><th>Dias Trabalhados</th><th>Mínimo</th><th>Status</th></tr></thead>
+          <tbody id="tbody-freq"><tr><td colspan="5"><div class="empty-st"><div class="ei">📅</div>Cadastre colaboradores primeiro</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ METAS ══ -->
+  <div id="sec-meta" class="sec">
+    <div class="card">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+        <div style="background:rgba(205,127,50,.08);border:1px solid rgba(205,127,50,.25);border-radius:10px;padding:12px;text-align:center"><div style="font-size:1.4rem">🥉</div><div style="font-size:.76rem;font-weight:700;color:var(--br)">Bronze</div><div style="font-size:.66rem;color:var(--mu)">Meta ≥ 70%</div><div style="font-family:JetBrains Mono,monospace;font-size:.82rem;font-weight:700;color:var(--br);margin-top:3px" id="val-bronze">—</div></div>
+        <div style="background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.25);border-radius:10px;padding:12px;text-align:center"><div style="font-size:1.4rem">🥈</div><div style="font-size:.76rem;font-weight:700;color:var(--si)">Prata</div><div style="font-size:.66rem;color:var(--mu)">Meta ≥ 85%</div><div style="font-family:JetBrains Mono,monospace;font-size:.82rem;font-weight:700;color:var(--si);margin-top:3px" id="val-prata">—</div></div>
+        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:10px;padding:12px;text-align:center"><div style="font-size:1.4rem">🥇</div><div style="font-size:.76rem;font-weight:700;color:var(--go)">Ouro</div><div style="font-size:.66rem;color:var(--mu)">Meta ≥ 100%</div><div style="font-family:JetBrains Mono,monospace;font-size:.82rem;font-weight:700;color:var(--go);margin-top:3px" id="val-ouro">—</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">🎯 Meta por Setor</div></div>
+      <div id="meta-setores"><div class="empty-st"><div class="ei">🎯</div>Cadastre colaboradores para ver os setores</div></div>
+    </div>
+  </div>
+
+  <!-- ══ RESULTADO ══ -->
+  <div id="sec-res" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">🏆 Resultado da Apuração</div>
+        <button class="btn bgo" onclick="calcularResultado()">🔄 Calcular Agora</button>
+      </div>
+      <div id="resultado-sumario"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">📋 Lista Completa de Elegíveis e Inelegíveis</div>
+        <div style="display:flex;gap:6px">
+          <select id="res-filtro" onchange="renderResultado()" style="font-size:.7rem;padding:5px 8px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;color:var(--tx)">
+            <option value="">Todos</option><option value="elegivel">Elegíveis</option><option value="inelegivel">Inelegíveis</option>
+          </select>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>Nome</th><th>Setor</th><th>Cargo</th><th>Gestor</th><th>Dias Trab.</th><th>Meta Setor</th><th>Ocorrências</th><th>Nível</th><th>Valor</th></tr></thead>
+          <tbody id="tbody-res"><tr><td colspan="9"><div class="empty-st"><div class="ei">🏆</div>Clique em <strong>Calcular Agora</strong> para ver o resultado</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="exp-row">
+      <button class="btn bgo" onclick="calcularResultado()">🔄 Recalcular</button>
+      <button class="btn bgr" onclick="expAprovacaoPDF()">📄 Relatório PDF para Diretoria</button>
+      <button class="btn bbl" onclick="expPlanilhaDiretoria()">📋 Planilha para Aprovação</button>
+      <button class="btn bpu" onclick="expPlanilhaPagamento()">💳 Planilha de Pagamento</button>
+    </div>
+  </div>
+
+  <!-- ══ TUTORIAL ══ -->
+  <div id="sec-tut" class="sec">
+    <div class="card" style="text-align:center;padding:28px">
+      <div style="font-size:2rem;margin-bottom:10px">📖</div>
+      <div style="font-size:.9rem;font-weight:700;margin-bottom:6px">Tutorial Completo do BônusFácil</div>
+      <div style="font-size:.76rem;color:var(--mu);margin-bottom:18px">Veja o passo a passo completo — do cadastro ao pagamento</div>
+      <button class="btn bgo" onclick="document.getElementById('tov').classList.add('on')" style="margin:0 auto">📖 Abrir Tutorial</button>
+    </div>
+    <div class="card" style="text-align:center;padding:22px">
+      <div style="font-size:1.2rem;margin-bottom:5px">💬</div>
+      <div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Suporte com o Desenvolvedor</div>
+      <div style="font-size:.74rem;color:var(--mu);margin-bottom:14px">Dúvidas, ajustes ou personalizações — WhatsApp direto</div>
+      <a href="https://wa.me/5591999879932" target="_blank" class="btn bgo" style="text-decoration:none;margin:0 auto">💬 João Gomes · (91) 99987-9932</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div><strong>BônusFácil v1.0</strong> &nbsp;·&nbsp; Sistema de Bonificação por Meta</div>
+  <button onclick="document.getElementById('tov').classList.add('on')">📖 Tutorial</button>
+  <div>Desenvolvido por <strong>João Gomes</strong> &nbsp;·&nbsp; <a href="https://wa.me/5591999879932" target="_blank">📱 (91) 99987-9932</a></div>
+</footer>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────
+var cfg={nome:'',cnpj:'',resp:'',mes:'Maio',ano:'2026',diasMin:15,ateTol:2,vOuro:500,vPrata:300,vBronze:150,vGest:200,logo:''};
+var colaboradores=[],ocorrencias=[],frequencias={},metas={},resultados=[];
+var _logo='';
+
+// ── WELCOME ────────────────────────────────────────────────
+function chkW(){document.getElementById('wbtn').disabled=document.getElementById('wn').value.trim().length<2;}
+function mCNPJ(el){var v=el.value.replace(/\D/g,'').slice(0,14);if(v.length>12)v=v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/,'$1.$2.$3/$4-$5');else if(v.length>8)v=v.replace(/(\d{2})(\d{3})(\d{3})(\d{0,4})/,'$1.$2.$3/$4');else if(v.length>5)v=v.replace(/(\d{2})(\d{3})(\d{0,3})/,'$1.$2.$3');else if(v.length>2)v=v.replace(/(\d{2})(\d{0,3})/,'$1.$2');el.value=v;}
+function pLogo(inp){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){document.getElementById('wlimg').src=e.target.result;document.getElementById('wlfn').textContent=f.name;document.getElementById('wlprev').style.display='flex';_logo=e.target.result;};r.readAsDataURL(f);}
+function rLogo(){document.getElementById('wlprev').style.display='none';document.getElementById('wlogo').value='';_logo='';}
+function startApp(){
+  cfg.nome=document.getElementById('wn').value.trim();
+  cfg.cnpj=document.getElementById('wc').value.trim();
+  cfg.resp=document.getElementById('wresp').value.trim();
+  cfg.mes=document.getElementById('wm').value;
+  cfg.ano=document.getElementById('wano').value;
+  cfg.diasMin=parseInt(document.getElementById('wdias').value)||15;
+  cfg.ateTol=parseInt(document.getElementById('wate').value)||2;
+  cfg.vOuro=parseFloat(document.getElementById('wvouro').value)||500;
+  cfg.vPrata=parseFloat(document.getElementById('wvprata').value)||300;
+  cfg.vBronze=parseFloat(document.getElementById('wvbronze').value)||150;
+  cfg.vGest=parseFloat(document.getElementById('wvgest').value)||200;
+  cfg.logo=_logo;
+  localStorage.setItem('bonus_cfg',JSON.stringify(cfg));
+  var ov=document.getElementById('wov');ov.style.transition='opacity .3s';ov.style.opacity='0';setTimeout(function(){ov.style.display='none';},320);
+  atualizarUI();
+}
+function loadCfg(){
+  try{
+    var c=JSON.parse(localStorage.getItem('bonus_cfg')||'null');if(!c)return false;
+    Object.assign(cfg,c);_logo=c.logo||'';
+    document.getElementById('wov').style.display='none';
+    atualizarUI();
+    var saved=JSON.parse(localStorage.getItem('bonus_data')||'null');
+    if(saved){colaboradores=saved.colaboradores||[];ocorrencias=saved.ocorrencias||[];frequencias=saved.frequencias||{};metas=saved.metas||{};}
+    renderColab();renderOcor();renderFreq();renderMetas();updateDash();
+    return true;
+  }catch(e){return false;}
+}
+function salvarDados(){localStorage.setItem('bonus_data',JSON.stringify({colaboradores,ocorrencias,frequencias,metas}));}
+function atualizarUI(){
+  document.getElementById('emp-h').textContent='🏢 '+cfg.nome+' · '+cfg.mes+'/'+cfg.ano;
+  document.getElementById('freq-min').textContent=cfg.diasMin;
+  document.getElementById('tol-dias').textContent=cfg.ateTol;
+  document.getElementById('val-bronze').textContent=fmt(cfg.vBronze);
+  document.getElementById('val-prata').textContent=fmt(cfg.vPrata);
+  document.getElementById('val-ouro').textContent=fmt(cfg.vOuro);
+}
+
+// ── TABS ───────────────────────────────────────────────────
+function goTab(n,b){document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('on')});document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on')});document.getElementById('sec-'+n).classList.add('on');b.classList.add('on');if(n==='dash')updateDash();if(n==='res')calcularResultado();}
+
+// ── TOAST ──────────────────────────────────────────────────
+function toast(m){var t=document.getElementById('tst');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on');},2800);}
+
+// ── COLABORADORES ──────────────────────────────────────────
+function addColab(){
+  var nome=document.getElementById('cn').value.trim();
+  var setor=document.getElementById('cs').value;
+  if(!nome){toast('⚠️ Informe o nome');return;}
+  colaboradores.push({id:Date.now(),nome,setor,cargo:document.getElementById('cc').value.trim()||'—',gestor:document.getElementById('cg').value==='sim'});
+  document.getElementById('cn').value='';document.getElementById('cc').value='';
+  renderColab();updateSelectsColab();updateDash();salvarDados();
+  toast('✅ '+nome+' cadastrado!');
+}
+function delColab(id){colaboradores=colaboradores.filter(function(c){return c.id!==id;});renderColab();updateSelectsColab();updateDash();salvarDados();toast('🗑 Colaborador removido');}
+function renderColab(){
+  document.getElementById('colab-count').textContent=colaboradores.length;
+  var ft=document.getElementById('filtro-setor').value;
+  var items=ft?colaboradores.filter(function(c){return c.setor===ft;}):colaboradores;
+  var tb=document.getElementById('tbody-colab');
+  if(!items.length){tb.innerHTML='<tr><td colspan="6"><div class="empty-st"><div class="ei">👥</div>Nenhum colaborador'+(ft?' neste setor':'')+' cadastrado</div></td></tr>';return;}
+  tb.innerHTML=items.map(function(c,i){
+    return'<tr><td class="mono" style="color:var(--mu)">'+(i+1)+'</td><td style="font-weight:500">'+esc(c.nome)+'</td>'+
+    '<td><span style="font-size:.66rem;font-weight:700;padding:2px 8px;border-radius:20px;background:'+setorColor(c.setor)+'22;color:'+setorColor(c.setor)+'">'+c.setor+'</span></td>'+
+    '<td style="font-size:.74rem;color:var(--mu)">'+esc(c.cargo)+'</td>'+
+    '<td>'+(c.gestor?'<span style="background:var(--gob);color:var(--go);font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px">⭐ Gestor</span>':'<span style="color:var(--mu);font-size:.72rem">—</span>')+'</td>'+
+    '<td><button class="btn bre" style="padding:3px 7px;font-size:.64rem" onclick="delColab('+c.id+')">✕</button></td></tr>';
+  }).join('');
+  renderMetas();
+}
+function clrColab(){if(!confirm('Remover todos os colaboradores?'))return;colaboradores=[];renderColab();updateSelectsColab();updateDash();salvarDados();toast('🗑 Lista limpa');}
+function updateSelectsColab(){
+  var opts='<option value="">Selecione...</option>'+colaboradores.map(function(c){return'<option value="'+c.id+'">'+esc(c.nome)+' ('+c.setor+')</option>';}).join('');
+  document.getElementById('on').innerHTML=opts;
+  document.getElementById('fn-col').innerHTML=opts;
+}
+function importColab(){document.getElementById('file-colab').click();}
+function handleColabFile(inp){
+  var f=inp.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    try{
+      var wb=XLSX.read(e.target.result,{type:'array'});var ws=wb.Sheets[wb.SheetNames[0]];
+      var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});var added=0;
+      var start=rows[0].some(function(c){return String(c).toLowerCase().includes('nome');})?1:0;
+      for(var i=start;i<rows.length;i++){
+        var row=rows[i];var nome=String(row[0]||'').trim();if(!nome)continue;
+        var setor=String(row[1]||'SAC').trim();var cargo=String(row[2]||'').trim()||'—';
+        var gest=String(row[3]||'').toLowerCase().trim();var gestor=gest==='s'||gest==='sim'||gest==='yes';
+        var setores=['SAC','Cobrança','Comercial','Gestão','Outro'];
+        if(!setores.includes(setor))setor='SAC';
+        colaboradores.push({id:Date.now()+i,nome,setor,cargo,gestor});added++;
+      }
+      renderColab();updateSelectsColab();updateDash();salvarDados();
+      toast('✅ '+added+' colaboradores importados!');
+    }catch(er){toast('❌ Erro ao ler arquivo');}
+  };r.readAsArrayBuffer(f);inp.value='';
+}
+
+// ── OCORRÊNCIAS ────────────────────────────────────────────
+function addOcor(){
+  var cid=document.getElementById('on').value;
+  var tipo=document.getElementById('ot').value;
+  var data=document.getElementById('od').value;
+  var qd=parseInt(document.getElementById('oqd').value)||1;
+  var obs=document.getElementById('oobs').value.trim();
+  if(!cid){toast('⚠️ Selecione o colaborador');return;}
+  var colab=colaboradores.find(function(c){return c.id==cid;});
+  ocorrencias.push({id:Date.now(),cid:parseInt(cid),cnome:colab.nome,csetor:colab.setor,tipo,data:data||hoje(),dias:tipo==='atestado'?qd:1,obs});
+  ['oobs'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('oqd').value='';
+  renderOcor();updateDash();salvarDados();
+  toast('⚠️ Ocorrência registrada para '+colab.nome);
+}
+function delOcor(id){ocorrencias=ocorrencias.filter(function(o){return o.id!==id;});renderOcor();updateDash();salvarDados();toast('🗑 Ocorrência removida');}
+function renderOcor(){
+  document.getElementById('ocor-count').textContent=ocorrencias.length;
+  var ft=document.getElementById('filtro-ot').value;
+  var items=ft?ocorrencias.filter(function(o){return o.tipo===ft;}):ocorrencias;
+  var tb=document.getElementById('tbody-ocor');
+  if(!items.length){tb.innerHTML='<tr><td colspan="8"><div class="empty-st"><div class="ei">✅</div>Nenhuma ocorrência'+(ft?' deste tipo':'')+' registrada</div></td></tr>';return;}
+  tb.innerHTML=items.map(function(o){
+    var tipoLabels={falta:'❌ Falta',suspensao:'❌ Suspensão',advertencia:'❌ Advertência',atestado:'⚠️ Atestado'};
+    var impacto=o.tipo==='atestado'?(o.dias>cfg.ateTol?'<span class="status-inapto">Inelegível (excedeu '+cfg.ateTol+'d)</span>':'<span class="status-apto">OK (dentro da tolerância)</span>'):'<span class="status-inapto">Inelegível</span>';
+    return'<tr><td style="font-weight:500">'+esc(o.cnome)+'</td>'+
+    '<td><span style="font-size:.64rem;font-weight:700;padding:2px 7px;border-radius:20px;background:'+setorColor(o.csetor)+'22;color:'+setorColor(o.csetor)+'">'+o.csetor+'</span></td>'+
+    '<td>'+tipoLabels[o.tipo]+'</td>'+
+    '<td class="mono" style="font-size:.72rem">'+fmtD(o.data)+'</td>'+
+    '<td class="mono" style="text-align:center">'+(o.tipo==='atestado'?o.dias+'d':'—')+'</td>'+
+    '<td style="font-size:.72rem;color:var(--mu)">'+esc(o.obs||'—')+'</td>'+
+    '<td>'+impacto+'</td>'+
+    '<td><button class="btn bre" style="padding:3px 7px;font-size:.64rem" onclick="delOcor('+o.id+')">✕</button></td></tr>';
+  }).join('');
+}
+
+// ── FREQUÊNCIA ─────────────────────────────────────────────
+function addFreq(){
+  var cid=document.getElementById('fn-col').value;
+  var dias=parseInt(document.getElementById('fn-dias').value);
+  if(!cid){toast('⚠️ Selecione o colaborador');return;}
+  if(isNaN(dias)||dias<0||dias>31){toast('⚠️ Informe um número de dias válido (0-31)');return;}
+  frequencias[cid]=dias;
+  document.getElementById('fn-dias').value='';
+  renderFreq();salvarDados();toast('✅ Frequência salva!');
+}
+function preencherTodos(){
+  var diasUteis=22;// padrão mês cheio
+  colaboradores.forEach(function(c){if(!frequencias[c.id])frequencias[c.id]=diasUteis;});
+  renderFreq();salvarDados();toast('✅ Todos preenchidos com '+diasUteis+' dias úteis!');
+}
+function renderFreq(){
+  var tb=document.getElementById('tbody-freq');
+  if(!colaboradores.length){tb.innerHTML='<tr><td colspan="5"><div class="empty-st"><div class="ei">📅</div>Cadastre colaboradores primeiro</div></td></tr>';return;}
+  tb.innerHTML=colaboradores.map(function(c){
+    var dias=frequencias[c.id]!==undefined?frequencias[c.id]:'—';
+    var apto=typeof dias==='number'&&dias>=cfg.diasMin;
+    var status=typeof dias==='number'?(apto?'<span class="status-apto">✅ OK</span>':'<span class="status-inapto">❌ Abaixo do mínimo</span>'):'<span style="color:var(--mu);font-size:.68rem">Não lançado</span>';
+    var dEdit=typeof dias==='number'?dias:'';
+    return'<tr><td style="font-weight:500">'+esc(c.nome)+'</td>'+
+    '<td><span style="font-size:.64rem;font-weight:700;padding:2px 7px;border-radius:20px;background:'+setorColor(c.setor)+'22;color:'+setorColor(c.setor)+'">'+c.setor+'</span></td>'+
+    '<td><input type="number" min="0" max="31" value="'+dEdit+'" placeholder="—" style="width:70px;padding:4px 7px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;color:var(--tx);font-family:JetBrains Mono,monospace;font-size:.76rem;text-align:center" onchange="setFreq('+c.id+',this.value)"></td>'+
+    '<td class="mono" style="text-align:center;color:var(--mu)">'+cfg.diasMin+'d</td>'+
+    '<td>'+status+'</td></tr>';
+  }).join('');
+}
+function setFreq(cid,val){frequencias[cid]=parseInt(val)||0;renderFreq();salvarDados();}
+
+// ── METAS ──────────────────────────────────────────────────
+function getSetores(){return [...new Set(colaboradores.map(function(c){return c.setor;}))].sort();}
+function renderMetas(){
+  var setores=getSetores();
+  var el=document.getElementById('meta-setores');
+  if(!setores.length){el.innerHTML='<div class="empty-st"><div class="ei">🎯</div>Cadastre colaboradores para ver os setores</div>';return;}
+  el.innerHTML=setores.map(function(s){
+    var meta=metas[s]||0;var nivel=meta>=100?'🥇 Ouro':meta>=85?'🥈 Prata':meta>=70?'🥉 Bronze':'❌ Sem direito';
+    var cor=meta>=100?'var(--go)':meta>=85?'var(--si)':meta>=70?'var(--br)':'var(--re)';
+    return'<div style="background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:14px">'+
+    '<div style="width:44px;height:44px;border-radius:10px;background:'+setorColor(s)+'22;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">'+setorIcon(s)+'</div>'+
+    '<div style="flex:1"><div style="font-size:.82rem;font-weight:700;margin-bottom:5px">'+s+'</div>'+
+    '<div class="pbar-wrap"><div class="pbar" style="width:'+Math.min(meta,100)+'%;background:'+cor+'"></div></div></div>'+
+    '<div style="text-align:right;min-width:80px">'+
+    '<input type="number" min="0" max="200" value="'+meta+'" placeholder="%" style="width:70px;padding:5px 8px;background:var(--bg);border:1.5px solid var(--b1);border-radius:7px;color:var(--tx);font-family:JetBrains Mono,monospace;font-size:.82rem;font-weight:700;text-align:center;transition:border-color .14s" onchange="setMeta(\''+s+'\',this.value)" onfocus="this.style.borderColor=\'var(--go)\'" onblur="this.style.borderColor=\'var(--b1)\'">'+'<span style="font-size:.6rem;margin-left:3px;color:var(--mu)">%</span>'+
+    '<div style="font-size:.64rem;font-weight:700;color:'+cor+';margin-top:3px">'+nivel+'</div></div></div>';
+  }).join('');
+  updateDash();salvarDados();
+}
+function setMeta(setor,val){metas[setor]=parseFloat(val)||0;renderMetas();}
+
+// ── ELEGIBILIDADE ──────────────────────────────────────────
+function isElegivel(c){
+  // Verifica ocorrências negativas
+  var ocNeg=ocorrencias.filter(function(o){
+    if(o.cid!==c.id)return false;
+    if(o.tipo==='falta'||o.tipo==='suspensao'||o.tipo==='advertencia')return true;
+    if(o.tipo==='atestado'){
+      var totalAte=ocorrencias.filter(function(x){return x.cid===c.id&&x.tipo==='atestado';}).reduce(function(s,x){return s+x.dias;},0);
+      return totalAte>cfg.ateTol;
+    }
+    return false;
+  });
+  if(ocNeg.length>0)return{ok:false,motivo:ocNeg.map(function(o){return o.tipo;}).join(', ')};
+  // Verifica dias trabalhados
+  var dias=frequencias[c.id];
+  if(dias===undefined||dias<cfg.diasMin)return{ok:false,motivo:'dias insuficientes ('+( dias!==undefined?dias:'não lançado')+')'};
+  // Verifica meta do setor
+  var meta=metas[c.setor]||0;
+  if(meta<70)return{ok:false,motivo:'meta do setor abaixo de 70%'};
+  return{ok:true};
+}
+function getNivel(setor,gestor){
+  var meta=metas[setor]||0;
+  var nivel=meta>=100?'ouro':meta>=85?'prata':meta>=70?'bronze':'inelegivel';
+  var val=nivel==='ouro'?cfg.vOuro:nivel==='prata'?cfg.vPrata:nivel==='bronze'?cfg.vBronze:0;
+  if(gestor&&nivel!=='inelegivel')val+=cfg.vGest;
+  return{nivel,val};
+}
+function calcularResultado(){
+  resultados=colaboradores.map(function(c){
+    var eleg=isElegivel(c);
+    if(!eleg.ok)return Object.assign({},c,{elegivel:false,motivo:eleg.motivo,nivel:'inelegivel',valor:0,dias:frequencias[c.id],meta:metas[c.setor]||0});
+    var nv=getNivel(c.setor,c.gestor);
+    return Object.assign({},c,{elegivel:true,motivo:'',nivel:nv.nivel,valor:nv.val,dias:frequencias[c.id],meta:metas[c.setor]||0});
+  });
+  renderResultado();
+  updateDash();
+  // Sumário
+  var eleg=resultados.filter(function(r){return r.elegivel;});
+  var total=eleg.reduce(function(s,r){return s+r.valor;},0);
+  var ouro=eleg.filter(function(r){return r.nivel==='ouro';}).length;
+  var prata=eleg.filter(function(r){return r.nivel==='prata';}).length;
+  var bronze=eleg.filter(function(r){return r.nivel==='bronze';}).length;
+  document.getElementById('resultado-sumario').innerHTML=
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">'+
+    '<div style="background:var(--grb);border:1px solid rgba(34,197,94,.25);border-radius:10px;padding:12px;text-align:center"><div style="font-size:1.3rem;font-weight:800;color:var(--gr);font-family:JetBrains Mono,monospace">'+eleg.length+'</div><div style="font-size:.62rem;color:var(--mu);margin-top:2px">✅ Elegíveis</div></div>'+
+    '<div style="background:var(--reb);border:1px solid rgba(239,68,68,.25);border-radius:10px;padding:12px;text-align:center"><div style="font-size:1.3rem;font-weight:800;color:var(--re);font-family:JetBrains Mono,monospace">'+(resultados.length-eleg.length)+'</div><div style="font-size:.62rem;color:var(--mu);margin-top:2px">❌ Inelegíveis</div></div>'+
+    '<div style="background:var(--gob);border:1px solid rgba(245,158,11,.25);border-radius:10px;padding:12px;text-align:center"><div style="font-size:1.3rem;font-weight:800;color:var(--go);font-family:JetBrains Mono,monospace">'+fmt(total)+'</div><div style="font-size:.62rem;color:var(--mu);margin-top:2px">💰 Total a Pagar</div></div>'+
+    '<div style="background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px;text-align:center"><div style="font-size:.8rem;font-weight:800;color:var(--tx)">🥇'+ouro+' &nbsp;🥈'+prata+' &nbsp;🥉'+bronze+'</div><div style="font-size:.62rem;color:var(--mu);margin-top:2px">Distribuição de Níveis</div></div>'+
+    '</div>';
+  toast('✅ Cálculo concluído! '+eleg.length+' elegíveis — '+fmt(total)+' a pagar');
+}
+function renderResultado(){
+  var ft=document.getElementById('res-filtro').value;
+  var items=resultados.filter(function(r){if(ft==='elegivel')return r.elegivel;if(ft==='inelegivel')return!r.elegivel;return true;});
+  var tb=document.getElementById('tbody-res');
+  if(!items.length){tb.innerHTML='<tr><td colspan="9"><div class="empty-st"><div class="ei">🏆</div>Clique em <strong>Calcular Agora</strong></div></td></tr>';return;}
+  tb.innerHTML=items.map(function(r){
+    var nivelHtml=r.nivel==='ouro'?'<span class="nivel-ouro">🥇 Ouro</span>':r.nivel==='prata'?'<span class="nivel-prata">🥈 Prata</span>':r.nivel==='bronze'?'<span class="nivel-bronze">🥉 Bronze</span>':'<span class="nivel-inelegivel">❌ Inelegível</span>';
+    var ocNeg=ocorrencias.filter(function(o){return o.cid===r.id&&(o.tipo!=='atestado'||(o.tipo==='atestado'&&ocorrencias.filter(function(x){return x.cid===r.id&&x.tipo==='atestado';}).reduce(function(s,x){return s+x.dias;},0)>cfg.ateTol));});
+    var ocStr=ocNeg.length>0?'<span style="color:var(--re);font-size:.66rem">'+ocNeg.map(function(o){return o.tipo;}).join(', ')+'</span>':'<span style="color:var(--gr);font-size:.66rem">Nenhuma</span>';
+    return'<tr>'+
+    '<td style="font-weight:500">'+esc(r.nome)+'</td>'+
+    '<td><span style="font-size:.64rem;font-weight:700;padding:2px 7px;border-radius:20px;background:'+setorColor(r.setor)+'22;color:'+setorColor(r.setor)+'">'+r.setor+'</span></td>'+
+    '<td style="font-size:.72rem;color:var(--mu)">'+esc(r.cargo)+'</td>'+
+    '<td>'+(r.gestor?'<span style="background:var(--gob);color:var(--go);font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:20px">⭐</span>':'—')+'</td>'+
+    '<td class="mono" style="text-align:center;color:'+(r.dias>=cfg.diasMin?'var(--gr)':'var(--re)')+'">'+(r.dias!==undefined?r.dias+'d':'—')+'</td>'+
+    '<td class="mono" style="text-align:center;color:'+(r.meta>=100?'var(--go)':r.meta>=85?'var(--si)':r.meta>=70?'var(--br)':'var(--re)')+'">'+r.meta+'%</td>'+
+    '<td>'+ocStr+'</td>'+
+    '<td>'+nivelHtml+'</td>'+
+    '<td class="mono" style="font-weight:700;color:'+(r.valor>0?'var(--gr)':'var(--re)')+'">'+(r.valor>0?fmt(r.valor):'—')+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────
+function updateDash(){
+  var eleg=resultados.filter(function(r){return r.elegivel;});
+  var inap=resultados.length-eleg.length;
+  document.getElementById('kpi-total').textContent=colaboradores.length;
+  document.getElementById('kpi-eleg').textContent=eleg.length;
+  document.getElementById('kpi-inap').textContent=inap;
+  document.getElementById('kpi-total-val').textContent=fmt(eleg.reduce(function(s,r){return s+r.valor;},0));
+  document.getElementById('kpi-ouro').textContent=eleg.filter(function(r){return r.nivel==='ouro';}).length;
+  document.getElementById('kpi-prata').textContent=eleg.filter(function(r){return r.nivel==='prata';}).length;
+  document.getElementById('kpi-bronze').textContent=eleg.filter(function(r){return r.nivel==='bronze';}).length;
+  // Metas
+  var setores=getSetores();var dm=document.getElementById('dash-metas');
+  if(!setores.length){dm.innerHTML='<div class="empty-st" style="padding:12px"><div class="ei" style="font-size:1.2rem">🎯</div>Configure as metas</div>';}
+  else{dm.innerHTML=setores.map(function(s){var meta=metas[s]||0;var cor=meta>=100?'var(--go)':meta>=85?'var(--si)':meta>=70?'var(--br)':'var(--re)';return'<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:3px"><span style="font-weight:600">'+setorIcon(s)+' '+s+'</span><span style="font-weight:700;color:'+cor+'">'+meta+'%</span></div><div class="pbar-wrap"><div class="pbar" style="width:'+Math.min(meta,100)+'%;background:'+cor+'"></div></div></div>';}).join('');}
+  // Ocorrências
+  var tipoCount={falta:0,suspensao:0,advertencia:0,atestado:0};
+  ocorrencias.forEach(function(o){tipoCount[o.tipo]=(tipoCount[o.tipo]||0)+1;});
+  var total=ocorrencias.length;var doc=document.getElementById('dash-ocor');
+  if(!total){doc.innerHTML='<div class="empty-st" style="padding:12px"><div class="ei" style="font-size:1.2rem">✅</div>Nenhuma ocorrência</div>';}
+  else{doc.innerHTML=[{t:'Faltas',v:tipoCount.falta,c:'var(--re)'},{t:'Suspensões',v:tipoCount.suspensao,c:'var(--re)'},{t:'Advertências',v:tipoCount.advertencia,c:'#F97316'},{t:'Atestados',v:tipoCount.atestado,c:'var(--bl)'}].filter(function(x){return x.v>0;}).map(function(x){return'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--b1);font-size:.76rem"><span style="color:var(--mu)">'+x.t+'</span><span style="font-weight:700;color:'+x.c+'">'+x.v+'</span></div>';}).join('');}
+}
+
+// ── EXPORTS ────────────────────────────────────────────────
+function cabPDF(){
+  var logo=_logo?'<img src="'+_logo+'" style="height:38px;object-fit:contain">':'<div style="font-size:9px;color:#94a3b8">SEM LOGO</div>';
+  return'<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:2px solid #F59E0B;margin-bottom:14px">'+logo+'<div style="text-align:right"><div style="font-size:.88rem;font-weight:800">'+esc(cfg.nome)+'</div><div style="font-size:.62rem;color:#64748b">CNPJ: '+esc(cfg.cnpj||'—')+'</div><div style="font-size:.62rem;color:#64748b">Período: '+esc(cfg.mes)+'/'+esc(cfg.ano)+'</div></div></div>';
+}
+function rodaPDF(){return'<div style="margin-top:16px;padding-top:8px;border-top:1px solid #e2e8f0;font-size:.6rem;color:#94a3b8;text-align:center">'+esc(cfg.nome)+' &nbsp;·&nbsp; BônusFácil v1.0 &nbsp;·&nbsp; João Gomes · (91) 99987-9932 &nbsp;·&nbsp; Gerado em '+hoje()+'</div>';}
+function assPDF(){
+  return'<div style="margin-top:40px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">'+
+    ['Aprovado por / Diretoria','Conferido por / RH-DP','Autorizado p/ Pagamento / Financeiro'].map(function(label){
+      return'<div style="text-align:center"><div style="border-top:1.5px solid #111;padding-top:6px;font-size:10px;color:#374151;font-weight:600">'+label+'</div><div style="font-size:9px;color:#9ca3af;margin-top:3px">Data: ___ / ___ / ______</div></div>';
+    }).join('')+'</div>';
+}
+function expAprovacaoPDF(){
+  if(!resultados.length){calcularResultado();}
+  var eleg=resultados.filter(function(r){return r.elegivel;});
+  var inap=resultados.filter(function(r){return !r.elegivel;});
+  var total=eleg.reduce(function(s,r){return s+r.valor;},0);
+  var rowsEleg=eleg.map(function(r){return'<tr style="background:#f0fdf4"><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px;font-weight:500">'+esc(r.nome)+'</td><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px">'+r.setor+'</td><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px">'+esc(r.cargo)+'</td><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px;text-align:center">'+(r.gestor?'⭐ Sim':'Não')+'</td><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px;text-align:center">'+r.dias+'d</td><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px;text-align:center">'+r.meta+'%</td><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px;font-weight:700;color:'+(r.nivel==='ouro'?'#D97706':r.nivel==='prata'?'#64748b':'#CD7F32')+'">'+(r.nivel==='ouro'?'🥇 Ouro':r.nivel==='prata'?'🥈 Prata':'🥉 Bronze')+'</td><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:12px;font-weight:800;text-align:right;color:#16a34a">'+fmt(r.valor)+'</td></tr>';}).join('');
+  var rowsInap=inap.map(function(r){return'<tr style="background:#fff1f2"><td style="padding:5px 9px;border:1px solid #e5e7eb;font-size:11px">'+esc(r.nome)+'</td><td style="padding:5px 9px;border:1px solid #e5e7eb;font-size:11px">'+r.setor+'</td><td style="padding:5px 9px;border:1px solid #e5e7eb;font-size:11px;color:#dc2626">'+esc(r.motivo)+'</td></tr>';}).join('');
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório de Bonificação — '+esc(cfg.nome)+'</title><style>body{font-family:Arial,sans-serif;margin:28px;color:#111}h2{font-size:14px;color:#D97706;margin-bottom:3px}h3{font-size:12px;margin:14px 0 6px}table{width:100%;border-collapse:collapse;margin-bottom:14px}thead th{background:#F59E0B;color:#000;padding:6px 9px;font-size:10px;text-align:left;border:1px solid #D97706}.sum{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap}.sc{padding:8px 14px;border-radius:6px;text-align:center}.sc .n{font-size:16px;font-weight:bold}.sc .l{font-size:9px;color:#555;margin-top:1px}@media print{body{margin:10px}}</style></head><body>'+
+    cabPDF()+
+    '<h2>🏆 Relatório de Bonificação por Meta — '+esc(cfg.mes)+'/'+esc(cfg.ano)+'</h2>'+
+    '<p style="font-size:10px;color:#64748b;margin-bottom:12px">Responsável: '+esc(cfg.resp||'—')+' &nbsp;·&nbsp; Mínimo de dias: '+cfg.diasMin+' &nbsp;·&nbsp; Tolerância atestado: '+cfg.ateTol+'d</p>'+
+    '<div class="sum">'+
+      '<div class="sc" style="background:#f0fdf4"><div class="n" style="color:#16a34a">'+eleg.length+'</div><div class="l">Elegíveis</div></div>'+
+      '<div class="sc" style="background:#fff1f2"><div class="n" style="color:#dc2626">'+inap.length+'</div><div class="l">Inelegíveis</div></div>'+
+      '<div class="sc" style="background:#fff8e1"><div class="n" style="color:#D97706">'+fmt(total)+'</div><div class="l">Total a Pagar</div></div>'+
+      '<div class="sc" style="background:#f4f4f4"><div class="n">🥇'+eleg.filter(function(r){return r.nivel==='ouro';}).length+' 🥈'+eleg.filter(function(r){return r.nivel==='prata';}).length+' 🥉'+eleg.filter(function(r){return r.nivel==='bronze';}).length+'</div><div class="l">Distribuição</div></div>'+
+    '</div>'+
+    '<h3>✅ Colaboradores Elegíveis</h3>'+
+    '<table><thead><tr><th>Nome</th><th>Setor</th><th>Cargo</th><th>Gestor</th><th>Dias</th><th>Meta</th><th>Nível</th><th style="text-align:right">Valor</th></tr></thead><tbody>'+rowsEleg+
+    '<tr style="font-weight:800;background:#fff8e1"><td colspan="7" style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px">TOTAL A PAGAR</td><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:13px;font-weight:800;text-align:right;color:#D97706">'+fmt(total)+'</td></tr>'+
+    '</tbody></table>'+
+    (inap.length?'<h3>❌ Colaboradores Inelegíveis</h3><table><thead><tr><th>Nome</th><th>Setor</th><th>Motivo da Inelegibilidade</th></tr></thead><tbody>'+rowsInap+'</tbody></table>':'')+
+    assPDF()+
+    rodaPDF()+'</body></html>';
+  var w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(function(){w.print();},600);
+  toast('📄 Relatório PDF aberto!');
+}
+function expPlanilhaDiretoria(){
+  if(!resultados.length){calcularResultado();}
+  var eleg=resultados.filter(function(r){return r.elegivel;});
+  var data=[
+    ['BONUSFÁCIL — PLANILHA DE APROVAÇÃO DE BONIFICAÇÃO'],
+    ['Empresa: '+cfg.nome,'','CNPJ: '+cfg.cnpj,'','Período: '+cfg.mes+'/'+cfg.ano,'','Responsável: '+cfg.resp],
+    [],
+    ['Nome Completo','Setor','Cargo','Gestor','Dias Trabalhados','Meta do Setor (%)','Nível','Valor (R$)','Aprovado pela Diretoria'],
+    ...eleg.map(function(r){return[r.nome,r.setor,r.cargo,r.gestor?'Sim':'Não',r.dias,r.meta,r.nivel==='ouro'?'OURO':r.nivel==='prata'?'PRATA':'BRONZE',r.valor,''];}),
+    [],
+    ['','','','','','','TOTAL A PAGAR:',eleg.reduce(function(s,r){return s+r.valor;},0)],
+    [],
+    ['INELEGÍVEIS — NÃO RECEBEM BONIFICAÇÃO'],
+    ['Nome','Setor','Motivo'],
+    ...resultados.filter(function(r){return!r.elegivel;}).map(function(r){return[r.nome,r.setor,r.motivo];}),
+  ];
+  var wb=XLSX.utils.book_new();var ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:30},{wch:14},{wch:16},{wch:8},{wch:16},{wch:16},{wch:10},{wch:14},{wch:22}];
+  XLSX.utils.book_append_sheet(wb,ws,'Aprovação Diretoria');
+  XLSX.writeFile(wb,'BonusFacil-Aprovacao-'+cfg.mes+'-'+cfg.ano+'.xlsx');
+  toast('📋 Planilha para diretoria exportada!');
+}
+function expPlanilhaPagamento(){
+  if(!resultados.length){calcularResultado();}
+  var eleg=resultados.filter(function(r){return r.elegivel;});
+  var data=[
+    ['BONUSFÁCIL — PLANILHA DE PAGAMENTO DE BONIFICAÇÃO'],
+    ['Empresa: '+cfg.nome,'','Período: '+cfg.mes+'/'+cfg.ano,'','Data de geração: '+hoje()],
+    ['ATENÇÃO: Esta planilha foi aprovada pela Diretoria. Preencha os dados bancários abaixo.'],
+    [],
+    ['Nº','Nome Completo','Setor','Cargo','Nível','Valor (R$)','Banco','Agência','Conta','Tipo Conta','CPF','Observação'],
+    ...eleg.map(function(r,i){return[i+1,r.nome,r.setor,r.cargo,r.nivel==='ouro'?'OURO':r.nivel==='prata'?'PRATA':'BRONZE',r.valor,'','','','Corrente','',''];}),
+    [],
+    ['','','','','TOTAL:',eleg.reduce(function(s,r){return s+r.valor;},0)],
+  ];
+  var wb=XLSX.utils.book_new();var ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:5},{wch:32},{wch:14},{wch:16},{wch:10},{wch:12},{wch:12},{wch:10},{wch:14},{wch:12},{wch:14},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,ws,'Pagamento');
+  XLSX.writeFile(wb,'BonusFacil-Pagamento-'+cfg.mes+'-'+cfg.ano+'.xlsx');
+  toast('💳 Planilha de pagamento exportada!');
+}
+
+// ── UTILS ──────────────────────────────────────────────────
+function setorColor(s){var c={SAC:'#3B82F6',Cobrança:'#F59E0B',Comercial:'#10B981',Gestão:'#8B5CF6',Outro:'#06B6D4'};return c[s]||'#64748B';}
+function setorIcon(s){var i={SAC:'📞',Cobrança:'💰',Comercial:'🛒',Gestão:'⭐',Outro:'📋'};return i[s]||'📋';}
+function fmt(v){return'R$ '+parseFloat(v||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
+function hoje(){var d=new Date();return d.toISOString().slice(0,10).split('-').reverse().join('/');}
+function fmtD(s){if(!s)return'—';return s.includes('-')?s.split('-').reverse().join('/'):s;}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── INIT ───────────────────────────────────────────────────
+document.getElementById('od').value=new Date().toISOString().slice(0,10);
+if(!loadCfg()){/* aguarda welcome */}
+</script>
+</body>
+</html>

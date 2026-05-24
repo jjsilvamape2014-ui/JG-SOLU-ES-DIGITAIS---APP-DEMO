@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>João Gomes — Soluções Digitais para DP, RH e Gestão</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pr:#00E5B4;--bg:#07080D;--s1:#0D0F16;--s2:#13151E;
+  --b1:#1E2130;--tx:#E8EAF2;--mu:#5A6080;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:'Outfit',sans-serif;min-height:100vh}
+
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#07080D,#0a0f1e,#07080D);
+  padding:56px 20px 48px;text-align:center;position:relative;overflow:hidden;
+  border-bottom:1px solid var(--b1);
+}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(0,229,180,.08),transparent 60%);pointer-events:none}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,229,180,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,180,.03) 1px,transparent 1px);background-size:44px 44px;pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,229,180,.1);border:1px solid rgba(0,229,180,.3);border-radius:30px;padding:5px 14px;font-size:.66rem;font-weight:700;color:var(--pr);letter-spacing:.8px;text-transform:uppercase;margin-bottom:18px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--pr);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,8vw,4.5rem);color:#fff;line-height:1;letter-spacing:2px;margin-bottom:8px}
+.hero h1 em{color:var(--pr);font-style:normal}
+.hero-sub{font-size:clamp(.8rem,2.5vw,.96rem);color:var(--mu);line-height:1.65;max-width:580px;margin:0 auto 24px}
+.hero-sub strong{color:#8490A8}
+.hero-contact{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn-wa{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#25D366,#1DA851);color:#fff;padding:11px 22px;border-radius:9px;font-size:.84rem;font-weight:800;text-decoration:none;transition:all .14s}
+.btn-wa:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(37,211,102,.3)}
+.btn-li{display:inline-flex;align-items:center;gap:7px;background:rgba(0,229,180,.1);border:1px solid rgba(0,229,180,.3);color:var(--pr);padding:11px 22px;border-radius:9px;font-size:.84rem;font-weight:700;text-decoration:none}
+
+/* STATS */
+.stats{display:flex;justify-content:center;gap:0;border-top:1px solid var(--b1);border-bottom:1px solid var(--b1);background:var(--s1)}
+.stat{flex:1;max-width:180px;text-align:center;padding:18px 10px;border-right:1px solid var(--b1)}
+.stat:last-child{border-right:none}
+.stat-n{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--pr);line-height:1}
+.stat-l{font-size:.62rem;color:var(--mu);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+
+/* APPS GRID */
+.wrap{max-width:1100px;margin:0 auto;padding:36px 16px 60px}
+.sec-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:1.4px;color:var(--pr);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.sec-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,229,180,.25),transparent)}
+.apps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:36px}
+
+/* APP CARD */
+.app-card{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:all .16s;display:flex;flex-direction:column}
+.app-card:hover{transform:translateY(-3px);border-color:var(--b2, #2a3050);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.app-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.app-card.dp::before{background:linear-gradient(90deg,#3B82F6,#06B6D4)}
+.app-card.fin::before{background:linear-gradient(90deg,#10B981,#06B6D4)}
+.app-card.rh::before{background:linear-gradient(90deg,#F59E0B,#EF4444)}
+.app-card.fiscal::before{background:linear-gradient(90deg,#F59E0B,#8B5CF6)}
+.app-card.compras::before{background:linear-gradient(90deg,#8B5CF6,#3B82F6)}
+.app-card.ti::before{background:linear-gradient(90deg,#06B6D4,#10B981)}
+.app-card.free::before{background:linear-gradient(90deg,#00E5B4,#00C49A)}
+.app-card-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.app-icon{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.app-icon.dp{background:rgba(59,130,246,.12)}
+.app-icon.fin{background:rgba(16,185,129,.12)}
+.app-icon.rh{background:rgba(245,158,11,.12)}
+.app-icon.fiscal{background:rgba(245,158,11,.1)}
+.app-icon.compras{background:rgba(139,92,246,.12)}
+.app-icon.ti{background:rgba(6,182,212,.12)}
+.app-icon.free{background:rgba(0,229,180,.1)}
+.app-name{font-size:.96rem;font-weight:800;margin-bottom:2px;letter-spacing:-.2px}
+.app-categoria{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--mu)}
+.app-desc{font-size:.76rem;color:var(--mu);line-height:1.55;flex:1;margin-bottom:14px}
+.app-features{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+.feat{font-size:.68rem;color:#5A6480;display:flex;align-items:flex-start;gap:6px;line-height:1.4}
+.feat::before{content:'✓';color:var(--pr);font-weight:800;flex-shrink:0;margin-top:1px}
+.app-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+.app-price{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:800;color:var(--pr)}
+.app-price.free{color:#00E5B4}
+.app-price small{font-size:.58rem;font-weight:400;color:var(--mu);font-family:'Outfit',sans-serif}
+.btn-demo{display:inline-flex;align-items:center;gap:5px;background:rgba(0,229,180,.1);border:1px solid rgba(0,229,180,.25);color:var(--pr);padding:7px 14px;border-radius:7px;font-size:.72rem;font-weight:700;text-decoration:none;transition:all .13s}
+.btn-demo:hover{background:rgba(0,229,180,.18);transform:translateY(-1px)}
+.btn-demo.free-btn{background:linear-gradient(135deg,rgba(0,229,180,.2),rgba(0,196,154,.15));border-color:rgba(0,229,180,.4)}
+.free-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(0,229,180,.12);border:1px solid rgba(0,229,180,.3);border-radius:20px;padding:3px 9px;font-size:.58rem;font-weight:800;color:var(--pr);text-transform:uppercase;letter-spacing:.5px}
+
+/* CTA BOTTOM */
+.cta-bottom{background:linear-gradient(135deg,#0a1a16,#0a1020);border:1px solid rgba(0,229,180,.2);border-radius:16px;padding:28px;text-align:center;margin-top:16px}
+.cta-bottom h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:1px;color:#fff;margin-bottom:6px}
+.cta-bottom h2 em{color:var(--pr);font-style:normal}
+.cta-bottom p{font-size:.8rem;color:var(--mu);margin-bottom:18px;line-height:1.55;max-width:500px;margin-left:auto;margin-right:auto}
+.cta-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+footer{text-align:center;padding:20px;font-size:.62rem;color:var(--mu);border-top:1px solid var(--b1)}
+footer a{color:var(--pr);text-decoration:none}
+
+@media(max-width:480px){
+  .stats{flex-wrap:wrap}
+  .stat{min-width:50%}
+  .apps-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-badge"><span class="dot"></span>SOLUÇÕES DIGITAIS PARA GESTÃO EMPRESARIAL</div>
+  <h1>JOÃO <em>GOMES</em><br>SOLUÇÕES DIGITAIS</h1>
+  <p class="hero-sub">
+    Mais de <strong>15 anos de experiência em Departamento Pessoal</strong> transformados em sistemas inteligentes.<br>
+    Apps profissionais que rodam no navegador — sem instalar nada, sem mensalidade.
+  </p>
+  <div class="hero-contact">
+    <a class="btn-wa" href="https://wa.me/5591999879932" target="_blank">💬 WhatsApp (91) 99987-9932</a>
+    <a class="btn-li" href="#apps">🚀 Ver Demos com Dados Reais</a>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">10</div><div class="stat-l">Apps Disponíveis</div></div>
+  <div class="stat"><div class="stat-n">15+</div><div class="stat-l">Anos de DP</div></div>
+  <div class="stat"><div class="stat-n">1</div><div class="stat-l">App 100% Grátis</div></div>
+  <div class="stat"><div class="stat-n">R$0</div><div class="stat-l">Mensalidade</div></div>
+</div>
+
+<div class="wrap" id="apps">
+  <div class="sec-title">🚀 Portfólio Completo de Apps</div>
+  <div class="apps-grid">
+
+    <!-- FolhaRH Pro -->
+    <div class="app-card dp">
+      <div class="app-card-top">
+        <div class="app-icon dp">⚡</div>
+        <div><div class="app-name">FolhaRH Pro</div><div class="app-categoria">Departamento Pessoal</div></div>
+      </div>
+      <p class="app-desc">Sistema com IA que importa PDF de qualquer folha de pagamento e gera relatório executivo de custos para a diretoria em minutos.</p>
+      <div class="app-features">
+        <div class="feat">Importação de PDF com IA (Domínio, Senior, ADP)</div>
+        <div class="feat">Gerencia 2 CNPJs simultaneamente</div>
+        <div class="feat">Histórico de 24 meses com gráficos</div>
+        <div class="feat">Relatório PDF executivo para diretoria</div>
+      </div>
+      <div class="app-footer">
+        <div class="app-price">R$ 197,00 <small>/único</small></div>
+        <a class="btn-demo" href="FolhaRH-Pro-v1.0.html" target="_blank">▶ Abrir App</a>
+      </div>
+    </div>
+
+    <!-- AdmFácil -->
+    <div class="app-card dp">
+      <div class="app-card-top">
+        <div class="app-icon dp">📋</div>
+        <div><div class="app-name">AdmFácil</div><div class="app-categoria">Departamento Pessoal</div></div>
+      </div>
+      <p class="app-desc">Automatiza a admissão de colaboradores — gera todos os documentos necessários com um único preenchimento.</p>
+      <div class="app-features">
+        <div class="feat">8 documentos gerados automaticamente</div>
+        <div class="feat">Logo da empresa no cabeçalho</div>
+        <div class="feat">Exporta todos em PDF</div>
+        <div class="feat">Funciona 100% offline</div>
+      </div>
+      <div class="app-footer">
+        <div class="app-price">R$ 119,90 <small>/único</small></div>
+        <a class="btn-demo" href="AdmFacil-DEMO.html" target="_blank">▶ Abrir App</a>
+      </div>
+    </div>
+
+    <!-- BônusFácil -->
+    <div class="app-card rh">
+      <div class="app-card-top">
+        <div class="app-icon rh">🏆</div>
+        <div><div class="app-name">BônusFácil</div><div class="app-categoria">RH / Gestão de Pessoas</div></div>
+      </div>
+      <p class="app-desc">Substitui 2 dias no Power BI — calcula automaticamente quem merece bonificação por meta com critérios de falta, suspensão e advertência.</p>
+      <div class="app-features">
+        <div class="feat">Bronze, Prata e Ouro por % de meta</div>
+        <div class="feat">Elimina automaticamente: falta, suspensão, advertência</div>
+        <div class="feat">Planilha de aprovação para a diretoria</div>
+        <div class="feat">Planilha de pagamento para o financeiro</div>
+      </div>
+      <div class="app-footer">
+        <div class="app-price">R$ 127,90 <small>/único</small></div>
+        <a class="btn-demo" href="BonusFacil-DEMO.html" target="_blank">▶ Abrir App</a>
+      </div>
+    </div>
+
+    <!-- FiscalFácil -->
+    <div class="app-card fiscal">
+      <div class="app-card-top">
+        <div class="app-icon fiscal">📊</div>
+        <div><div class="app-name">FiscalFácil</div><div class="app-categoria">Fiscal / Contadores</div></div>
+      </div>
+      <p class="app-desc">Painel de carga tributária para contadores — simula regimes, confere guias e inclui simulador da Reforma Tributária CBS/IBS 2026.</p>
+      <div class="app-features">
+        <div class="feat">Simples × Presumido × Lucro Real</div>
+        <div class="feat">Conferência de guias vs. calculado</div>
+        <div class="feat">Simulador CBS/IBS — Reforma Tributária</div>
+        <div class="feat">Calendário fiscal com alertas</div>
+      </div>
+      <div class="app-footer">
+        <div class="app-price">R$ 147,90 <small>/único</small></div>
+        <a class="btn-demo" href="FiscalFacil-DEMO.html" target="_blank">▶ Abrir App</a>
+      </div>
+    </div>
+
+    <!-- FinFácil -->
+    <div class="app-card fin">
+      <div class="app-card-top">
+        <div class="app-icon fin">💰</div>
+        <div><div class="app-name">FinFácil</div><div class="app-categoria">Financeiro</div></div>
+      </div>
+      <p class="app-desc">Controle financeiro completo — contas a pagar e receber, fluxo de caixa e conferência automática de relatórios de dois sistemas.</p>
+      <div class="app-features">
+        <div class="feat">Alertas de vencimento automáticos</div>
+        <div class="feat">Importa Excel/CSV de lançamentos</div>
+        <div class="feat">Conferência automática de relatórios</div>
+        <div class="feat">Exporta PDF e Excel</div>
+      </div>
+      <div class="app-footer">
+        <div class="app-price">R$ 97,90 <small>/único</small></div>
+        <a class="btn-demo" href="FinFacil-DEMO.html" target="_blank">▶ Abrir App</a>
+      </div>
+    </div>
+
+    <!-- CotaFácil -->
+    <div class="app-card compras">
+      <div class="app-card-top">
+        <div class="app-icon compras">🛒</div>
+        <div><div class="app-name">CotaFácil</div><div class="app-categoria">Compras / Suprimentos</div></div>
+      </div>
+      <p class="app-desc">Cotação e comparação de fornecedores — identifica automaticamente o menor preço e gera relatório para aprovação.</p>
+      <div class="app-features">
+        <div class="feat">Compara preços entre fornecedores</div>
+        <div class="feat">Menor preço destacado automaticamente</div>
+        <div class="feat">Histórico de cotações</div>
+        <div class="feat">Exporta PDF e Excel</div>
+      </div>
+      <div class="app-footer">
+        <div class="app-price">R$ 97,90 <small>/único</small></div>
+        <a class="btn-demo" href="CotaFacil-DEMO.html" target="_blank">▶ Abrir App</a>
+      </div>
+    </div>
+
+    <!-- EstoqueFácil -->
+    <div class="app-card fin">
+      <div class="app-card-top">
+        <div class="app-icon fin">📦</div>
+        <div><div class="app-name">EstoqueFácil</div><div class="app-categoria">Logística / Estoque</div></div>
+      </div>
+      <p class="app-desc">Controle de estoque com alertas de nível mínimo, histórico de movimentações e relatório de valor em estoque.</p>
+      <div class="app-features">
+        <div class="feat">Alertas de estoque mínimo e zerado</div>
+        <div class="feat">Entradas e saídas com histórico</div>
+        <div class="feat">Relatório de valor total em estoque</div>
+        <div class="feat">Exporta PDF e Excel</div>
+      </div>
+      <div class="app-footer">
+        <div class="app-price">R$ 89,90 <small>/único</small></div>
+        <a class="btn-demo" href="EstoqueFacil-DEMO.html" target="_blank">▶ Abrir App</a>
+      </div>
+    </div>
+
+    <!-- QualidadeFácil -->
+    <div class="app-card compras">
+      <div class="app-card-top">
+        <div class="app-icon compras">✅</div>
+        <div><div class="app-name">QualidadeFácil</div><div class="app-categoria">Qualidade / ISO</div></div>
+      </div>
+      <p class="app-desc">Gestão de não conformidades, checklists de inspeção e ações corretivas — relatório pronto para auditoria.</p>
+      <div class="app-features">
+        <div class="feat">Registro de NCs com prioridade</div>
+        <div class="feat">Checklists com % de conformidade</div>
+        <div class="feat">Ações corretivas e preventivas</div>
+        <div class="feat">Relatório para auditoria em PDF</div>
+      </div>
+      <div class="app-footer">
+        <div class="app-price">R$ 97,90 <small>/único</small></div>
+        <a class="btn-demo" href="QualidadeFacil-DEMO.html" target="_blank">▶ Abrir App</a>
+      </div>
+    </div>
+
+    <!-- NOCFácil -->
+    <div class="app-card ti">
+      <div class="app-card-top">
+        <div class="app-icon ti">🖥️</div>
+        <div><div class="app-name">NOCFácil</div><div class="app-categoria">TI / Provedores</div></div>
+      </div>
+      <p class="app-desc">Gestão de chamados e SLA para provedores de TI — do chamado ao relatório mensal do cliente em minutos.</p>
+      <div class="app-features">
+        <div class="feat">Controle de SLA por prioridade P1/P2/P3</div>
+        <div class="feat">Uptime automático por cliente</div>
+        <div class="feat">Base de soluções (knowledge base)</div>
+        <div class="feat">Relatório PDF mensal para o cliente</div>
+      </div>
+      <div class="app-footer">
+        <div class="app-price">R$ 167,90 <small>/único</small></div>
+        <a class="btn-demo" href="NOCFacil-DEMO.html" target="_blank">▶ Abrir App</a>
+      </div>
+    </div>
+
+    <!-- RescisãoFácil GRÁTIS -->
+    <div class="app-card free" style="border-color:rgba(0,229,180,.25)">
+      <div class="app-card-top">
+        <div class="app-icon free">🎁</div>
+        <div>
+          <div class="app-name" style="color:var(--pr)">RescisãoFácil</div>
+          <div class="app-categoria" style="display:flex;align-items:center;gap:6px"><span class="free-badge">⚡ 100% Grátis</span></div>
+        </div>
+      </div>
+      <p class="app-desc">A calculadora de rescisão CLT mais completa do Brasil — com sobreaviso, horas noturnas, FGTS real e todos os itens da CLT. Sem cadastro.</p>
+      <div class="app-features">
+        <div class="feat">Sobreaviso 1/3, 50% e 100% com fórmulas reais</div>
+        <div class="feat">Horas noturnas + adicional noturno 20%</div>
+        <div class="feat">FGTS real + multa 40% sobre saldo extrato</div>
+        <div class="feat">INSS progressivo 2025 + IRRF correto</div>
+      </div>
+      <div class="app-footer">
+        <div class="app-price free">GRÁTIS <small>para sempre</small></div>
+        <a class="btn-demo free-btn" href="RescisaoFacil-v1.0.html" target="_blank">▶ Usar Grátis</a>
+      </div>
+    </div>
+
+    <!-- Confere Fácil -->
+    <div class="app-card dp">
+      <div class="app-card-top">
+        <div class="app-icon dp">✔️</div>
+        <div><div class="app-name">Confere Fácil</div><div class="app-categoria">iFood / Conferência</div></div>
+      </div>
+      <p class="app-desc">Conferência automática de pedidos iFood — compara PDF do sistema com planilha de conferência e identifica divergências.</p>
+      <div class="app-features">
+        <div class="feat">Importa PDF e Excel automaticamente</div>
+        <div class="feat">Identifica OK, divergente e ausente</div>
+        <div class="feat">Exporta relatório em PDF e Excel</div>
+        <div class="feat">Funciona offline após carregar</div>
+      </div>
+      <div class="app-footer">
+        <div class="app-price">R$ 39,99 <small>/único</small></div>
+        <a class="btn-demo" href="ConfEreFacil-v1.0.html" target="_blank">▶ Abrir App</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-bottom">
+    <h2>QUER UM APP<br><em>PERSONALIZADO?</em></h2>
+    <p>Desenvolvemos soluções sob medida para qualquer setor — Financeiro, RH, Logística, Qualidade, Comercial, TI e mais. Se a sua empresa tem um processo manual que consome tempo, podemos automatizar.</p>
+    <div class="cta-btns">
+      <a class="btn-wa" href="https://wa.me/5591999879932" target="_blank">💬 Falar pelo WhatsApp</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <strong style="color:var(--pr)">João Gomes</strong> &nbsp;·&nbsp; Soluções Digitais para DP, RH e Gestão &nbsp;·&nbsp;
+  <a href="https://wa.me/5591999879932">📱 (91) 99987-9932</a>
+</footer>
+
+</body>
+</html>

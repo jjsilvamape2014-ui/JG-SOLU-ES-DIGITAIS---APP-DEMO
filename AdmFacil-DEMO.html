@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdmFácil — Documentos de Admissão</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+:root{
+  --pr:#2563eb;--pr2:#1d4ed8;--prg:rgba(37,99,235,.12);
+  --bg:#f8fafc;--s1:#ffffff;--s2:#f1f5f9;--s3:#e2e8f0;
+  --b1:#e2e8f0;--b2:#cbd5e1;
+  --tx:#0f172a;--mu:#64748b;--mu2:#94a3b8;
+  --gr:#16a34a;--grb:#dcfce7;
+  --ye:#d97706;--yeb:#fef3c7;
+  --re:#dc2626;--reb:#fee2e2;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06);
+  --shadow-lg:0 10px 15px rgba(0,0,0,.08),0 4px 6px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;font-size:14px}
+
+/* ── WELCOME ── */
+.wov{position:fixed;inset:0;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f172a 100%);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.wbox{background:#fff;border-radius:20px;padding:36px 32px;max-width:440px;width:100%;box-shadow:var(--shadow-lg);animation:wfi .5s ease}
+@keyframes wfi{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.wlogo{width:60px;height:60px;background:linear-gradient(135deg,var(--pr),#3b82f6);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;box-shadow:0 8px 20px rgba(37,99,235,.3)}
+.wbox h2{font-size:1.5rem;font-weight:800;text-align:center;margin-bottom:4px;color:var(--tx)}
+.wbox h2 em{color:var(--pr);font-style:normal}
+.wbox .wsub{font-size:.8rem;color:var(--mu);text-align:center;margin-bottom:24px;line-height:1.5}
+.wrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.wf label{display:block;font-size:.65rem;color:var(--mu);font-weight:700;margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px}
+.wf input{width:100%;padding:9px 11px;background:var(--s2);border:1.5px solid var(--b1);border-radius:8px;color:var(--tx);font-family:'Plus Jakarta Sans',sans-serif;font-size:.84rem;transition:border-color .14s}
+.wf input:focus{outline:none;border-color:var(--pr);background:#fff}
+.wf input::placeholder{color:var(--mu2)}
+.wf.full{grid-column:1/-1}
+.logo-up{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;background:var(--s2);border:1.5px dashed var(--b2);border-radius:8px;cursor:pointer;transition:all .15s;text-align:center;grid-column:1/-1}
+.logo-up:hover{border-color:var(--pr);background:var(--prg)}
+.logo-up input{display:none}
+.logo-up .lui{font-size:1.4rem;margin-bottom:3px}
+.logo-up .lut{font-size:.72rem;font-weight:600;margin-bottom:1px}
+.logo-up .lus{font-size:.64rem;color:var(--mu)}
+.logo-preview{display:none;grid-column:1/-1;align-items:center;gap:10px;padding:8px 10px;background:var(--grb);border:1px solid #86efac;border-radius:8px}
+.logo-preview img{height:36px;object-fit:contain;border-radius:4px}
+.logo-preview span{font-size:.75rem;color:var(--gr);font-weight:600;flex:1}
+.logo-preview button{background:none;border:none;color:var(--re);cursor:pointer;font-size:.8rem}
+.wbtn{width:100%;padding:11px;background:linear-gradient(135deg,var(--pr),#3b82f6);color:#fff;border:none;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .15s;margin-top:4px}
+.wbtn:hover{background:linear-gradient(135deg,var(--pr2),var(--pr))}
+.wbtn:disabled{opacity:.45;cursor:not-allowed}
+.wfooter{margin-top:16px;text-align:center;font-size:.63rem;color:var(--mu2)}
+.wfooter a{color:var(--mu);text-decoration:none}
+
+/* ── HEADER ── */
+header{background:#fff;border-bottom:1px solid var(--b1);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
+.hlogo{display:flex;align-items:center;gap:10px}
+.hlogo-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--pr),#3b82f6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.hlogo-t h1{font-size:.9rem;font-weight:800;line-height:1;color:var(--tx)}
+.hlogo-t h1 em{color:var(--pr);font-style:normal}
+.hlogo-t p{font-size:.58rem;color:var(--mu);margin-top:1px}
+.hright{display:flex;align-items:center;gap:8px}
+.empresa-badge{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--b1);border-radius:20px;padding:4px 10px;font-size:.68rem;font-weight:600;color:var(--tx)}
+.empresa-badge img{height:18px;object-fit:contain}
+.hver{font-size:.6rem;color:var(--mu2);border:1px solid var(--b1);padding:2px 7px;border-radius:20px}
+
+/* ── LAYOUT ── */
+.wrap{max-width:960px;margin:0 auto;padding:18px 14px 80px}
+
+/* ── COLABORADOR CARD ── */
+.colab-card{background:#fff;border:1px solid var(--b1);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
+.colab-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.colab-title{font-size:.9rem;font-weight:700;display:flex;align-items:center;gap:7px}
+.colab-title span{background:var(--prg);color:var(--pr);font-size:.65rem;padding:2px 8px;border-radius:20px;font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.full{grid-column:1/-1}
+.field label{display:block;font-size:.63rem;color:var(--mu);font-weight:700;margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px}
+.field input,.field select{width:100%;padding:8px 10px;background:var(--s2);border:1.5px solid var(--b1);border-radius:7px;color:var(--tx);font-family:'Plus Jakarta Sans',sans-serif;font-size:.82rem;transition:border-color .14s;-webkit-appearance:none}
+.field input:focus,.field select:focus{outline:none;border-color:var(--pr);background:#fff}
+.field input::placeholder{color:var(--mu2)}
+
+/* ── DOCS GRID ── */
+.docs-title{font-size:.9rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.docs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:16px}
+.doc-card{background:#fff;border:1.5px solid var(--b1);border-radius:12px;padding:14px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden}
+.doc-card:hover{border-color:var(--pr);box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.doc-card.selected{border-color:var(--pr);background:linear-gradient(135deg,#eff6ff,#fff)}
+.doc-card.selected::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--pr),#3b82f6)}
+.doc-icon{font-size:1.6rem;margin-bottom:7px}
+.doc-name{font-size:.8rem;font-weight:700;margin-bottom:3px;color:var(--tx)}
+.doc-desc{font-size:.68rem;color:var(--mu);line-height:1.4}
+.doc-check{position:absolute;top:10px;right:10px;width:20px;height:20px;background:var(--pr);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:.65rem;color:#fff;font-weight:700}
+.doc-card.selected .doc-check{display:flex}
+.doc-custom{border-style:dashed;border-color:var(--b2)}
+.doc-custom:hover{border-color:var(--pr)}
+
+/* ── ACTION BAR ── */
+.action-bar{background:#fff;border:1px solid var(--b1);border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;box-shadow:var(--shadow)}
+.action-info{font-size:.78rem;color:var(--mu)}
+.action-info strong{color:var(--tx)}
+.action-btns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ── BUTTONS ── */
+.btn{padding:9px 16px;border:none;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .14s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:linear-gradient(135deg,var(--pr),#3b82f6);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.25)}
+.btn-primary:hover{background:linear-gradient(135deg,var(--pr2),var(--pr))}
+.btn-outline{background:#fff;color:var(--tx);border:1.5px solid var(--b1)}.btn-outline:hover{border-color:var(--pr);color:var(--pr)}
+.btn-green{background:var(--grb);color:var(--gr);border:1px solid #86efac}.btn-green:hover{background:#bbf7d0}
+.btn-sel-all{background:var(--s2);color:var(--mu);border:1px solid var(--b1);font-size:.72rem;padding:6px 10px}.btn-sel-all:hover{background:var(--s3)}
+
+/* ── PREVIEW MODAL ── */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.modal-ov.on{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:760px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);animation:mfi .2s ease}
+@keyframes mfi{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+.modal-head{padding:14px 18px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.modal-head h3{font-size:.9rem;font-weight:700}
+.modal-close{background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--mu);padding:2px 6px;border-radius:6px}
+.modal-close:hover{background:var(--s2)}
+.modal-body{flex:1;overflow-y:auto;padding:20px}
+.modal-foot{padding:12px 18px;border-top:1px solid var(--b1);display:flex;gap:8px;justify-content:flex-end}
+
+/* ── DOCUMENT PREVIEW ── */
+.doc-preview{background:#fff;max-width:680px;margin:0 auto;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:#1a1a1a;line-height:1.6}
+.dp-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:2px solid var(--pr);margin-bottom:16px}
+.dp-logo{height:48px;object-fit:contain}
+.dp-logo-ph{width:100px;height:48px;background:var(--s2);border:1px dashed var(--b2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--mu)}
+.dp-empresa{text-align:right}
+.dp-empresa .nome{font-size:.9rem;font-weight:800;color:var(--tx)}
+.dp-empresa .sub{font-size:.65rem;color:var(--mu)}
+.dp-title{text-align:center;margin-bottom:16px}
+.dp-title h2{font-size:1rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--pr)}
+.dp-title p{font-size:.72rem;color:var(--mu);margin-top:3px}
+.dp-section{margin-bottom:14px}
+.dp-section-title{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--pr);border-bottom:1px solid var(--b1);padding-bottom:4px;margin-bottom:8px}
+.dp-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+.dp-row.c3{grid-template-columns:1fr 1fr 1fr}
+.dp-row.c1{grid-template-columns:1fr}
+.dp-field{background:var(--s2);border-radius:6px;padding:6px 9px}
+.dp-field .lbl{font-size:.6rem;color:var(--mu);font-weight:700;text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:2px}
+.dp-field .val{font-size:.78rem;font-weight:600;color:var(--tx);min-height:16px}
+.dp-checkbox-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:.76rem}
+.dp-checkbox{width:14px;height:14px;border:1.5px solid var(--b2);border-radius:3px;flex-shrink:0;margin-top:1px}
+.dp-assinatura{margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dp-ass-box{text-align:center}
+.dp-ass-line{border-bottom:1.5px solid var(--tx);margin-bottom:4px;height:28px}
+.dp-ass-label{font-size:.65rem;color:var(--mu)}
+.dp-footer{margin-top:16px;padding-top:10px;border-top:1px solid var(--b1);font-size:.62rem;color:var(--mu);text-align:center}
+
+/* ── TOAST ── */
+#tst{position:fixed;bottom:20px;right:14px;background:var(--tx);color:#fff;border-radius:9px;padding:9px 14px;font-size:.76rem;font-weight:600;transform:translateY(55px);opacity:0;transition:all .2s;z-index:9999;max-width:260px;pointer-events:none;box-shadow:var(--shadow-lg)}
+#tst.on{transform:translateY(0);opacity:1}
+
+/* ── LOADER ── */
+.lov2{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:800;align-items:center;justify-content:center;flex-direction:column;gap:10px;backdrop-filter:blur(3px)}
+.lov2.on{display:flex}
+.sp{width:36px;height:36px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lm{font-size:.84rem;font-weight:600;color:#fff}
+
+/* ── FOOTER ── */
+footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--b1);padding:8px 20px;display:flex;align-items:center;justify-content:space-between;font-size:.63rem;color:var(--mu);z-index:100;box-shadow:0 -1px 0 var(--b1)}
+footer strong{color:var(--tx)}
+footer a{color:var(--pr);text-decoration:none;font-weight:600}
+
+/* ── TUTORIAL ── */
+.tut-wrap{background:#fff;border:1px solid var(--b1);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.tut-head{text-align:center;margin-bottom:14px}
+.tut-head h3{font-size:.9rem;font-weight:700;margin-bottom:3px}
+.tut-head p{font-size:.72rem;color:var(--mu)}
+.tut-nav{display:flex;gap:3px;background:var(--s2);border-radius:9px;padding:3px;margin-bottom:14px}
+.tn{flex:1;padding:7px 4px;background:transparent;border:none;color:var(--mu);font-family:'Plus Jakarta Sans',sans-serif;font-size:.68rem;font-weight:600;border-radius:6px;cursor:pointer;transition:all .14s;white-space:nowrap}
+.tn.on{background:var(--pr);color:#fff;box-shadow:0 2px 6px rgba(37,99,235,.2)}
+.tut-step{display:none;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.tut-step.on{display:grid}
+.tut-screen{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px}
+.tut-info .tut-num{font-size:2.2rem;font-weight:800;color:var(--pr);line-height:1;margin-bottom:6px;opacity:.5}
+.tut-info h4{font-size:.86rem;font-weight:700;margin-bottom:7px}
+.tut-info p{font-size:.73rem;color:var(--mu);line-height:1.55;margin-bottom:6px}
+.tut-tip{padding:8px 10px;background:var(--yeb);border:1px solid #fcd34d;border-radius:7px;font-size:.69rem;color:var(--ye);line-height:1.4;margin-top:8px}
+.tut-btns{display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--b1)}
+
+/* MOCKUP */
+.mk{background:#fff;border:1px solid var(--b1);border-radius:8px;overflow:hidden;font-size:.6rem}
+.mk-h{background:var(--s2);padding:6px 8px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:6px}
+.mk-logo{background:var(--pr);padding:2px 6px;border-radius:4px;color:#fff;font-weight:800;font-size:.55rem}
+.mk-b{padding:8px}
+.mk-field{background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:4px 6px;margin-bottom:4px}
+.mk-field .ml{font-size:.5rem;color:var(--mu);font-weight:700;text-transform:uppercase}
+.mk-field .mv{font-size:.6rem;font-weight:600;color:var(--tx)}
+.mk-doc{border:1px solid var(--b1);border-radius:5px;padding:5px 7px;margin-bottom:3px;display:flex;align-items:center;gap:5px}
+.mk-doc.sel{border-color:var(--pr);background:#eff6ff}
+.mk-doc-icon{font-size:.9rem}
+.mk-doc-name{font-size:.58rem;font-weight:600;flex:1}
+.mk-check{width:12px;height:12px;border-radius:50%;background:var(--pr);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.4rem}
+
+@media(max-width:600px){
+  .grid2,.grid3,.grid4{grid-template-columns:1fr}
+  .full{grid-column:1}
+  .docs-grid{grid-template-columns:1fr}
+  .tut-step.on{grid-template-columns:1fr}
+  .action-bar{flex-direction:column;align-items:stretch}
+  footer{flex-direction:column;gap:2px;text-align:center;padding:6px}
+  .dp-row{grid-template-columns:1fr}
+  .dp-assinatura{grid-template-columns:1fr}
+}
+</style>
+<script>
+(function(){
+  setTimeout(function(){
+    // Preenche campos se existirem e estiverem vazios
+    var campos = {
+      'emp-nome':'Transportes Belém LTDA',
+      'emp-cnpj':'12.345.678/0001-90',
+      'emp-end':'Av. Almirante Barroso, 3250 — Marco',
+      'func-nome':'Alexandre Souza Correia',
+      'func-cpf':'123.456.789-00',
+      'func-rg':'1234567 SSP/PA',
+      'func-nasc':'1990-05-15',
+      'func-cargo':'Motorista de Cargas',
+      'func-salario':'2850.00',
+      'func-carga':'44',
+      'func-admissao':'2026-05-19',
+      'func-end':'Rua das Mangueiras, 145 — Pedreira',
+      'func-cidade':'Belém',
+      'func-uf':'PA',
+      'func-banco':'Bradesco',
+      'func-agencia':'2345-6',
+      'func-conta':'78901-2'
+    };
+    Object.keys(campos).forEach(function(id){
+      var el = document.getElementById(id);
+      if(el && !el.value) el.value = campos[id];
+    });
+  }, 800);
+})();
+</script>
+</head>
+<body>
+<div style="position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#F59E0B,#EF4444);color:#000;text-align:center;font-size:.7rem;font-weight:800;padding:5px;z-index:99999;letter-spacing:.5px">
+⚡ VERSÃO DEMO — Dados fictícios para demonstração &nbsp;·&nbsp; Adquira pelo WhatsApp: (91) 99987-9932
+</div>
+<div style="height:25px"></div>
+
+<div class="lov2" id="ldr"><div class="sp"></div><div class="lm" id="lmsg">Gerando documentos...</div></div>
+<div id="tst"></div>
+
+<!-- ══ WELCOME ══ -->
+<div class="wov" id="welcome">
+  <div class="wbox">
+    <div class="wlogo">📋</div>
+    <h2>Adm<em>Fácil</em></h2>
+    <p class="wsub">Sistema de Documentos de Admissão<br>Preencha os dados uma vez — todos os documentos são gerados automaticamente.</p>
+
+    <div class="wrow">
+      <div class="wf full">
+        <label>Nome da Empresa</label>
+        <input id="w-empresa" type="text" placeholder="Ex: Mercadinho do João LTDA" oninput="chkW()">
+      </div>
+      <div class="wf">
+        <label>CNPJ da Empresa</label>
+        <input id="w-cnpj" type="text" placeholder="00.000.000/0001-00" oninput="maskCNPJ(this)">
+      </div>
+      <div class="wf">
+        <label>Cidade / UF</label>
+        <input id="w-cidade" type="text" placeholder="Belém / PA">
+      </div>
+      <label class="logo-up" for="w-logo-inp">
+        <input type="file" id="w-logo-inp" accept="image/*" onchange="prevLogo(this)">
+        <div class="lui">🖼️</div>
+        <div class="lut">Clique para adicionar a logo</div>
+        <div class="lus">PNG, JPG — aparecerá em todos os documentos</div>
+      </label>
+      <div class="logo-preview" id="logo-prev">
+        <img id="logo-img" src="" alt="logo">
+        <span id="logo-fname">logo.png</span>
+        <button onclick="remLogo()">✕</button>
+      </div>
+    </div>
+
+    <button class="wbtn" id="w-btn" onclick="startApp()" disabled>Entrar no Sistema →</button>
+    <div class="wfooter">Desenvolvido por <strong>João Gomes</strong> · <a href="https://wa.me/5591999879932" target="_blank">(91) 99987-9932</a> · v1.0</div>
+  </div>
+</div>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="hlogo">
+    <div class="hlogo-icon">📋</div>
+    <div class="hlogo-t">
+      <h1>Adm<em>Fácil</em></h1>
+      <p>Documentos de Admissão</p>
+    </div>
+  </div>
+  <div class="hright">
+    <div class="empresa-badge" id="emp-badge">
+      <span id="emp-nome-h">—</span>
+    </div>
+    <span class="hver">v1.0</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ══ DADOS DO COLABORADOR ══ -->
+  <div class="colab-card">
+    <div class="colab-head">
+      <div class="colab-title">👤 Dados do Novo Colaborador <span>Preencha uma vez</span></div>
+      <button class="btn btn-outline" onclick="limparColab()" style="font-size:.72rem;padding:5px 10px">🗑 Limpar</button>
+    </div>
+
+    <div class="grid2" style="margin-bottom:10px">
+      <div class="field full">
+        <label>Nome Completo *</label>
+        <input id="c-nome" type="text" placeholder="Nome completo do colaborador" oninput="atualizarPreview()">
+      </div>
+      <div class="field">
+        <label>CPF *</label>
+        <input id="c-cpf" type="text" placeholder="000.000.000-00" oninput="maskCPF(this);atualizarPreview()">
+      </div>
+      <div class="field">
+        <label>RG</label>
+        <input id="c-rg" type="text" placeholder="0000000" oninput="atualizarPreview()">
+      </div>
+      <div class="field">
+        <label>Data de Nascimento</label>
+        <input id="c-nasc" type="date" oninput="atualizarPreview()">
+      </div>
+      <div class="field">
+        <label>Data de Admissão</label>
+        <input id="c-adm" type="date" oninput="atualizarPreview()">
+      </div>
+    </div>
+
+    <div class="grid3" style="margin-bottom:10px">
+      <div class="field">
+        <label>Cargo *</label>
+        <input id="c-cargo" type="text" placeholder="Ex: Auxiliar Administrativo" oninput="atualizarPreview()">
+      </div>
+      <div class="field">
+        <label>Setor / Departamento *</label>
+        <input id="c-setor" type="text" placeholder="Ex: RH, Financeiro" oninput="atualizarPreview()">
+      </div>
+      <div class="field">
+        <label>Salário (R$) *</label>
+        <input id="c-salario" type="text" placeholder="1.412,00" oninput="maskSalario(this);atualizarPreview()">
+      </div>
+      <div class="field">
+        <label>PIS / PASEP</label>
+        <input id="c-pis" type="text" placeholder="000.00000.00-0" oninput="atualizarPreview()">
+      </div>
+      <div class="field">
+        <label>Telefone</label>
+        <input id="c-tel" type="text" placeholder="(00) 99999-9999" oninput="maskTel(this);atualizarPreview()">
+      </div>
+      <div class="field">
+        <label>E-mail</label>
+        <input id="c-email" type="email" placeholder="colaborador@email.com" oninput="atualizarPreview()">
+      </div>
+    </div>
+
+    <div class="grid3" style="margin-bottom:10px">
+      <div class="field full">
+        <label>Endereço Completo</label>
+        <input id="c-end" type="text" placeholder="Rua, número, bairro, cidade — UF" oninput="atualizarPreview()">
+      </div>
+      <div class="field">
+        <label>Banco</label>
+        <input id="c-banco" type="text" placeholder="Ex: Bradesco" oninput="atualizarPreview()">
+      </div>
+      <div class="field">
+        <label>Agência</label>
+        <input id="c-agencia" type="text" placeholder="0000-0" oninput="atualizarPreview()">
+      </div>
+      <div class="field">
+        <label>Conta</label>
+        <input id="c-conta" type="text" placeholder="00000-0" oninput="atualizarPreview()">
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SELECIONAR DOCUMENTOS ══ -->
+  <div class="docs-title">
+    📄 Selecione os Documentos
+    <button class="btn btn-sel-all" onclick="selAll()">Selecionar Todos</button>
+    <button class="btn btn-sel-all" onclick="deselAll()">Limpar Seleção</button>
+  </div>
+
+  <div class="docs-grid" id="docs-grid">
+    <div class="doc-card" data-doc="admissao" onclick="toggleDoc(this)">
+      <div class="doc-check">✓</div>
+      <div class="doc-icon">📋</div>
+      <div class="doc-name">Ficha de Admissão</div>
+      <div class="doc-desc">Dados completos do colaborador, cargo e condições de contratação</div>
+    </div>
+    <div class="doc-card" data-doc="vt" onclick="toggleDoc(this)">
+      <div class="doc-check">✓</div>
+      <div class="doc-icon">🚌</div>
+      <div class="doc-name">Solicitação de Vale Transporte</div>
+      <div class="doc-desc">Declaração de necessidade e linhas utilizadas pelo colaborador</div>
+    </div>
+    <div class="doc-card" data-doc="va" onclick="toggleDoc(this)">
+      <div class="doc-check">✓</div>
+      <div class="doc-icon">🍽️</div>
+      <div class="doc-name">Autorização Vale Alimentação</div>
+      <div class="doc-desc">Termo de adesão e autorização de uso do benefício alimentação</div>
+    </div>
+    <div class="doc-card" data-doc="saude" onclick="toggleDoc(this)">
+      <div class="doc-check">✓</div>
+      <div class="doc-icon">🏥</div>
+      <div class="doc-name">Adesão Plano de Saúde</div>
+      <div class="doc-desc">Formulário de adesão ao plano de saúde coletivo empresarial</div>
+    </div>
+    <div class="doc-card" data-doc="odonto" onclick="toggleDoc(this)">
+      <div class="doc-check">✓</div>
+      <div class="doc-icon">🦷</div>
+      <div class="doc-name">Adesão Plano Odontológico</div>
+      <div class="doc-desc">Formulário de adesão ao plano odontológico coletivo empresarial</div>
+    </div>
+    <div class="doc-card" data-doc="epi" onclick="toggleDoc(this)">
+      <div class="doc-check">✓</div>
+      <div class="doc-icon">🦺</div>
+      <div class="doc-name">Termo de Recebimento de EPI</div>
+      <div class="doc-desc">Declaração de entrega e recebimento de Equipamentos de Proteção Individual</div>
+    </div>
+    <div class="doc-card" data-doc="dep" onclick="toggleDoc(this)">
+      <div class="doc-check">✓</div>
+      <div class="doc-icon">👨‍👩‍👧</div>
+      <div class="doc-name">Declaração de Dependentes IR</div>
+      <div class="doc-desc">Declaração de dependentes para fins de Imposto de Renda na fonte</div>
+    </div>
+    <div class="doc-card" data-doc="conduta" onclick="toggleDoc(this)">
+      <div class="doc-check">✓</div>
+      <div class="doc-icon">📜</div>
+      <div class="doc-name">Código de Conduta</div>
+      <div class="doc-desc">Ciência e concordância com as normas internas e código de ética da empresa</div>
+    </div>
+    <div class="doc-card doc-custom" onclick="addCustomDoc()">
+      <div class="doc-icon">➕</div>
+      <div class="doc-name">Adicionar Documento</div>
+      <div class="doc-desc">Importe seu próprio modelo em Word (.docx) para incluir nos documentos</div>
+    </div>
+  </div>
+
+  <div class="action-bar">
+    <div class="action-info">
+      <strong id="sel-count">0 documentos</strong> selecionados · Colaborador: <strong id="sel-nome">—</strong>
+    </div>
+    <div class="action-btns">
+      <button class="btn btn-outline" onclick="previewDoc()">👁 Visualizar</button>
+      <button class="btn btn-green" onclick="gerarPDF()">📄 Gerar PDF</button>
+      <button class="btn btn-primary" onclick="gerarTodos()">🚀 Gerar Todos os Selecionados</button>
+    </div>
+  </div>
+
+  <!-- ══ TUTORIAL ══ -->
+  <div style="margin-top:20px">
+  <div class="tut-wrap">
+    <div class="tut-head">
+      <div style="font-size:1.4rem;margin-bottom:5px">🎬</div>
+      <h3>Como usar o AdmFácil</h3>
+      <p>Passo a passo completo para gerar os documentos de admissão</p>
+    </div>
+    <div class="tut-nav">
+      <button class="tn on" onclick="showStep(0,this)">1. Empresa</button>
+      <button class="tn" onclick="showStep(1,this)">2. Colaborador</button>
+      <button class="tn" onclick="showStep(2,this)">3. Documentos</button>
+      <button class="tn" onclick="showStep(3,this)">4. Gerar</button>
+    </div>
+
+    <!-- PASSO 0 -->
+    <div class="tut-step on" id="ts0">
+      <div class="tut-screen">
+        <div class="mk">
+          <div class="mk-h"><div class="mk-logo">📋 AdmFácil</div></div>
+          <div class="mk-b">
+            <div style="font-size:.65rem;font-weight:700;margin-bottom:6px;color:var(--pr)">Bem-vindo ao AdmFácil</div>
+            <div class="mk-field"><div class="ml">Nome da Empresa</div><div class="mv">Mercadinho do João LTDA</div></div>
+            <div class="mk-field"><div class="ml">CNPJ</div><div class="mv">12.345.678/0001-99</div></div>
+            <div style="border:1.5px dashed var(--b2);border-radius:5px;padding:6px;text-align:center;font-size:.55rem;color:var(--mu);margin-top:4px">🖼️ Clique para adicionar logo</div>
+          </div>
+        </div>
+      </div>
+      <div class="tut-info">
+        <div class="tut-num">01</div>
+        <h4>Configure sua Empresa</h4>
+        <p>Ao abrir o app pela primeira vez, informe o <strong>nome da empresa</strong>, CNPJ e a <strong>logo</strong>.</p>
+        <p>A logo vai aparecer automaticamente no cabeçalho de <strong>todos os documentos</strong> gerados.</p>
+        <div class="tut-tip">💡 Essas informações são salvas. Na próxima abertura, é só clicar em Entrar.</div>
+      </div>
+    </div>
+
+    <!-- PASSO 1 -->
+    <div class="tut-step" id="ts1">
+      <div class="tut-screen">
+        <div class="mk">
+          <div class="mk-h"><div class="mk-logo">📋 AdmFácil</div></div>
+          <div class="mk-b">
+            <div style="font-size:.6rem;font-weight:700;margin-bottom:5px">👤 Dados do Colaborador</div>
+            <div class="mk-field" style="border-color:var(--pr)"><div class="ml">Nome Completo *</div><div class="mv" style="color:var(--pr)">JOÃO SILVA DOS SANTOS</div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-top:3px">
+              <div class="mk-field"><div class="ml">CPF</div><div class="mv">123.456.789-00</div></div>
+              <div class="mk-field"><div class="ml">Cargo</div><div class="mv">Auxiliar Adm.</div></div>
+              <div class="mk-field"><div class="ml">Setor</div><div class="mv">RH</div></div>
+              <div class="mk-field"><div class="ml">Salário</div><div class="mv">R$ 1.412,00</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tut-info">
+        <div class="tut-num">02</div>
+        <h4>Preencha os Dados do Colaborador</h4>
+        <p>Digite os dados do novo colaborador <strong>uma única vez</strong>. Os campos obrigatórios são: nome, CPF, cargo, setor e salário.</p>
+        <p>Os demais campos (RG, endereço, banco etc.) completam documentos específicos automaticamente.</p>
+        <div class="tut-tip">💡 Os dados aparecem em tempo real nos documentos enquanto você digita.</div>
+      </div>
+    </div>
+
+    <!-- PASSO 2 -->
+    <div class="tut-step" id="ts2">
+      <div class="tut-screen">
+        <div class="mk">
+          <div class="mk-h"><div class="mk-logo">📋 AdmFácil</div></div>
+          <div class="mk-b">
+            <div style="font-size:.6rem;font-weight:700;margin-bottom:5px">📄 Selecione os Documentos</div>
+            <div class="mk-doc sel"><div class="mk-doc-icon">📋</div><div class="mk-doc-name">Ficha de Admissão</div><div class="mk-check">✓</div></div>
+            <div class="mk-doc sel"><div class="mk-doc-icon">🚌</div><div class="mk-doc-name">Vale Transporte</div><div class="mk-check">✓</div></div>
+            <div class="mk-doc sel"><div class="mk-doc-icon">🍽️</div><div class="mk-doc-name">Vale Alimentação</div><div class="mk-check">✓</div></div>
+            <div class="mk-doc"><div class="mk-doc-icon">🏥</div><div class="mk-doc-name">Plano de Saúde</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="tut-info">
+        <div class="tut-num">03</div>
+        <h4>Escolha os Documentos</h4>
+        <p>Clique nos documentos que deseja gerar. Você pode selecionar <strong>um ou todos de uma vez</strong> usando o botão "Selecionar Todos".</p>
+        <p>Também é possível <strong>adicionar seu próprio modelo</strong> em Word clicando no cartão "+".</p>
+        <div class="tut-tip">💡 Os documentos selecionados ficam destacados em azul com um ✓.</div>
+      </div>
+    </div>
+
+    <!-- PASSO 3 -->
+    <div class="tut-step" id="ts3">
+      <div class="tut-screen">
+        <div class="mk">
+          <div class="mk-h"><div class="mk-logo">📋 AdmFácil</div></div>
+          <div class="mk-b">
+            <div style="font-size:.6rem;color:var(--mu);margin-bottom:6px">3 documentos selecionados · JOÃO SILVA</div>
+            <div style="display:flex;gap:3px;flex-wrap:wrap">
+              <div style="padding:4px 7px;background:#eff6ff;border:1px solid var(--pr);border-radius:4px;font-size:.55rem;color:var(--pr);font-weight:700">👁 Visualizar</div>
+              <div style="padding:4px 7px;background:var(--grb);border:1px solid #86efac;border-radius:4px;font-size:.55rem;color:var(--gr);font-weight:700">📄 Gerar PDF</div>
+              <div style="padding:4px 7px;background:linear-gradient(135deg,var(--pr),#3b82f6);border-radius:4px;font-size:.55rem;color:#fff;font-weight:700">🚀 Gerar Todos</div>
+            </div>
+            <div style="margin-top:8px;background:var(--grb);border:1px solid #86efac;border-radius:5px;padding:5px 7px;font-size:.55rem;color:var(--gr);font-weight:600">✅ 3 documentos gerados com sucesso!</div>
+          </div>
+        </div>
+      </div>
+      <div class="tut-info">
+        <div class="tut-num">04</div>
+        <h4>Gere e Imprima os Documentos</h4>
+        <p><strong>👁 Visualizar</strong> — abre o documento na tela para revisar antes de imprimir.</p>
+        <p><strong>📄 Gerar PDF</strong> — abre o documento pronto para salvar como PDF ou imprimir.</p>
+        <p><strong>🚀 Gerar Todos</strong> — gera todos os documentos selecionados de uma vez, abrindo cada um em seguida.</p>
+        <div class="tut-tip">💡 No PDF, use Ctrl+P (ou Cmd+P no Mac) para imprimir ou salvar como PDF.</div>
+      </div>
+    </div>
+
+    <div class="tut-btns">
+      <button class="btn btn-outline" id="btn-prev" onclick="stepNav(-1)" style="display:none;font-size:.72rem">← Anterior</button>
+      <button class="btn btn-primary" id="btn-next" onclick="stepNav(1)" style="font-size:.72rem">Próximo →</button>
+    </div>
+  </div>
+
+  <!-- SUPORTE -->
+  <div style="background:#fff;border:1px solid var(--b1);border-radius:12px;padding:16px;text-align:center;box-shadow:var(--shadow)">
+    <div style="font-size:1.3rem;margin-bottom:6px">💬</div>
+    <div style="font-size:.82rem;font-weight:700;margin-bottom:3px">Precisa de ajuda?</div>
+    <div style="font-size:.74rem;color:var(--mu);margin-bottom:12px">Fale diretamente com o desenvolvedor pelo WhatsApp</div>
+    <a href="https://wa.me/5591999879932" target="_blank" class="btn btn-primary" style="text-decoration:none;margin:0 auto">💬 Falar com João Gomes</a>
+  </div>
+  </div>
+
+</div>
+
+<!-- ══ MODAL PREVIEW ══ -->
+<div class="modal-ov" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">Visualizar Documento</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal()">Fechar</button>
+      <button class="btn btn-primary" onclick="imprimirAtual()">🖨️ Imprimir / Salvar PDF</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div><strong>AdmFácil</strong> &nbsp;·&nbsp; v1.0 &nbsp;·&nbsp; Documentos de Admissão DP</div>
+  <div>Desenvolvido por <strong>João Gomes</strong> &nbsp;·&nbsp; <a href="https://wa.me/5591999879932" target="_blank">📱 (91) 99987-9932</a></div>
+</footer>
+
+<script>
+// ══ STATE ═══════════════════════════════════════
+var empresa={nome:'',cnpj:'',cidade:'',logoURL:''};
+var curStep=0, totalSteps=4;
+var docAtual='';
+
+// ══ WELCOME ═════════════════════════════════════
+function chkW(){
+  var v=document.getElementById('w-empresa').value.trim();
+  document.getElementById('w-btn').disabled=v.length<2;
+}
+function prevLogo(inp){
+  var file=inp.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    document.getElementById('logo-img').src=e.target.result;
+    document.getElementById('logo-fname').textContent=file.name;
+    document.getElementById('logo-prev').style.display='flex';
+    empresa.logoURL=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function remLogo(){
+  document.getElementById('logo-prev').style.display='none';
+  document.getElementById('w-logo-inp').value='';
+  empresa.logoURL='';
+}
+function startApp(){
+  empresa.nome=document.getElementById('w-empresa').value.trim();
+  empresa.cnpj=document.getElementById('w-cnpj').value.trim();
+  empresa.cidade=document.getElementById('w-cidade').value.trim();
+  var ov=document.getElementById('welcome');
+  ov.style.transition='opacity .3s';ov.style.opacity='0';
+  setTimeout(function(){ov.style.display='none';},320);
+  // Atualizar header
+  var nb=document.getElementById('emp-nome-h');
+  nb.textContent='🏢 '+empresa.nome;
+  if(empresa.logoURL){
+    var img=document.createElement('img');
+    img.src=empresa.logoURL; img.style.height='18px'; img.style.objectFit='contain';
+    document.getElementById('emp-badge').insertBefore(img,nb);
+  }
+}
+
+// ══ MASKS ═══════════════════════════════════════
+function maskCPF(el){
+  var v=el.value.replace(/\D/g,'').slice(0,11);
+  if(v.length>9) v=v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/,'$1.$2.$3-$4');
+  else if(v.length>6) v=v.replace(/(\d{3})(\d{3})(\d{0,3})/,'$1.$2.$3');
+  else if(v.length>3) v=v.replace(/(\d{3})(\d{0,3})/,'$1.$2');
+  el.value=v;
+}
+function maskCNPJ(el){
+  var v=el.value.replace(/\D/g,'').slice(0,14);
+  if(v.length>12) v=v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/,'$1.$2.$3/$4-$5');
+  else if(v.length>8) v=v.replace(/(\d{2})(\d{3})(\d{3})(\d{0,4})/,'$1.$2.$3/$4');
+  else if(v.length>5) v=v.replace(/(\d{2})(\d{3})(\d{0,3})/,'$1.$2.$3');
+  else if(v.length>2) v=v.replace(/(\d{2})(\d{0,3})/,'$1.$2');
+  el.value=v;
+}
+function maskTel(el){
+  var v=el.value.replace(/\D/g,'').slice(0,11);
+  if(v.length>10) v=v.replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3');
+  else if(v.length>6) v=v.replace(/(\d{2})(\d{4,5})(\d{0,4})/,'($1) $2-$3');
+  else if(v.length>2) v=v.replace(/(\d{2})(\d{0,5})/,'($1) $2');
+  el.value=v;
+}
+function maskSalario(el){
+  var v=el.value.replace(/\D/g,'');
+  if(!v) return;
+  v=(parseInt(v)/100).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  el.value=v;
+}
+
+// ══ PEGAR DADOS ═════════════════════════════════
+function getDados(){
+  return {
+    nome: document.getElementById('c-nome').value.trim()||'_______________',
+    cpf: document.getElementById('c-cpf').value.trim()||'___.___.___-__',
+    rg: document.getElementById('c-rg').value.trim()||'_______',
+    nasc: fmtData(document.getElementById('c-nasc').value)||'__/__/____',
+    adm: fmtData(document.getElementById('c-adm').value)||'__/__/____',
+    cargo: document.getElementById('c-cargo').value.trim()||'_______________',
+    setor: document.getElementById('c-setor').value.trim()||'_______________',
+    salario: document.getElementById('c-salario').value.trim()||'____________',
+    pis: document.getElementById('c-pis').value.trim()||'_____________',
+    tel: document.getElementById('c-tel').value.trim()||'______________',
+    email: document.getElementById('c-email').value.trim()||'_______________',
+    end: document.getElementById('c-end').value.trim()||'_______________',
+    banco: document.getElementById('c-banco').value.trim()||'___________',
+    agencia: document.getElementById('c-agencia').value.trim()||'_____',
+    conta: document.getElementById('c-conta').value.trim()||'_______',
+  };
+}
+function fmtData(d){ if(!d) return ''; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function hoje(){ return fmtData(new Date().toISOString().slice(0,10)); }
+
+function atualizarPreview(){
+  var nome=document.getElementById('c-nome').value.trim()||'—';
+  document.getElementById('sel-nome').textContent=nome;
+}
+
+// ══ CABEÇALHO DOS DOCUMENTOS ════════════════════
+function cabecalho(titulo, subtitulo){
+  var logoHtml=empresa.logoURL
+    ? '<img class="dp-logo" src="'+empresa.logoURL+'" alt="logo">'
+    : '<div class="dp-logo-ph">SEM LOGO</div>';
+  return '<div class="dp-header">'+
+    logoHtml+
+    '<div class="dp-empresa">'+
+      '<div class="nome">'+esc(empresa.nome||'EMPRESA')+'</div>'+
+      '<div class="sub">CNPJ: '+esc(empresa.cnpj||'—')+'</div>'+
+      '<div class="sub">'+esc(empresa.cidade||'')+'</div>'+
+    '</div>'+
+  '</div>'+
+  '<div class="dp-title"><h2>'+titulo+'</h2>'+(subtitulo?'<p>'+subtitulo+'</p>':'')+'</div>';
+}
+function rodape(){
+  return '<div class="dp-footer">'+esc(empresa.nome||'EMPRESA')+' &nbsp;·&nbsp; Gerado em '+hoje()+' &nbsp;·&nbsp; AdmFácil v1.0 — João Gomes · (91) 99987-9932</div>';
+}
+function assinaturas(a1,a2){
+  return '<div class="dp-assinatura">'+
+    '<div class="dp-ass-box"><div class="dp-ass-line"></div><div class="dp-ass-label">'+esc(a1)+'</div></div>'+
+    '<div class="dp-ass-box"><div class="dp-ass-line"></div><div class="dp-ass-label">'+esc(a2)+'</div></div>'+
+  '</div>';
+}
+function campo(label,val){ return '<div class="dp-field"><span class="lbl">'+label+'</span><div class="val">'+esc(val)+'</div></div>'; }
+function sec(titulo){ return '<div class="dp-section-title">'+titulo+'</div>'; }
+
+// ══ DOCUMENTOS ══════════════════════════════════
+var DOCS={};
+
+DOCS.admissao=function(d){
+  return '<div class="doc-preview">'+
+    cabecalho('FICHA DE ADMISSÃO','Registro de novo colaborador')+
+    '<div class="dp-section">'+sec('DADOS PESSOAIS')+
+      '<div class="dp-row">'+campo('Nome Completo',d.nome)+campo('CPF',d.cpf)+'</div>'+
+      '<div class="dp-row c3">'+campo('RG',d.rg)+campo('Data de Nascimento',d.nasc)+campo('Telefone',d.tel)+'</div>'+
+      '<div class="dp-row c1">'+campo('Endereço Completo',d.end)+'</div>'+
+      '<div class="dp-row c1">'+campo('E-mail',d.email)+'</div>'+
+    '</div>'+
+    '<div class="dp-section">'+sec('DADOS FUNCIONAIS')+
+      '<div class="dp-row c3">'+campo('Cargo',d.cargo)+campo('Setor / Depto.',d.setor)+campo('Data de Admissão',d.adm)+'</div>'+
+      '<div class="dp-row">'+campo('Salário (R$)',d.salario)+campo('PIS / PASEP',d.pis)+'</div>'+
+    '</div>'+
+    '<div class="dp-section">'+sec('DADOS BANCÁRIOS')+
+      '<div class="dp-row c3">'+campo('Banco',d.banco)+campo('Agência',d.agencia)+campo('Conta Corrente',d.conta)+'</div>'+
+    '</div>'+
+    '<div class="dp-section" style="margin-top:6px">'+
+      '<div class="dp-checkbox-row"><div class="dp-checkbox"></div><span>Declaro que as informações acima são verdadeiras e me comprometo a comunicar qualquer alteração.</span></div>'+
+    '</div>'+
+    assinaturas('Assinatura do Colaborador','Responsável pelo RH / DP')+
+    rodape()+
+  '</div>';
+};
+
+DOCS.vt=function(d){
+  return '<div class="doc-preview">'+
+    cabecalho('SOLICITAÇÃO DE VALE TRANSPORTE','Declaração de necessidade de benefício')+
+    '<div class="dp-section">'+sec('DADOS DO COLABORADOR')+
+      '<div class="dp-row">'+campo('Nome Completo',d.nome)+campo('CPF',d.cpf)+'</div>'+
+      '<div class="dp-row c3">'+campo('Cargo',d.cargo)+campo('Setor',d.setor)+campo('Admissão',d.adm)+'</div>'+
+      '<div class="dp-row c1">'+campo('Endereço Residencial',d.end)+'</div>'+
+    '</div>'+
+    '<div class="dp-section">'+sec('DECLARAÇÃO DE UTILIZAÇÃO')+
+      '<div class="dp-checkbox-row"><div class="dp-checkbox"></div><span>( &nbsp;) SIM &nbsp;&nbsp; Necessito do Vale Transporte para deslocamento residência/trabalho/residência.</span></div>'+
+      '<div class="dp-checkbox-row"><div class="dp-checkbox"></div><span>( &nbsp;) NÃO &nbsp; Não necessito do benefício Vale Transporte.</span></div>'+
+    '</div>'+
+    '<div class="dp-section">'+sec('LINHAS UTILIZADAS')+
+      '<div class="dp-row c3">'+
+        '<div class="dp-field"><span class="lbl">Linha 1</span><div class="val">____________________</div></div>'+
+        '<div class="dp-field"><span class="lbl">Valor Diário</span><div class="val">R$ ________</div></div>'+
+        '<div class="dp-field"><span class="lbl">Qtd. passagens/dia</span><div class="val">________</div></div>'+
+      '</div>'+
+      '<div class="dp-row c3">'+
+        '<div class="dp-field"><span class="lbl">Linha 2 (se houver)</span><div class="val">____________________</div></div>'+
+        '<div class="dp-field"><span class="lbl">Valor Diário</span><div class="val">R$ ________</div></div>'+
+        '<div class="dp-field"><span class="lbl">Qtd. passagens/dia</span><div class="val">________</div></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="dp-section" style="font-size:.74rem;color:var(--mu);line-height:1.5;background:var(--s2);border-radius:6px;padding:8px 10px">'+
+      'O colaborador autoriza o desconto de 6% (seis por cento) do salário base referente ao custo do Vale Transporte, conforme previsto na Lei nº 7.418/1985.'+
+    '</div>'+
+    assinaturas('Assinatura do Colaborador','Responsável pelo RH / DP')+
+    rodape()+
+  '</div>';
+};
+
+DOCS.va=function(d){
+  return '<div class="doc-preview">'+
+    cabecalho('AUTORIZAÇÃO DE VALE ALIMENTAÇÃO','Termo de adesão ao benefício')+
+    '<div class="dp-section">'+sec('DADOS DO COLABORADOR')+
+      '<div class="dp-row">'+campo('Nome Completo',d.nome)+campo('CPF',d.cpf)+'</div>'+
+      '<div class="dp-row c3">'+campo('Cargo',d.cargo)+campo('Setor',d.setor)+campo('Admissão',d.adm)+'</div>'+
+    '</div>'+
+    '<div class="dp-section">'+sec('ADESÃO AO BENEFÍCIO')+
+      '<div class="dp-checkbox-row"><div class="dp-checkbox"></div><span>( &nbsp;) SIM &nbsp;&nbsp; Solicito minha adesão ao Vale Alimentação oferecido pela empresa.</span></div>'+
+      '<div class="dp-checkbox-row"><div class="dp-checkbox"></div><span>( &nbsp;) NÃO &nbsp; Não tenho interesse no benefício Vale Alimentação.</span></div>'+
+    '</div>'+
+    '<div class="dp-section">'+sec('TERMOS E CONDIÇÕES')+
+      '<div style="font-size:.74rem;color:var(--mu);line-height:1.6;background:var(--s2);border-radius:6px;padding:10px">'+
+        '1. O Vale Alimentação é um benefício concedido pela empresa e poderá ser utilizado em estabelecimentos credenciados.<br>'+
+        '2. O benefício tem caráter personalíssimo, não podendo ser transferido ou cedido a terceiros.<br>'+
+        '3. O colaborador autoriza o desconto do percentual previsto em convenção coletiva ou política interna.<br>'+
+        '4. Em caso de rescisão contratual, o saldo remanescente será descontado da rescisão.'+
+      '</div>'+
+    '</div>'+
+    assinaturas('Assinatura do Colaborador','Responsável pelo RH / DP')+
+    rodape()+
+  '</div>';
+};
+
+DOCS.saude=function(d){
+  return '<div class="doc-preview">'+
+    cabecalho('ADESÃO AO PLANO DE SAÚDE','Formulário de inclusão no plano coletivo empresarial')+
+    '<div class="dp-section">'+sec('DADOS DO TITULAR')+
+      '<div class="dp-row">'+campo('Nome Completo',d.nome)+campo('CPF',d.cpf)+'</div>'+
+      '<div class="dp-row c3">'+campo('Data de Nascimento',d.nasc)+campo('RG',d.rg)+campo('Telefone',d.tel)+'</div>'+
+      '<div class="dp-row">'+campo('Cargo',d.cargo)+campo('Setor / Depto.',d.setor)+'</div>'+
+      '<div class="dp-row c1">'+campo('Endereço Completo',d.end)+'</div>'+
+    '</div>'+
+    '<div class="dp-section">'+sec('OPÇÃO DE ADESÃO')+
+      '<div class="dp-checkbox-row"><div class="dp-checkbox"></div><span>( &nbsp;) ADERIR &nbsp;&nbsp; Desejo aderir ao Plano de Saúde coletivo da empresa.</span></div>'+
+      '<div class="dp-checkbox-row"><div class="dp-checkbox"></div><span>( &nbsp;) NÃO ADERIR &nbsp; Opto por não aderir ao Plano de Saúde neste momento.</span></div>'+
+    '</div>'+
+    '<div class="dp-section">'+sec('DEPENDENTES (SE HOUVER)')+
+      '<div class="dp-row c3">'+
+        '<div class="dp-field"><span class="lbl">Nome do Dependente</span><div class="val">____________________________</div></div>'+
+        '<div class="dp-field"><span class="lbl">Parentesco</span><div class="val">_______________</div></div>'+
+        '<div class="dp-field"><span class="lbl">CPF / Nascimento</span><div class="val">_______________</div></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="dp-section" style="font-size:.72rem;color:var(--mu);background:var(--s2);border-radius:6px;padding:8px 10px;line-height:1.5">'+
+      'O colaborador autoriza o desconto mensal referente à sua participação no custeio do Plano de Saúde, conforme valores estabelecidos em contrato com a operadora.'+
+    '</div>'+
+    assinaturas('Assinatura do Colaborador','Responsável pelo RH / DP')+
+    rodape()+
+  '</div>';
+};
+
+DOCS.odonto=function(d){
+  return '<div class="doc-preview">'+
+    cabecalho('ADESÃO AO PLANO ODONTOLÓGICO','Formulário de inclusão no plano coletivo empresarial')+
+    '<div class="dp-section">'+sec('DADOS DO TITULAR')+
+      '<div class="dp-row">'+campo('Nome Completo',d.nome)+campo('CPF',d.cpf)+'</div>'+
+      '<div class="dp-row c3">'+campo('Data de Nascimento',d.nasc)+campo('RG',d.rg)+campo('Cargo',d.cargo)+'</div>'+
+    '</div>'+
+    '<div class="dp-section">'+sec('OPÇÃO DE ADESÃO')+
+      '<div class="dp-checkbox-row"><div class="dp-checkbox"></div><span>( &nbsp;) ADERIR &nbsp;&nbsp; Desejo aderir ao Plano Odontológico coletivo da empresa.</span></div>'+
+      '<div class="dp-checkbox-row"><div class="dp-checkbox"></div><span>( &nbsp;) NÃO ADERIR &nbsp; Opto por não aderir ao Plano Odontológico neste momento.</span></div>'+
+    '</div>'+
+    '<div class="dp-section">'+sec('DEPENDENTES (SE HOUVER)')+
+      '<div class="dp-row c3">'+
+        '<div class="dp-field"><span class="lbl">Nome do Dependente</span><div class="val">____________________________</div></div>'+
+        '<div class="dp-field"><span class="lbl">Parentesco</span><div class="val">_______________</div></div>'+
+        '<div class="dp-field"><span class="lbl">CPF / Nascimento</span><div class="val">_______________</div></div>'+
+      '</div>'+
+    '</div>'+
+    assinaturas('Assinatura do Colaborador','Responsável pelo RH / DP')+
+    rodape()+
+  '</div>';
+};
+
+DOCS.epi=function(d){
+  return '<div class="doc-preview">'+
+    cabecalho('TERMO DE RECEBIMENTO DE EPI','Equipamentos de Proteção Individual — NR-6')+
+    '<div class="dp-section">'+sec('DADOS DO COLABORADOR')+
+      '<div class="dp-row">'+campo('Nome Completo',d.nome)+campo('CPF',d.cpf)+'</div>'+
+      '<div class="dp-row c3">'+campo('Cargo',d.cargo)+campo('Setor',d.setor)+campo('Data de Admissão',d.adm)+'</div>'+
+    '</div>'+
+    '<div class="dp-section">'+sec('EQUIPAMENTOS ENTREGUES')+
+      '<table style="width:100%;border-collapse:collapse;font-size:.72rem">'+
+        '<thead><tr style="background:var(--s2)"><th style="padding:5px 8px;text-align:left;border:1px solid var(--b1)">EPI</th><th style="padding:5px 8px;border:1px solid var(--b1)">CA Nº</th><th style="padding:5px 8px;border:1px solid var(--b1)">Qtd</th><th style="padding:5px 8px;border:1px solid var(--b1)">Data Entrega</th><th style="padding:5px 8px;border:1px solid var(--b1)">Assinatura</th></tr></thead>'+
+        '<tbody>'+
+          ['Calçado de segurança','Capacete','Luvas de proteção','Óculos de proteção','Protetor auricular'].map(function(e){
+            return '<tr><td style="padding:5px 8px;border:1px solid var(--b1)">'+e+'</td><td style="padding:5px 8px;border:1px solid var(--b1)"></td><td style="padding:5px 8px;border:1px solid var(--b1)"></td><td style="padding:5px 8px;border:1px solid var(--b1)">'+hoje()+'</td><td style="padding:5px 8px;border:1px solid var(--b1);min-width:80px"></td></tr>';
+          }).join('')+
+        '</tbody>'+
+      '</table>'+
+    '</div>'+
+    '<div class="dp-section" style="font-size:.72rem;color:var(--mu);background:var(--s2);border-radius:6px;padding:8px;line-height:1.5">'+
+      'Declaro que recebi os EPIs listados acima, estou ciente da obrigatoriedade do uso e que fui orientado sobre a correta utilização, higienização e guarda, conforme NR-6.'+
+    '</div>'+
+    assinaturas('Assinatura do Colaborador','Responsável pela Entrega')+
+    rodape()+
+  '</div>';
+};
+
+DOCS.dep=function(d){
+  return '<div class="doc-preview">'+
+    cabecalho('DECLARAÇÃO DE DEPENDENTES','Para fins de Imposto de Renda Retido na Fonte')+
+    '<div class="dp-section">'+sec('DADOS DO DECLARANTE')+
+      '<div class="dp-row">'+campo('Nome Completo',d.nome)+campo('CPF',d.cpf)+'</div>'+
+      '<div class="dp-row c3">'+campo('Cargo',d.cargo)+campo('Setor',d.setor)+campo('Data de Admissão',d.adm)+'</div>'+
+    '</div>'+
+    '<div class="dp-section">'+sec('RELAÇÃO DE DEPENDENTES')+
+      '<table style="width:100%;border-collapse:collapse;font-size:.72rem">'+
+        '<thead><tr style="background:var(--s2)"><th style="padding:5px 8px;text-align:left;border:1px solid var(--b1)">Nome Completo</th><th style="padding:5px 8px;border:1px solid var(--b1)">Parentesco</th><th style="padding:5px 8px;border:1px solid var(--b1)">CPF</th><th style="padding:5px 8px;border:1px solid var(--b1)">Nascimento</th></tr></thead>'+
+        '<tbody>'+
+          [1,2,3,4].map(function(){
+            return '<tr><td style="padding:8px;border:1px solid var(--b1);min-width:120px"></td><td style="padding:8px;border:1px solid var(--b1);min-width:80px"></td><td style="padding:8px;border:1px solid var(--b1);min-width:90px"></td><td style="padding:8px;border:1px solid var(--b1);min-width:80px"></td></tr>';
+          }).join('')+
+        '</tbody>'+
+      '</table>'+
+    '</div>'+
+    '<div class="dp-checkbox-row" style="margin-top:8px"><div class="dp-checkbox"></div><span style="font-size:.72rem">( &nbsp;) Não possuo dependentes para fins de Imposto de Renda.</span></div>'+
+    '<div style="font-size:.72rem;color:var(--mu);background:var(--s2);border-radius:6px;padding:8px;margin-top:8px;line-height:1.5">Declaro, sob as penas da lei, que as informações prestadas são verdadeiras e assumo total responsabilidade por eventuais divergências.</div>'+
+    assinaturas('Assinatura do Colaborador','Responsável pelo RH / DP')+
+    rodape()+
+  '</div>';
+};
+
+DOCS.conduta=function(d){
+  return '<div class="doc-preview">'+
+    cabecalho('CIÊNCIA DO CÓDIGO DE CONDUTA','Normas internas e ética empresarial')+
+    '<div class="dp-section">'+sec('DADOS DO COLABORADOR')+
+      '<div class="dp-row">'+campo('Nome Completo',d.nome)+campo('CPF',d.cpf)+'</div>'+
+      '<div class="dp-row c3">'+campo('Cargo',d.cargo)+campo('Setor',d.setor)+campo('Admissão',d.adm)+'</div>'+
+    '</div>'+
+    '<div class="dp-section">'+sec('DECLARAÇÃO DE CIÊNCIA')+
+      '<div style="font-size:.74rem;line-height:1.7;color:#333;background:var(--s2);border-radius:6px;padding:10px">'+
+        'Declaro que recebi, li e compreendi o Código de Conduta e as Normas Internas da empresa '+esc(empresa.nome||'[EMPRESA]')+', e me comprometo a cumprir integralmente as seguintes diretrizes:<br><br>'+
+        '<strong>1. Ética e Integridade:</strong> Agir com honestidade, transparência e respeito em todas as relações profissionais.<br>'+
+        '<strong>2. Confidencialidade:</strong> Manter sigilo sobre informações estratégicas, dados de clientes e processos internos.<br>'+
+        '<strong>3. Respeito:</strong> Tratar colegas, clientes e fornecedores com dignidade, sem discriminação de qualquer natureza.<br>'+
+        '<strong>4. Uso de Recursos:</strong> Utilizar os recursos da empresa exclusivamente para fins profissionais.<br>'+
+        '<strong>5. Assiduidade:</strong> Cumprir horários e comunicar eventuais ausências com antecedência.<br>'+
+        '<strong>6. Conflito de Interesses:</strong> Comunicar à empresa qualquer situação que possa configurar conflito de interesses.'+
+      '</div>'+
+    '</div>'+
+    assinaturas('Assinatura do Colaborador','Responsável pelo RH / DP')+
+    rodape()+
+  '</div>';
+};
+
+// ══ SELEÇÃO DE DOCS ═════════════════════════════
+function toggleDoc(el){
+  if(el.classList.contains('doc-custom')) return;
+  el.classList.toggle('selected');
+  atualizarContagem();
+}
+function selAll(){
+  document.querySelectorAll('.doc-card:not(.doc-custom)').forEach(function(c){c.classList.add('selected');});
+  atualizarContagem();
+}
+function deselAll(){
+  document.querySelectorAll('.doc-card').forEach(function(c){c.classList.remove('selected');});
+  atualizarContagem();
+}
+function atualizarContagem(){
+  var n=document.querySelectorAll('.doc-card.selected').length;
+  document.getElementById('sel-count').textContent=n+' documento'+(n!==1?'s':'');
+}
+function getSelected(){
+  return Array.from(document.querySelectorAll('.doc-card.selected')).map(function(c){return c.dataset.doc;});
+}
+
+// ══ PREVIEW ═════════════════════════════════════
+function previewDoc(){
+  var sel=getSelected();
+  if(!sel.length){toast('⚠️ Selecione pelo menos um documento');return;}
+  docAtual=sel[0];
+  var d=getDados();
+  var fn=DOCS[docAtual];
+  if(!fn){toast('⚠️ Documento não encontrado');return;}
+  document.getElementById('modal-title').textContent='Visualizar: '+document.querySelector('[data-doc="'+docAtual+'"] .doc-name').textContent;
+  document.getElementById('modal-body').innerHTML=fn(d);
+  document.getElementById('modal').classList.add('on');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('on'); }
+
+// ══ GERAR PDF ═══════════════════════════════════
+function gerarPDF(){
+  var sel=getSelected();
+  if(!sel.length){toast('⚠️ Selecione pelo menos um documento');return;}
+  var d=getDados();
+  var docId=sel[0];
+  var fn=DOCS[docId];
+  if(!fn){toast('⚠️ Documento sem modelo');return;}
+  var nome=document.querySelector('[data-doc="'+docId+'"] .doc-name').textContent;
+  abrirImpressao(fn(d), nome);
+}
+
+function gerarTodos(){
+  var sel=getSelected();
+  if(!sel.length){toast('⚠️ Selecione pelo menos um documento');return;}
+  var d=getDados();
+  if(!d.nome||d.nome==='_______________'){toast('⚠️ Preencha pelo menos o nome do colaborador');return;}
+  sel.forEach(function(docId,i){
+    var fn=DOCS[docId]; if(!fn) return;
+    var nome=document.querySelector('[data-doc="'+docId+'"] .doc-name').textContent;
+    setTimeout(function(){ abrirImpressao(fn(d), nome); }, i*600);
+  });
+  toast('✅ Gerando '+sel.length+' documento(s)...');
+}
+
+function abrirImpressao(html, titulo){
+  var w=window.open('','_blank');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(titulo)+'</title>'+
+    '<style>'+
+    '@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");'+
+    'body{margin:20px;font-family:"Plus Jakarta Sans",Arial,sans-serif;color:#1a1a1a;font-size:13px}'+
+    ':root{--pr:#2563eb;--s2:#f1f5f9;--b1:#e2e8f0;--b2:#cbd5e1;--tx:#0f172a;--mu:#64748b}'+
+    '.doc-preview{max-width:680px;margin:0 auto}'+
+    '.dp-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:2px solid #2563eb;margin-bottom:14px}'+
+    '.dp-logo{height:44px;object-fit:contain}'+
+    '.dp-logo-ph{width:90px;height:44px;background:#f1f5f9;border:1px dashed #cbd5e1;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#64748b}'+
+    '.dp-empresa{text-align:right}.dp-empresa .nome{font-size:.88rem;font-weight:800}.dp-empresa .sub{font-size:.62rem;color:#64748b}'+
+    '.dp-title{text-align:center;margin-bottom:14px}.dp-title h2{font-size:.95rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#2563eb}.dp-title p{font-size:.7rem;color:#64748b;margin-top:3px}'+
+    '.dp-section-title{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#2563eb;border-bottom:1px solid #e2e8f0;padding-bottom:3px;margin-bottom:7px}'+
+    '.dp-section{margin-bottom:12px}'+
+    '.dp-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:5px}.dp-row.c3{grid-template-columns:1fr 1fr 1fr}.dp-row.c1{grid-template-columns:1fr}'+
+    '.dp-field{background:#f1f5f9;border-radius:5px;padding:5px 8px}.dp-field .lbl{font-size:.57rem;color:#64748b;font-weight:700;text-transform:uppercase;display:block;margin-bottom:1px}.dp-field .val{font-size:.75rem;font-weight:600;min-height:14px}'+
+    '.dp-checkbox-row{display:flex;align-items:flex-start;gap:7px;margin-bottom:6px;font-size:.73rem}'+
+    '.dp-checkbox{width:13px;height:13px;border:1.5px solid #cbd5e1;border-radius:2px;flex-shrink:0;margin-top:1px}'+
+    '.dp-assinatura{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:18px}'+
+    '.dp-ass-box{text-align:center}.dp-ass-line{border-bottom:1.5px solid #1a1a1a;margin-bottom:4px;height:26px}.dp-ass-label{font-size:.62rem;color:#64748b}'+
+    '.dp-footer{margin-top:14px;padding-top:8px;border-top:1px solid #e2e8f0;font-size:.6rem;color:#94a3b8;text-align:center}'+
+    'table{width:100%}thead th{background:#f1f5f9}'+
+    '@media print{body{margin:8px}}</style>'+
+    '</head><body>'+html+'</body></html>');
+  w.document.close();
+  setTimeout(function(){w.print();},600);
+}
+
+function imprimirAtual(){
+  var d=getDados();
+  var fn=DOCS[docAtual];
+  if(!fn) return;
+  var nome=document.querySelector('[data-doc="'+docAtual+'"] .doc-name').textContent;
+  abrirImpressao(fn(d), nome);
+  closeModal();
+}
+
+// ══ CUSTOM DOC ══════════════════════════════════
+function addCustomDoc(){
+  toast('💡 Em breve: importação de modelos Word personalizados');
+}
+
+// ══ LIMPAR ══════════════════════════════════════
+function limparColab(){
+  ['c-nome','c-cpf','c-rg','c-nasc','c-adm','c-cargo','c-setor','c-salario','c-pis','c-tel','c-email','c-end','c-banco','c-agencia','c-conta'].forEach(function(id){
+    document.getElementById(id).value='';
+  });
+  document.getElementById('sel-nome').textContent='—';
+  toast('🗑 Dados limpos');
+}
+
+// ══ TUTORIAL ════════════════════════════════════
+function showStep(n,btn){
+  document.querySelectorAll('.tut-step').forEach(function(s){s.classList.remove('on')});
+  document.querySelectorAll('.tn').forEach(function(b){b.classList.remove('on')});
+  document.getElementById('ts'+n).classList.add('on');
+  if(btn) btn.classList.add('on');
+  else document.querySelectorAll('.tn')[n].classList.add('on');
+  curStep=n;
+  document.getElementById('btn-prev').style.display=n===0?'none':'inline-flex';
+  document.getElementById('btn-next').style.display=n===totalSteps-1?'none':'inline-flex';
+}
+function stepNav(dir){
+  var next=curStep+dir;
+  if(next<0||next>=totalSteps) return;
+  showStep(next,null);
+}
+
+// ══ TOAST ═══════════════════════════════════════
+function toast(m){
+  var t=document.getElementById('tst');
+  t.textContent=m; t.classList.add('on');
+  clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove('on');},2800);
+}
+
+// ══ UTILS ═══════════════════════════════════════
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// fechar modal clicando fora
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+</script>
+</body>
+</html>

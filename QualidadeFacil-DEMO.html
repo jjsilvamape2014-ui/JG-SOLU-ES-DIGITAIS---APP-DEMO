@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QualidadeFácil — Controle de Qualidade</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+:root{
+  --pr:#06b6d4;--pr2:#0891b2;--prg:rgba(6,182,212,.12);
+  --bg:#09090b;--s1:#111113;--s2:#18181b;--s3:#1f1f23;
+  --b1:#27272a;--b2:#3f3f46;
+  --tx:#f4f4f5;--mu:#71717a;--mu2:#52525b;
+  --gr:#22c55e;--grb:rgba(34,197,94,.1);
+  --re:#ef4444;--reb:rgba(239,68,68,.1);
+  --ye:#f59e0b;--yeb:rgba(245,158,11,.1);
+  --bl:#3b82f6;--blb:rgba(59,130,246,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:'Outfit',sans-serif;min-height:100vh;font-size:14px}
+.wov{position:fixed;inset:0;background:linear-gradient(135deg,#09090b,#011e24,#09090b);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.wbox{background:var(--s1);border:1px solid var(--b1);border-radius:20px;padding:36px 30px;max-width:440px;width:100%;box-shadow:0 0 60px rgba(6,182,212,.08)}
+.wlogo{width:60px;height:60px;background:linear-gradient(135deg,#06b6d4,#0891b2);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;box-shadow:0 0 30px rgba(6,182,212,.35)}
+.wbox h2{font-size:1.5rem;font-weight:800;text-align:center;margin-bottom:4px}
+.wbox h2 em{color:var(--pr);font-style:normal}
+.wsub{font-size:.8rem;color:var(--mu);text-align:center;margin-bottom:22px;line-height:1.5}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
+.wf{display:flex;flex-direction:column;gap:3px}.wf.full{grid-column:1/-1}
+.wf label{font-size:.6rem;color:var(--mu);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.wf input,.wf select{padding:8px 11px;background:var(--s2);border:1.5px solid var(--b1);border-radius:8px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.84rem;transition:border-color .14s;-webkit-appearance:none}
+.wf input:focus,.wf select:focus{outline:none;border-color:var(--pr)}
+.wf input::placeholder{color:var(--mu2)}
+.wlogo-up{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;background:var(--s2);border:1.5px dashed var(--b2);border-radius:8px;cursor:pointer;transition:all .14s;text-align:center;grid-column:1/-1}
+.wlogo-up:hover{border-color:var(--pr);background:var(--prg)}
+.wlogo-up input{display:none}
+.lprev{display:none;align-items:center;gap:8px;padding:7px 10px;background:var(--grb);border:1px solid rgba(34,197,94,.3);border-radius:7px;font-size:.74rem;color:var(--gr);grid-column:1/-1}
+.lprev img{height:28px;object-fit:contain}
+.lprev button{margin-left:auto;background:none;border:none;color:var(--gr);cursor:pointer}
+.wbtn{width:100%;padding:11px;background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:800;cursor:pointer;margin-top:6px;transition:all .14s}
+.wbtn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(6,182,212,.3)}
+.wbtn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.wfoot{margin-top:14px;text-align:center;font-size:.6rem;color:var(--mu2)}
+.wfoot a{color:var(--mu);text-decoration:none}
+header{background:var(--s1);border-bottom:1px solid var(--b1);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100}
+.hlogo{display:flex;align-items:center;gap:10px}
+.hicon{width:28px;height:28px;background:linear-gradient(135deg,#06b6d4,#0891b2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.hname{font-size:.88rem;font-weight:800;line-height:1}.hname em{color:var(--pr);font-style:normal}
+.hsub{font-size:.56rem;color:var(--mu)}
+.hright{display:flex;align-items:center;gap:7px}
+.emp-badge{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--b1);border-radius:20px;padding:4px 10px;font-size:.66rem;font-weight:600}
+.emp-badge img{height:16px;object-fit:contain}
+.hver{font-size:.58rem;color:var(--mu2);border:1px solid var(--b1);padding:2px 6px;border-radius:20px}
+.tabs{display:flex;gap:2px;background:var(--s1);border-bottom:1px solid var(--b1);padding:8px 20px 0;overflow-x:auto}
+.tab{padding:8px 14px;background:transparent;border:none;color:var(--mu);font-family:'Outfit',sans-serif;font-size:.74rem;font-weight:600;cursor:pointer;transition:all .14s;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.on{color:var(--pr);border-bottom-color:var(--pr)}
+.tab:hover:not(.on){color:var(--tx)}
+.wrap{max-width:1000px;margin:0 auto;padding:18px 14px 80px}
+.sec{display:none;animation:fi .16s ease}.sec.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:13px;padding:14px;margin-bottom:11px}
+.card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+.card-t{font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:6px}
+.fg{display:flex;gap:7px;align-items:flex-end;flex-wrap:wrap}
+.f{flex:1;min-width:100px;display:flex;flex-direction:column;gap:3px}
+.f label{font-size:.6rem;color:var(--mu);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:8px 10px;background:var(--s2);border:1.5px solid var(--b1);border-radius:7px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.8rem;transition:border-color .14s;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--pr);background:var(--s3)}
+input::placeholder,textarea::placeholder{color:var(--mu2)}
+textarea{resize:vertical;min-height:52px}
+.btn{padding:8px 13px;border:none;border-radius:7px;font-family:'Outfit',sans-serif;font-size:.74rem;font-weight:700;cursor:pointer;transition:all .13s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.bpr{background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff}.bpr:hover{transform:translateY(-1px)}
+.bgr{background:var(--grb);color:var(--gr);border:1px solid rgba(34,197,94,.25)}.bgr:hover{background:rgba(34,197,94,.16)}
+.bbl{background:var(--blb);color:var(--bl);border:1px solid rgba(59,130,246,.25)}.bbl:hover{background:rgba(59,130,246,.16)}
+.bgh{background:var(--s2);color:var(--tx);border:1px solid var(--b1)}.bgh:hover{border-color:var(--b2)}
+.bre{background:var(--reb);color:var(--re);border:1px solid rgba(239,68,68,.2);padding:5px 9px}.bre:hover{background:rgba(239,68,68,.18)}
+.bye{background:var(--yeb);color:var(--ye);border:1px solid rgba(245,158,11,.25)}.bye:hover{background:rgba(245,158,11,.18)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px}
+.kpi{background:var(--s1);border:1px solid var(--b1);border-radius:11px;padding:13px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.cy::before{background:var(--pr)}.kpi.gr::before{background:var(--gr)}.kpi.re::before{background:var(--re)}.kpi.ye::before{background:var(--ye)}
+.kv{font-size:1.4rem;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
+.kl{font-size:.6rem;color:var(--mu);margin-top:3px}
+.nc-table{width:100%;border-collapse:collapse;font-size:.76rem}
+.nc-table th{background:var(--s2);padding:7px 9px;text-align:left;font-size:.6rem;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--b1);white-space:nowrap}
+.nc-table td{padding:7px 9px;border-bottom:1px solid var(--b1);vertical-align:middle}
+.nc-table tr:last-child td{border-bottom:none}
+.nc-table tr:hover td{background:rgba(255,255,255,.012)}
+.pr-tag{font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:20px}
+.pr-critica{background:rgba(239,68,68,.15);color:var(--re)}
+.pr-major{background:rgba(245,158,11,.15);color:var(--ye)}
+.pr-minor{background:rgba(6,182,212,.15);color:var(--pr)}
+.st-aberta{background:rgba(239,68,68,.12);color:var(--re);font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:20px}
+.st-andamento{background:rgba(245,158,11,.12);color:var(--ye);font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:20px}
+.st-fechada{background:rgba(34,197,94,.12);color:var(--gr);font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:20px}
+/* CHECKLIST */
+.ck-wrap{display:flex;flex-direction:column;gap:6px}
+.ck-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--s2);border:1.5px solid var(--b1);border-radius:8px;cursor:pointer;transition:all .14s}
+.ck-item:hover{border-color:var(--pr)}
+.ck-item.done{border-color:var(--gr);background:var(--grb)}
+.ck-item.fail{border-color:var(--re);background:var(--reb)}
+.ck-box{width:20px;height:20px;border:2px solid var(--b2);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.7rem;transition:all .14s}
+.ck-item.done .ck-box{background:var(--gr);border-color:var(--gr);color:#fff}
+.ck-item.fail .ck-box{background:var(--re);border-color:var(--re);color:#fff}
+.ck-label{flex:1;font-size:.78rem;font-weight:500}
+.ck-btns{display:flex;gap:4px}
+.ck-ok{padding:3px 8px;background:var(--grb);color:var(--gr);border:1px solid rgba(34,197,94,.25);border-radius:5px;font-size:.64rem;font-weight:700;cursor:pointer}
+.ck-nok{padding:3px 8px;background:var(--reb);color:var(--re);border:1px solid rgba(239,68,68,.25);border-radius:5px;font-size:.64rem;font-weight:700;cursor:pointer}
+.ck-na{padding:3px 8px;background:var(--s3);color:var(--mu);border:1px solid var(--b1);border-radius:5px;font-size:.64rem;font-weight:700;cursor:pointer}
+/* TUTORIAL */
+.tut-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:13px;padding:15px;margin-bottom:11px}
+.tut-head{text-align:center;margin-bottom:13px}
+.tut-head h3{font-size:.88rem;font-weight:700;margin-bottom:3px}
+.tut-head p{font-size:.7rem;color:var(--mu)}
+.tut-nav{display:flex;gap:2px;background:var(--s2);border-radius:8px;padding:3px;margin-bottom:13px;overflow-x:auto}
+.tn{flex:1;padding:6px 4px;background:transparent;border:none;color:var(--mu);font-family:'Outfit',sans-serif;font-size:.66rem;font-weight:600;border-radius:5px;cursor:pointer;transition:all .13s;white-space:nowrap}
+.tn.on{background:var(--pr);color:#fff}
+.tut-step{display:none;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.tut-step.on{display:grid}
+.tut-screen{background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:11px}
+.tut-num{font-size:2rem;font-weight:900;color:var(--pr);line-height:1;margin-bottom:5px;opacity:.4;font-family:'JetBrains Mono',monospace}
+.tut-info h4{font-size:.84rem;font-weight:700;margin-bottom:6px}
+.tut-info p{font-size:.71rem;color:var(--mu);line-height:1.5;margin-bottom:5px}
+.tut-tip{padding:7px 9px;background:var(--yeb);border:1px solid rgba(245,158,11,.25);border-radius:6px;font-size:.66rem;color:var(--ye);line-height:1.4;margin-top:7px}
+.tut-btns{display:flex;justify-content:space-between;margin-top:11px;padding-top:11px;border-top:1px solid var(--b1)}
+.mk{background:var(--bg);border:1px solid var(--b1);border-radius:7px;overflow:hidden;font-size:.56rem}
+.mk-h{background:var(--s1);padding:5px 8px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:5px}
+.mk-logo{background:var(--pr);padding:2px 6px;border-radius:4px;color:#fff;font-weight:800;font-size:.5rem}
+.mk-b{padding:8px}
+.lov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:9px;backdrop-filter:blur(3px)}
+.lov.on{display:flex}
+.sp{width:36px;height:36px;border:2.5px solid var(--b2);border-top-color:var(--pr);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lm{font-size:.82rem;font-weight:600;color:var(--pr)}
+#tst{position:fixed;bottom:16px;right:10px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:8px 13px;font-size:.74rem;font-weight:600;transform:translateY(50px);opacity:0;transition:all .2s;z-index:9999;max-width:260px;pointer-events:none}
+#tst.on{transform:translateY(0);opacity:1}
+footer{position:fixed;bottom:0;left:0;right:0;background:var(--s1);border-top:1px solid var(--b1);padding:7px 20px;display:flex;align-items:center;justify-content:space-between;font-size:.6rem;color:var(--mu);z-index:100}
+footer strong{color:var(--tx)}
+footer a{color:var(--pr);text-decoration:none;font-weight:600}
+.exp-row{display:flex;gap:7px;flex-wrap:wrap}
+.empty-st{text-align:center;padding:22px;color:var(--mu);font-size:.76rem}
+.empty-st .ei{font-size:1.7rem;margin-bottom:5px}
+@media(max-width:600px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.tut-step.on{grid-template-columns:1fr}.fg{flex-direction:column}.tab{font-size:.64rem;padding:7px 9px}footer{flex-direction:column;gap:2px;text-align:center;padding:5px}}
+</style>
+<script>
+(function(){
+  var cfg = JSON.parse(localStorage.getItem('qual_cfg')||'null');
+  if(cfg && cfg.nome) return;
+  localStorage.setItem('qual_cfg', JSON.stringify({
+    nome:'Transportes Belém LTDA', cnpj:'12.345.678/0001-90', logo:''
+  }));
+  localStorage.setItem('qual_data', JSON.stringify({
+    ncs:[
+      {id:1,num:'NC-001',data:'2026-05-03',area:'Manutenção',descricao:'Veículo saiu sem verificação de pneus calibrados',prioridade:'Major',resp:'Carlos Melo',prazo:'2026-05-10',status:'Em Andamento',acao:'Implementar checklist obrigatório pré-viagem'},
+      {id:2,num:'NC-002',data:'2026-05-08',area:'Operações',descricao:'Atraso na entrega do cliente São João — 2h acima do prazo',prioridade:'Minor',resp:'João Gomes',prazo:'2026-05-15',status:'Aberta',acao:'Revisar roteiro e janelas de entrega'},
+      {id:3,num:'NC-003',data:'2026-04-22',area:'RH',descricao:'Colaborador sem treinamento de segurança atualizado',prioridade:'Crítico',resp:'Diana Farias',prazo:'2026-04-30',status:'Encerrada',acao:'Treinamento realizado em 28/04/2026'}
+    ],
+    checklists:[
+      {id:1,nome:'Checklist Pré-Viagem',data:'2026-05-20',resp:'Carlos Melo',itens:[
+        {desc:'Nível de combustível verificado',res:'OK'},
+        {desc:'Pneus calibrados e sem danos',res:'OK'},
+        {desc:'Freios testados',res:'OK'},
+        {desc:'Documentação do veículo em ordem',res:'OK'},
+        {desc:'Tacógrafo funcionando',res:'NOK'},
+        {desc:'Kit de emergência completo',res:'OK'}
+      ]}
+    ]
+  }));
+})();
+</script>
+</head>
+<body>
+<div style="position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#F59E0B,#EF4444);color:#000;text-align:center;font-size:.7rem;font-weight:800;padding:5px;z-index:99999;letter-spacing:.5px">
+⚡ VERSÃO DEMO — Dados fictícios para demonstração &nbsp;·&nbsp; Adquira pelo WhatsApp: (91) 99987-9932
+</div>
+<div style="height:25px"></div>
+<div class="lov" id="ldr"><div class="sp"></div><div class="lm" id="lmsg">Processando...</div></div>
+<div id="tst"></div>
+
+<div class="wov" id="welcome">
+  <div class="wbox">
+    <div class="wlogo">🔍</div>
+    <h2>Qualidade<em>Fácil</em></h2>
+    <p class="wsub">Controle de Qualidade para Empresas<br>Não conformidades, checklists e ações corretivas</p>
+    <div class="wgrid">
+      <div class="wf full"><label>Nome da Empresa *</label><input id="w-emp" type="text" placeholder="Ex: Indústria João LTDA" oninput="chkW()"></div>
+      <div class="wf"><label>CNPJ</label><input id="w-cnpj" type="text" placeholder="00.000.000/0001-00" oninput="maskCNPJ(this)"></div>
+      <div class="wf"><label>Setor de Qualidade</label><input id="w-set" type="text" placeholder="Ex: CQ, Qualidade"></div>
+      <div class="wf"><label>Responsável</label><input id="w-resp" type="text" placeholder="Nome do responsável"></div>
+      <div class="wf"><label>Norma (se houver)</label><input id="w-norm" type="text" placeholder="Ex: ISO 9001, PBQP-H"></div>
+      <label class="wlogo-up" for="w-logo"><input type="file" id="w-logo" accept="image/*" onchange="prevLogo(this)"><div style="font-size:1.3rem;margin-bottom:3px">🖼️</div><div style="font-size:.72rem;font-weight:600">Logo da empresa (opcional)</div></label>
+      <div class="lprev" id="lprev"><img id="limg" src="" alt="logo"><span id="lfn">logo.png</span><button onclick="remLogo()">✕</button></div>
+    </div>
+    <button class="wbtn" id="w-btn" onclick="startApp()" disabled>Entrar no Sistema →</button>
+    <div class="wfoot">Desenvolvido por <strong>João Gomes</strong> · <a href="https://wa.me/5591999879932" target="_blank">(91) 99987-9932</a> · v1.0</div>
+  </div>
+</div>
+
+<header>
+  <div class="hlogo">
+    <div class="hicon">🔍</div>
+    <div><div class="hname">Qualidade<em>Fácil</em></div><div class="hsub">Controle de Qualidade</div></div>
+  </div>
+  <div class="hright">
+    <div class="emp-badge" id="emp-badge"><span id="emp-h">—</span></div>
+    <span class="hver">v1.0</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab on" onclick="goTab('dash',this)">📊 Dashboard</button>
+  <button class="tab" onclick="goTab('nc',this)">⚠️ Não Conformidades</button>
+  <button class="tab" onclick="goTab('ck',this)">✅ Checklist</button>
+  <button class="tab" onclick="goTab('rel',this)">📋 Relatório</button>
+  <button class="tab" onclick="goTab('tut',this)">📖 Tutorial</button>
+</div>
+
+<div class="wrap">
+
+  <!-- DASHBOARD -->
+  <div id="sec-dash" class="sec on">
+    <div class="kpi-grid">
+      <div class="kpi cy"><div class="kv" id="kpi-total">0</div><div class="kl">Total NC Registradas</div></div>
+      <div class="kpi re"><div class="kv" id="kpi-abertas">0</div><div class="kl">🔴 Em Aberto</div></div>
+      <div class="kpi ye"><div class="kv" id="kpi-and">0</div><div class="kl">🟡 Em Andamento</div></div>
+      <div class="kpi gr"><div class="kv" id="kpi-fech">0</div><div class="kl">✅ Fechadas</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">🔴 Não Conformidades em Aberto</div></div>
+      <div id="dash-nc"><div class="empty-st"><div class="ei">✅</div>Nenhuma NC em aberto!</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">📊 Resumo por Prioridade</div></div>
+      <div id="dash-prioridade">
+        <div class="empty-st"><div class="ei">📊</div>Nenhuma NC registrada ainda</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NÃO CONFORMIDADES -->
+  <div id="sec-nc" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">➕ Registrar Não Conformidade</div></div>
+      <div class="fg" style="margin-bottom:8px">
+        <div class="f" style="flex:2"><label>Descrição da NC *</label><input id="n-desc" type="text" placeholder="Ex: Produto fora do padrão dimensional, Vazamento..."></div>
+        <div class="f"><label>Data</label><input id="n-data" type="date"></div>
+        <div class="f"><label>Setor / Área</label><input id="n-setor" type="text" placeholder="Ex: Produção, Almoxarifado"></div>
+      </div>
+      <div class="fg" style="margin-bottom:8px">
+        <div class="f"><label>Prioridade</label>
+          <select id="n-prior"><option value="critica">🔴 Crítica</option><option value="major" selected>🟡 Major</option><option value="minor">🔵 Minor</option></select>
+        </div>
+        <div class="f"><label>Categoria</label>
+          <select id="n-cat"><option value="Produto">Produto</option><option value="Processo">Processo</option><option value="Fornecedor">Fornecedor</option><option value="Segurança">Segurança</option><option value="Documentação">Documentação</option><option value="Outros">Outros</option></select>
+        </div>
+        <div class="f"><label>Responsável pela Ação</label><input id="n-resp" type="text" placeholder="Nome do responsável"></div>
+        <div class="f"><label>Prazo para Ação</label><input id="n-prazo" type="date"></div>
+      </div>
+      <div class="fg" style="margin-bottom:10px">
+        <div class="f"><label>Causa Raiz (se identificada)</label><textarea id="n-causa" placeholder="Descreva a causa raiz identificada..."></textarea></div>
+        <div class="f"><label>Ação Corretiva</label><textarea id="n-acao" placeholder="Descreva a ação corretiva planejada..."></textarea></div>
+      </div>
+      <button class="btn bpr" onclick="addNC()">⚠️ Registrar NC</button>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">Não Conformidades <span id="nc-count" style="font-size:.62rem;padding:2px 7px;border-radius:20px;background:var(--prg);color:var(--pr);font-weight:700">0</span></div>
+        <div style="display:flex;gap:6px">
+          <select id="filtro-prior" onchange="renderNC()" style="font-size:.7rem;padding:5px 8px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;color:var(--tx)"><option value="">Todas Prioridades</option><option value="critica">Crítica</option><option value="major">Major</option><option value="minor">Minor</option></select>
+          <select id="filtro-st" onchange="renderNC()" style="font-size:.7rem;padding:5px 8px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;color:var(--tx)"><option value="">Todos Status</option><option value="aberta">Em Aberto</option><option value="andamento">Em Andamento</option><option value="fechada">Fechada</option></select>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="nc-table">
+          <thead><tr><th>#</th><th>Descrição</th><th>Setor</th><th>Categoria</th><th>Prioridade</th><th>Data</th><th>Prazo</th><th>Responsável</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="tbody-nc"><tr><td colspan="10"><div class="empty-st"><div class="ei">⚠️</div>Nenhuma NC registrada ainda</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKLIST -->
+  <div id="sec-ck" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">✅ Novo Checklist de Inspeção</div></div>
+      <div class="fg" style="margin-bottom:8px">
+        <div class="f" style="flex:2"><label>Nome do Checklist *</label><input id="ck-nome" type="text" placeholder="Ex: Inspeção de Recebimento, Auditoria Interna..."></div>
+        <div class="f"><label>Data</label><input id="ck-data" type="date"></div>
+        <div class="f"><label>Responsável</label><input id="ck-resp" type="text" placeholder="Nome do inspetor"></div>
+      </div>
+      <div class="fg" style="margin-bottom:10px">
+        <div class="f" style="flex:2"><label>Adicionar Item ao Checklist</label><input id="ck-item" type="text" placeholder="Ex: Verificar dimensões, Testar resistência, Conferir documentação..."></div>
+        <button class="btn bpr" onclick="addCkItem()" style="margin-top:19px">＋ Add Item</button>
+      </div>
+      <div id="ck-items-list">
+        <div class="empty-st"><div class="ei">✅</div>Adicione itens ao checklist acima</div>
+      </div>
+      <div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn bgr" onclick="finalizarCk()">✅ Finalizar e Salvar Checklist</button>
+        <button class="btn bre" onclick="limparCk()">🗑 Limpar</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">📋 Checklists Salvos <span id="ck-count" style="font-size:.62rem;padding:2px 7px;border-radius:20px;background:var(--prg);color:var(--pr);font-weight:700">0</span></div></div>
+      <div id="ck-hist"><div class="empty-st"><div class="ei">📋</div>Nenhum checklist salvo ainda</div></div>
+    </div>
+  </div>
+
+  <!-- RELATÓRIO -->
+  <div id="sec-rel" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">📋 Relatório de Qualidade</div></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+        <div style="background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:10px;text-align:center"><div style="font-size:1.2rem;font-weight:800;font-family:JetBrains Mono,monospace" id="rel-total">0</div><div style="font-size:.62rem;color:var(--mu)">Total NCs</div></div>
+        <div style="background:var(--reb);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:10px;text-align:center"><div style="font-size:1.2rem;font-weight:800;font-family:JetBrains Mono,monospace;color:var(--re)" id="rel-crit">0</div><div style="font-size:.62rem;color:var(--mu)">Críticas</div></div>
+        <div style="background:var(--grb);border:1px solid rgba(34,197,94,.25);border-radius:8px;padding:10px;text-align:center"><div style="font-size:1.2rem;font-weight:800;font-family:JetBrains Mono,monospace;color:var(--gr)" id="rel-fech">0</div><div style="font-size:.62rem;color:var(--mu)">Fechadas</div></div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="nc-table">
+          <thead><tr><th>#</th><th>Descrição</th><th>Setor</th><th>Prioridade</th><th>Data</th><th>Prazo</th><th>Responsável</th><th>Causa Raiz</th><th>Ação Corretiva</th><th>Status</th></tr></thead>
+          <tbody id="tbody-rel"><tr><td colspan="10"><div class="empty-st"><div class="ei">📋</div>Nenhuma NC registrada</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="exp-row">
+      <button class="btn bgr" onclick="expRelPDF()">📄 Exportar PDF</button>
+      <button class="btn bbl" onclick="expRelXLS()">📊 Exportar Excel</button>
+    </div>
+  </div>
+
+  <!-- TUTORIAL -->
+  <div id="sec-tut" class="sec">
+    <div class="tut-wrap">
+      <div class="tut-head"><div style="font-size:1.4rem;margin-bottom:4px">🎬</div><h3>Como usar o QualidadeFácil</h3><p>Passo a passo para controle de qualidade e não conformidades</p></div>
+      <div class="tut-nav">
+        <button class="tn on" onclick="showStep(0,this)">1. Registrar NC</button>
+        <button class="tn" onclick="showStep(1,this)">2. Gerenciar</button>
+        <button class="tn" onclick="showStep(2,this)">3. Checklist</button>
+        <button class="tn" onclick="showStep(3,this)">4. Relatório</button>
+      </div>
+      <div class="tut-step on" id="ts0">
+        <div class="tut-screen">
+          <div class="mk">
+            <div class="mk-h"><div class="mk-logo">🔍 QualidadeFácil</div></div>
+            <div class="mk-b">
+              <div style="font-size:.56rem;font-weight:700;margin-bottom:5px;color:var(--pr)">⚠️ Registrar NC</div>
+              <div style="background:var(--s1);border:1px solid var(--b1);border-radius:4px;padding:4px 6px;margin-bottom:3px"><div style="font-size:.44rem;color:var(--mu)">Descrição</div><div style="font-size:.54rem;font-weight:600;color:var(--pr)">Produto fora do padrão</div></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:4px;padding:4px 6px"><div style="font-size:.44rem;color:var(--re)">Prioridade</div><div style="font-size:.54rem;font-weight:700;color:var(--re)">🔴 Crítica</div></div>
+                <div style="background:var(--s1);border:1px solid var(--b1);border-radius:4px;padding:4px 6px"><div style="font-size:.44rem;color:var(--mu)">Prazo</div><div style="font-size:.54rem;font-weight:700">30/05/2026</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tut-info">
+          <div class="tut-num">01</div>
+          <h4>Registre as Não Conformidades</h4>
+          <p>Na aba <strong>Não Conformidades</strong>, registre cada problema identificado com descrição, prioridade (Crítica, Major ou Minor), responsável e prazo para correção.</p>
+          <p>Informe também a <strong>causa raiz</strong> e a <strong>ação corretiva</strong> planejada.</p>
+          <div class="tut-tip">💡 Crítica = para a operação. Major = impacta qualidade. Minor = pequeno desvio.</div>
+        </div>
+      </div>
+      <div class="tut-step" id="ts1">
+        <div class="tut-screen">
+          <div class="mk">
+            <div class="mk-h"><div class="mk-logo">🔍 QualidadeFácil</div></div>
+            <div class="mk-b">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:5px">
+                <div style="background:var(--s1);border:1px solid var(--b1);border-radius:5px;padding:5px;text-align:center"><div style="font-size:.8rem;font-weight:800;color:var(--re)">3</div><div style="font-size:.44rem;color:var(--mu)">Em Aberto</div></div>
+                <div style="background:var(--s1);border:1px solid var(--b1);border-radius:5px;padding:5px;text-align:center"><div style="font-size:.8rem;font-weight:800;color:var(--gr)">8</div><div style="font-size:.44rem;color:var(--mu)">Fechadas</div></div>
+              </div>
+              <div style="font-size:.52rem;padding:3px 6px;margin-bottom:2px;background:rgba(239,68,68,.05);border-left:2px solid var(--re)">NC #001 · Produto defeituoso · <span style="color:var(--re);font-weight:700">Aberta</span></div>
+              <div style="font-size:.52rem;padding:3px 6px;margin-bottom:2px;background:rgba(245,158,11,.05);border-left:2px solid var(--ye)">NC #002 · Documentação · <span style="color:var(--ye);font-weight:700">Em andamento</span></div>
+              <div style="font-size:.52rem;padding:3px 6px;background:rgba(34,197,94,.05);border-left:2px solid var(--gr)">NC #003 · Processo · <span style="color:var(--gr);font-weight:700">Fechada</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="tut-info">
+          <div class="tut-num">02</div>
+          <h4>Gerencie o Status das NCs</h4>
+          <p>Cada NC tem três status: <strong style="color:var(--re)">Aberta</strong>, <strong style="color:var(--ye)">Em Andamento</strong> e <strong style="color:var(--gr)">Fechada</strong>.</p>
+          <p>Altere o status conforme o andamento da ação corretiva. O Dashboard mostra em tempo real quantas NCs estão em cada fase.</p>
+          <div class="tut-tip">💡 Use os filtros para ver só as NCs críticas em aberto e priorizar ações.</div>
+        </div>
+      </div>
+      <div class="tut-step" id="ts2">
+        <div class="tut-screen">
+          <div class="mk">
+            <div class="mk-h"><div class="mk-logo">🔍 QualidadeFácil</div></div>
+            <div class="mk-b">
+              <div style="font-size:.56rem;font-weight:700;margin-bottom:5px">✅ Checklist de Inspeção</div>
+              <div style="display:flex;align-items:center;gap:5px;padding:4px 6px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:4px;margin-bottom:3px"><div style="width:11px;height:11px;background:var(--gr);border-radius:2px;font-size:.4rem;color:#fff;display:flex;align-items:center;justify-content:center">✓</div><span style="font-size:.52rem;font-weight:500">Verificar dimensões</span></div>
+              <div style="display:flex;align-items:center;gap:5px;padding:4px 6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:4px;margin-bottom:3px"><div style="width:11px;height:11px;background:var(--re);border-radius:2px;font-size:.4rem;color:#fff;display:flex;align-items:center;justify-content:center">✕</div><span style="font-size:.52rem;font-weight:500">Testar resistência</span></div>
+              <div style="display:flex;align-items:center;gap:5px;padding:4px 6px;background:var(--s1);border:1px solid var(--b1);border-radius:4px"><div style="width:11px;height:11px;background:var(--b2);border-radius:2px"></div><span style="font-size:.52rem;font-weight:500;color:var(--mu)">Conferir documentação</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="tut-info">
+          <div class="tut-num">03</div>
+          <h4>Use os Checklists de Inspeção</h4>
+          <p>Na aba <strong>Checklist</strong>, crie listas de verificação para inspeções. Cada item pode ser marcado como <strong style="color:var(--gr)">✅ OK</strong>, <strong style="color:var(--re)">❌ NOK</strong> ou <strong style="color:var(--mu)">N/A</strong>.</p>
+          <p>Ao finalizar, o checklist é salvo com percentual de conformidade.</p>
+          <div class="tut-tip">💡 Use checklists para inspeção de recebimento, auditoria interna, inspeção de processo...</div>
+        </div>
+      </div>
+      <div class="tut-step" id="ts3">
+        <div class="tut-screen">
+          <div class="mk">
+            <div class="mk-h"><div class="mk-logo">🔍 QualidadeFácil</div></div>
+            <div class="mk-b">
+              <div style="display:flex;gap:4px;margin-bottom:6px">
+                <div style="padding:4px 8px;background:var(--grb);border:1px solid rgba(34,197,94,.3);border-radius:5px;font-size:.52rem;font-weight:700;color:var(--gr)">📄 PDF</div>
+                <div style="padding:4px 8px;background:var(--blb);border:1px solid rgba(59,130,246,.3);border-radius:5px;font-size:.52rem;font-weight:700;color:var(--bl)">📊 Excel</div>
+              </div>
+              <div style="background:#fff;border-radius:5px;padding:7px;color:#111">
+                <div style="font-size:.55rem;font-weight:800;color:#0891b2;margin-bottom:4px">🔍 Relatório de Qualidade</div>
+                <div style="font-size:.5rem;border-bottom:1px solid #e5e7eb;padding-bottom:3px;margin-bottom:3px">11 NCs · 3 críticas · 8 fechadas</div>
+                <div style="font-size:.48rem;color:#94a3b8">João Gomes · (91) 99987-9932</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tut-info">
+          <div class="tut-num">04</div>
+          <h4>Exporte o Relatório</h4>
+          <p>Na aba <strong>Relatório</strong>, veja todas as NCs com causa raiz, ação corretiva e status consolidados.</p>
+          <p>Exporte em <strong>PDF</strong> para apresentações e auditorias, ou em <strong>Excel</strong> para análise.</p>
+          <div class="tut-tip">💡 O relatório em PDF já inclui a logo e dados da empresa — pronto para auditorias.</div>
+        </div>
+      </div>
+      <div class="tut-btns">
+        <button class="btn bgh" id="btn-prev" onclick="stepNav(-1)" style="display:none;font-size:.7rem">← Anterior</button>
+        <button class="btn bpr" id="btn-next" onclick="stepNav(1)" style="font-size:.7rem">Próximo →</button>
+      </div>
+    </div>
+    <div style="background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:15px;text-align:center">
+      <div style="font-size:1.2rem;margin-bottom:5px">💬</div>
+      <div style="font-size:.8rem;font-weight:700;margin-bottom:3px">Precisa de ajuda?</div>
+      <div style="font-size:.72rem;color:var(--mu);margin-bottom:11px">Fale com o desenvolvedor pelo WhatsApp</div>
+      <a href="https://wa.me/5591999879932" target="_blank" class="btn bpr" style="text-decoration:none;margin:0 auto">💬 João Gomes · (91) 99987-9932</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div><strong>QualidadeFácil</strong> &nbsp;·&nbsp; v1.0 &nbsp;·&nbsp; Controle de Qualidade</div>
+  <div>Desenvolvido por <strong>João Gomes</strong> &nbsp;·&nbsp; <a href="https://wa.me/5591999879932" target="_blank">📱 (91) 99987-9932</a></div>
+</footer>
+
+<script>
+var emp={nome:'',cnpj:'',setor:'',resp:'',norm:'',logoURL:''};
+var ncs=[],checklists=[];
+var ckItems=[];
+var curStep=0,totalSteps=4;
+var ncSeq=1;
+
+function chkW(){var v=document.getElementById('w-emp').value.trim();document.getElementById('w-btn').disabled=v.length<2;}
+function prevLogo(inp){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){document.getElementById('limg').src=e.target.result;document.getElementById('lfn').textContent=f.name;document.getElementById('lprev').style.display='flex';emp.logoURL=e.target.result;};r.readAsDataURL(f);}
+function remLogo(){document.getElementById('lprev').style.display='none';document.getElementById('w-logo').value='';emp.logoURL='';}
+function startApp(){
+  emp.nome=document.getElementById('w-emp').value.trim();
+  emp.cnpj=document.getElementById('w-cnpj').value.trim();
+  emp.setor=document.getElementById('w-set').value.trim();
+  emp.resp=document.getElementById('w-resp').value.trim();
+  emp.norm=document.getElementById('w-norm').value.trim();
+  var ov=document.getElementById('welcome');ov.style.transition='opacity .3s';ov.style.opacity='0';setTimeout(function(){ov.style.display='none';},320);
+  document.getElementById('emp-h').textContent='🏢 '+emp.nome;
+  if(emp.logoURL){var img=document.createElement('img');img.src=emp.logoURL;img.style.height='16px';img.style.objectFit='contain';document.getElementById('emp-badge').insertBefore(img,document.getElementById('emp-h'));}
+  document.getElementById('n-data').value=new Date().toISOString().slice(0,10);
+  document.getElementById('ck-data').value=new Date().toISOString().slice(0,10);
+}
+function maskCNPJ(el){var v=el.value.replace(/\D/g,'').slice(0,14);if(v.length>12)v=v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/,'$1.$2.$3/$4-$5');else if(v.length>8)v=v.replace(/(\d{2})(\d{3})(\d{3})(\d{0,4})/,'$1.$2.$3/$4');else if(v.length>5)v=v.replace(/(\d{2})(\d{3})(\d{0,3})/,'$1.$2.$3');else if(v.length>2)v=v.replace(/(\d{2})(\d{0,3})/,'$1.$2');el.value=v;}
+function goTab(n,b){document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('on')});document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on')});document.getElementById('sec-'+n).classList.add('on');b.classList.add('on');if(n==='dash')updateDash();if(n==='rel')renderRel();}
+function toast(m){var t=document.getElementById('tst');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on');},2600);}
+
+// NC
+function addNC(){
+  var desc=document.getElementById('n-desc').value.trim();
+  if(!desc){toast('⚠️ Informe a descrição da NC');return;}
+  ncs.push({
+    id:Date.now(),seq:ncSeq++,
+    desc:desc,
+    data:document.getElementById('n-data').value||hoje(),
+    setor:document.getElementById('n-setor').value.trim()||'—',
+    prior:document.getElementById('n-prior').value,
+    cat:document.getElementById('n-cat').value,
+    resp:document.getElementById('n-resp').value.trim()||'—',
+    prazo:document.getElementById('n-prazo').value||'',
+    causa:document.getElementById('n-causa').value.trim()||'—',
+    acao:document.getElementById('n-acao').value.trim()||'—',
+    status:'aberta'
+  });
+  ['n-desc','n-setor','n-resp','n-prazo','n-causa','n-acao'].forEach(function(id){document.getElementById(id).value='';});
+  renderNC();updateDash();
+  toast('⚠️ NC #'+(ncSeq-1)+' registrada!');
+}
+function mudarStatus(id,st){var nc=ncs.find(function(n){return n.id===id;});if(nc){nc.status=st;renderNC();updateDash();toast('✅ Status atualizado!');}}
+function delNC(id){ncs=ncs.filter(function(n){return n.id!==id;});renderNC();updateDash();toast('🗑 NC removida');}
+function priorHtml(p){if(p==='critica')return'<span class="pr-tag pr-critica">🔴 Crítica</span>';if(p==='major')return'<span class="pr-tag pr-major">🟡 Major</span>';return'<span class="pr-tag pr-minor">🔵 Minor</span>';}
+function stHtml(s){if(s==='aberta')return'<span class="st-aberta">Em Aberto</span>';if(s==='andamento')return'<span class="st-andamento">Em Andamento</span>';return'<span class="st-fechada">✅ Fechada</span>';}
+function renderNC(){
+  document.getElementById('nc-count').textContent=ncs.length;
+  var fp=document.getElementById('filtro-prior').value;
+  var fs=document.getElementById('filtro-st').value;
+  var items=ncs.filter(function(n){if(fp&&n.prior!==fp)return false;if(fs&&n.status!==fs)return false;return true;});
+  var tb=document.getElementById('tbody-nc');
+  if(!items.length){tb.innerHTML='<tr><td colspan="10"><div class="empty-st"><div class="ei">⚠️</div>Nenhuma NC encontrada</div></td></tr>';return;}
+  tb.innerHTML=items.map(function(n){
+    return '<tr>'+
+      '<td style="font-family:JetBrains Mono,monospace;font-size:.7rem;color:var(--mu)">#'+String(n.seq).padStart(3,'0')+'</td>'+
+      '<td style="font-weight:500;max-width:180px">'+esc(n.desc)+'</td>'+
+      '<td style="font-size:.72rem;color:var(--mu)">'+esc(n.setor)+'</td>'+
+      '<td style="font-size:.72rem;color:var(--mu)">'+esc(n.cat)+'</td>'+
+      '<td>'+priorHtml(n.prior)+'</td>'+
+      '<td style="font-size:.7rem;font-family:JetBrains Mono,monospace">'+fmtD(n.data)+'</td>'+
+      '<td style="font-size:.7rem;font-family:JetBrains Mono,monospace;color:'+(n.prazo&&n.prazo<hoje()?'var(--re)':'var(--mu)')+'">'+( n.prazo?fmtD(n.prazo):'—')+'</td>'+
+      '<td style="font-size:.72rem;color:var(--mu)">'+esc(n.resp)+'</td>'+
+      '<td>'+stHtml(n.status)+'</td>'+
+      '<td><div style="display:flex;gap:3px;flex-wrap:wrap">'+
+      (n.status!=='andamento'&&n.status!=='fechada'?'<button class="btn bye" style="padding:2px 6px;font-size:.58rem" onclick="mudarStatus('+n.id+',\'andamento\')">▶</button>':'')+
+      (n.status!=='fechada'?'<button class="btn bgr" style="padding:2px 6px;font-size:.58rem" onclick="mudarStatus('+n.id+',\'fechada\')">✓</button>':'')+
+      '<button class="btn bre" style="padding:2px 6px;font-size:.58rem" onclick="delNC('+n.id+')">✕</button>'+
+      '</div></td>'+
+      '</tr>';
+  }).join('');
+}
+
+// CHECKLIST
+function addCkItem(){
+  var txt=document.getElementById('ck-item').value.trim();
+  if(!txt){toast('⚠️ Informe o item');return;}
+  ckItems.push({id:Date.now(),txt:txt,status:'pendente'});
+  document.getElementById('ck-item').value='';
+  renderCkItems();toast('✅ Item adicionado!');
+}
+function setCkStatus(id,st){var item=ckItems.find(function(i){return i.id===id;});if(item){item.status=st;renderCkItems();}}
+function delCkItem(id){ckItems=ckItems.filter(function(i){return i.id!==id;});renderCkItems();}
+function renderCkItems(){
+  var el=document.getElementById('ck-items-list');
+  if(!ckItems.length){el.innerHTML='<div class="empty-st"><div class="ei">✅</div>Adicione itens ao checklist acima</div>';return;}
+  el.innerHTML='<div class="ck-wrap">'+ckItems.map(function(it){
+    var cls=it.status==='ok'?'done':it.status==='nok'?'fail':'';
+    var box=it.status==='ok'?'✓':it.status==='nok'?'✕':'';
+    return '<div class="ck-item '+cls+'">'+
+      '<div class="ck-box">'+box+'</div>'+
+      '<span class="ck-label">'+esc(it.txt)+'</span>'+
+      '<div class="ck-btns">'+
+      '<button class="ck-ok" onclick="setCkStatus('+it.id+',\'ok\')">✅ OK</button>'+
+      '<button class="ck-nok" onclick="setCkStatus('+it.id+',\'nok\')">❌ NOK</button>'+
+      '<button class="ck-na" onclick="setCkStatus('+it.id+',\'na\')">N/A</button>'+
+      '<button class="btn bre" style="padding:2px 6px;font-size:.6rem;margin-left:4px" onclick="delCkItem('+it.id+')">✕</button>'+
+      '</div></div>';
+  }).join('')+'</div>';
+}
+function finalizarCk(){
+  var nome=document.getElementById('ck-nome').value.trim();
+  if(!nome){toast('⚠️ Informe o nome do checklist');return;}
+  if(!ckItems.length){toast('⚠️ Adicione pelo menos 1 item');return;}
+  var ok=ckItems.filter(function(i){return i.status==='ok';}).length;
+  var nok=ckItems.filter(function(i){return i.status==='nok';}).length;
+  var total=ckItems.filter(function(i){return i.status!=='pendente'&&i.status!=='na';}).length;
+  var pct=total>0?Math.round(ok/total*100):0;
+  checklists.unshift({
+    id:Date.now(),nome:nome,
+    data:document.getElementById('ck-data').value||hoje(),
+    resp:document.getElementById('ck-resp').value.trim()||'—',
+    itens:ckItems.map(function(i){return{txt:i.txt,status:i.status};}),
+    ok:ok,nok:nok,total:ckItems.length,pct:pct
+  });
+  ckItems=[];
+  ['ck-nome','ck-resp'].forEach(function(id){document.getElementById(id).value='';});
+  renderCkItems();renderCkHist();
+  document.getElementById('ck-count').textContent=checklists.length;
+  toast('✅ Checklist salvo! Conformidade: '+pct+'%');
+}
+function limparCk(){ckItems=[];renderCkItems();toast('🗑 Checklist limpo');}
+function renderCkHist(){
+  var el=document.getElementById('ck-hist');
+  if(!checklists.length){el.innerHTML='<div class="empty-st"><div class="ei">📋</div>Nenhum checklist salvo ainda</div>';return;}
+  el.innerHTML=checklists.map(function(ck){
+    var cor=ck.pct>=80?'var(--gr)':ck.pct>=50?'var(--ye)':'var(--re)';
+    return '<div style="background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:11px 13px;margin-bottom:7px;display:flex;align-items:center;gap:10px">'+
+      '<div style="flex:1">'+
+      '<div style="font-size:.8rem;font-weight:700;margin-bottom:3px">'+esc(ck.nome)+'</div>'+
+      '<div style="font-size:.65rem;color:var(--mu)">📅 '+fmtD(ck.data)+' &nbsp;·&nbsp; 👤 '+esc(ck.resp)+' &nbsp;·&nbsp; '+ck.total+' itens</div>'+
+      '<div style="font-size:.65rem;margin-top:3px">✅ '+ck.ok+' OK &nbsp; ❌ '+ck.nok+' NOK</div>'+
+      '</div>'+
+      '<div style="text-align:center;min-width:60px">'+
+      '<div style="font-size:1.1rem;font-weight:800;font-family:JetBrains Mono,monospace;color:'+cor+'">'+ck.pct+'%</div>'+
+      '<div style="font-size:.58rem;color:var(--mu)">conformidade</div>'+
+      '</div></div>';
+  }).join('');
+}
+
+// DASHBOARD
+function updateDash(){
+  var total=ncs.length;
+  var abertas=ncs.filter(function(n){return n.status==='aberta';}).length;
+  var and=ncs.filter(function(n){return n.status==='andamento';}).length;
+  var fech=ncs.filter(function(n){return n.status==='fechada';}).length;
+  document.getElementById('kpi-total').textContent=total;
+  document.getElementById('kpi-abertas').textContent=abertas;
+  document.getElementById('kpi-and').textContent=and;
+  document.getElementById('kpi-fech').textContent=fech;
+  var ab=ncs.filter(function(n){return n.status==='aberta';});
+  var dn=document.getElementById('dash-nc');
+  if(!ab.length){dn.innerHTML='<div class="empty-st"><div class="ei">✅</div>Nenhuma NC em aberto!</div>';return;}
+  dn.innerHTML='<div style="overflow-x:auto"><table class="nc-table"><thead><tr><th>#</th><th>Descrição</th><th>Prioridade</th><th>Prazo</th><th>Responsável</th></tr></thead><tbody>'+
+    ab.map(function(n){return'<tr><td style="font-family:JetBrains Mono,monospace;font-size:.7rem">#'+String(n.seq).padStart(3,'0')+'</td><td style="font-weight:500">'+esc(n.desc)+'</td><td>'+priorHtml(n.prior)+'</td><td style="font-size:.7rem;font-family:JetBrains Mono,monospace;color:'+(n.prazo&&n.prazo<hoje()?'var(--re)':'var(--mu)')+'">'+( n.prazo?fmtD(n.prazo):'—')+'</td><td style="font-size:.72rem;color:var(--mu)">'+esc(n.resp)+'</td></tr>';}).join('')+
+    '</tbody></table></div>';
+  var dp=document.getElementById('dash-prioridade');
+  if(!ncs.length){dp.innerHTML='<div class="empty-st"><div class="ei">📊</div>Nenhuma NC registrada ainda</div>';return;}
+  var crit=ncs.filter(function(n){return n.prior==='critica';}).length;
+  var maj=ncs.filter(function(n){return n.prior==='major';}).length;
+  var min=ncs.filter(function(n){return n.prior==='minor';}).length;
+  dp.innerHTML='<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+    '<div style="background:var(--reb);border:1px solid rgba(239,68,68,.3);border-radius:9px;padding:12px 18px;text-align:center;flex:1;min-width:80px"><div style="font-size:1.3rem;font-weight:800;color:var(--re);font-family:JetBrains Mono,monospace">'+crit+'</div><div style="font-size:.64rem;color:var(--mu);margin-top:2px">🔴 Críticas</div></div>'+
+    '<div style="background:var(--yeb);border:1px solid rgba(245,158,11,.3);border-radius:9px;padding:12px 18px;text-align:center;flex:1;min-width:80px"><div style="font-size:1.3rem;font-weight:800;color:var(--ye);font-family:JetBrains Mono,monospace">'+maj+'</div><div style="font-size:.64rem;color:var(--mu);margin-top:2px">🟡 Majors</div></div>'+
+    '<div style="background:var(--prg);border:1px solid rgba(6,182,212,.3);border-radius:9px;padding:12px 18px;text-align:center;flex:1;min-width:80px"><div style="font-size:1.3rem;font-weight:800;color:var(--pr);font-family:JetBrains Mono,monospace">'+min+'</div><div style="font-size:.64rem;color:var(--mu);margin-top:2px">🔵 Minors</div></div>'+
+    '</div>';
+}
+
+// RELATÓRIO
+function renderRel(){
+  var total=ncs.length;
+  var crit=ncs.filter(function(n){return n.prior==='critica';}).length;
+  var fech=ncs.filter(function(n){return n.status==='fechada';}).length;
+  document.getElementById('rel-total').textContent=total;
+  document.getElementById('rel-crit').textContent=crit;
+  document.getElementById('rel-fech').textContent=fech;
+  var tb=document.getElementById('tbody-rel');
+  if(!ncs.length){tb.innerHTML='<tr><td colspan="10"><div class="empty-st"><div class="ei">📋</div>Nenhuma NC registrada</div></td></tr>';return;}
+  tb.innerHTML=ncs.map(function(n){
+    return '<tr>'+
+      '<td style="font-family:JetBrains Mono,monospace;font-size:.7rem">#'+String(n.seq).padStart(3,'0')+'</td>'+
+      '<td style="font-weight:500">'+esc(n.desc)+'</td>'+
+      '<td style="font-size:.7rem;color:var(--mu)">'+esc(n.setor)+'</td>'+
+      '<td>'+priorHtml(n.prior)+'</td>'+
+      '<td style="font-size:.7rem;font-family:JetBrains Mono,monospace">'+fmtD(n.data)+'</td>'+
+      '<td style="font-size:.7rem;font-family:JetBrains Mono,monospace">'+( n.prazo?fmtD(n.prazo):'—')+'</td>'+
+      '<td style="font-size:.7rem;color:var(--mu)">'+esc(n.resp)+'</td>'+
+      '<td style="font-size:.68rem;color:var(--mu);max-width:120px">'+esc(n.causa)+'</td>'+
+      '<td style="font-size:.68rem;color:var(--mu);max-width:120px">'+esc(n.acao)+'</td>'+
+      '<td>'+stHtml(n.status)+'</td>'+
+      '</tr>';
+  }).join('');
+}
+
+// EXPORTS
+function cabPDF(){var logo=emp.logoURL?'<img src="'+emp.logoURL+'" style="height:38px;object-fit:contain">':'<div style="font-size:9px;color:#94a3b8">SEM LOGO</div>';return'<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:2px solid #06b6d4;margin-bottom:14px">'+logo+'<div style="text-align:right"><div style="font-size:.88rem;font-weight:800">'+esc(emp.nome||'EMPRESA')+'</div><div style="font-size:.62rem;color:#64748b">CNPJ: '+esc(emp.cnpj||'—')+'</div>'+(emp.norm?'<div style="font-size:.62rem;color:#64748b">Norma: '+esc(emp.norm)+'</div>':'')+'</div></div>';}
+function rodaPDF(){return'<div style="margin-top:14px;padding-top:8px;border-top:1px solid #e2e8f0;font-size:.6rem;color:#94a3b8;text-align:center">'+esc(emp.nome||'EMPRESA')+' &nbsp;·&nbsp; QualidadeFácil v1.0 &nbsp;·&nbsp; João Gomes · (91) 99987-9932 &nbsp;·&nbsp; Gerado em '+hoje()+'</div>';}
+function expRelPDF(){
+  var total=ncs.length,crit=ncs.filter(function(n){return n.prior==='critica';}).length,aber=ncs.filter(function(n){return n.status==='aberta';}).length,fech=ncs.filter(function(n){return n.status==='fechada';}).length;
+  var rows=ncs.map(function(n){var bg=n.prior==='critica'?'#fff1f2':n.prior==='major'?'#fffbeb':'#eff6ff';var st=n.status==='aberta'?'Em Aberto':n.status==='andamento'?'Em Andamento':'✅ Fechada';return'<tr style="background:'+bg+'"><td style="padding:5px 7px;border:1px solid #e5e7eb;font-size:10px">#'+String(n.seq).padStart(3,'0')+'</td><td style="padding:5px 7px;border:1px solid #e5e7eb;font-size:11px;font-weight:500">'+esc(n.desc)+'</td><td style="padding:5px 7px;border:1px solid #e5e7eb;font-size:10px">'+esc(n.setor)+'</td><td style="padding:5px 7px;border:1px solid #e5e7eb;font-size:10px">'+(n.prior==='critica'?'🔴 Crítica':n.prior==='major'?'🟡 Major':'🔵 Minor')+'</td><td style="padding:5px 7px;border:1px solid #e5e7eb;font-size:10px">'+fmtD(n.data)+'</td><td style="padding:5px 7px;border:1px solid #e5e7eb;font-size:10px">'+( n.prazo?fmtD(n.prazo):'—')+'</td><td style="padding:5px 7px;border:1px solid #e5e7eb;font-size:10px">'+esc(n.resp)+'</td><td style="padding:5px 7px;border:1px solid #e5e7eb;font-size:9px">'+esc(n.causa)+'</td><td style="padding:5px 7px;border:1px solid #e5e7eb;font-size:9px">'+esc(n.acao)+'</td><td style="padding:5px 7px;border:1px solid #e5e7eb;font-size:10px">'+st+'</td></tr>';}).join('');
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório de Qualidade</title><style>body{font-family:Arial,sans-serif;margin:24px;color:#111}h2{font-size:15px;color:#06b6d4}.sum{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap}.sc{padding:7px 13px;border-radius:6px;text-align:center}.sc .n{font-size:16px;font-weight:bold}.sc .l{font-size:9px;color:#555;margin-top:1px}table{width:100%;border-collapse:collapse}thead th{background:#06b6d4;color:#fff;padding:5px 7px;font-size:9px;text-align:left;border:1px solid #0891b2}@media print{body{margin:6px}}</style></head><body>'+cabPDF()+'<h2>🔍 Relatório de Controle de Qualidade</h2><p style="font-size:10px;color:#64748b;margin-bottom:12px">Gerado em '+hoje()+(emp.norm?' &nbsp;·&nbsp; Norma: '+esc(emp.norm):'')+'</p><div class="sum"><div class="sc" style="background:#f4f4f5"><div class="n">'+total+'</div><div class="l">Total NCs</div></div><div class="sc" style="background:#fff1f2"><div class="n" style="color:#dc2626">'+crit+'</div><div class="l">Críticas</div></div><div class="sc" style="background:#fee2e2"><div class="n" style="color:#dc2626">'+aber+'</div><div class="l">Em Aberto</div></div><div class="sc" style="background:#f0fdf4"><div class="n" style="color:#16a34a">'+fech+'</div><div class="l">Fechadas</div></div></div><table><thead><tr><th>#</th><th>Descrição</th><th>Setor</th><th>Prioridade</th><th>Data</th><th>Prazo</th><th>Responsável</th><th>Causa Raiz</th><th>Ação Corretiva</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table>'+rodaPDF()+'</body></html>';
+  var w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(function(){w.print();},600);toast('📄 PDF aberto!');
+}
+function expRelXLS(){
+  var data=[['QualidadeFácil v1.0 — Relatório de NCs — '+emp.nome],[],['#','Descrição','Setor','Categoria','Prioridade','Data','Prazo','Responsável','Causa Raiz','Ação Corretiva','Status'],...ncs.map(function(n){return['#'+String(n.seq).padStart(3,'0'),n.desc,n.setor,n.cat,n.prior==='critica'?'Crítica':n.prior==='major'?'Major':'Minor',fmtD(n.data),n.prazo?fmtD(n.prazo):'',n.resp,n.causa,n.acao,n.status==='aberta'?'Em Aberto':n.status==='andamento'?'Em Andamento':'Fechada'];})];
+  var wb=XLSX.utils.book_new();var ws=XLSX.utils.aoa_to_sheet(data);ws['!cols']=[{wch:6},{wch:32},{wch:14},{wch:14},{wch:10},{wch:12},{wch:12},{wch:18},{wch:28},{wch:28},{wch:14}];XLSX.utils.book_append_sheet(wb,ws,'NCs');
+  var data2=[['Nome','Data','Responsável','Total Itens','OK','NOK','Conformidade %'],...checklists.map(function(ck){return[ck.nome,fmtD(ck.data),ck.resp,ck.total,ck.ok,ck.nok,ck.pct+'%'];})];
+  var ws2=XLSX.utils.aoa_to_sheet(data2);ws2['!cols']=[{wch:28},{wch:12},{wch:18},{wch:12},{wch:8},{wch:8},{wch:14}];XLSX.utils.book_append_sheet(wb,ws2,'Checklists');
+  XLSX.writeFile(wb,'QualidadeFacil-'+new Date().toISOString().slice(0,10)+'.xlsx');toast('📊 Excel exportado!');
+}
+
+// TUTORIAL
+function showStep(n,btn){document.querySelectorAll('.tut-step').forEach(function(s){s.classList.remove('on');});document.querySelectorAll('.tn').forEach(function(b){b.classList.remove('on');});document.getElementById('ts'+n).classList.add('on');if(btn)btn.classList.add('on');else document.querySelectorAll('.tn')[n].classList.add('on');curStep=n;document.getElementById('btn-prev').style.display=n===0?'none':'inline-flex';document.getElementById('btn-next').style.display=n===totalSteps-1?'none':'inline-flex';}
+function stepNav(dir){var next=curStep+dir;if(next<0||next>=totalSteps)return;showStep(next,null);}
+
+// UTILS
+function hoje(){return new Date().toISOString().slice(0,10);}
+function fmtD(d){if(!d)return'—';if(d.includes('-'))return d.split('-').reverse().join('/');return d;}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+document.getElementById('n-desc').addEventListener('keydown',function(e){if(e.key==='Enter')addNC();});
+document.getElementById('ck-item').addEventListener('keydown',function(e){if(e.key==='Enter')addCkItem();});
+document.getElementById('w-emp').addEventListener('keydown',function(e){if(e.key==='Enter')startApp();});
+</script>
+</body>
+</html>

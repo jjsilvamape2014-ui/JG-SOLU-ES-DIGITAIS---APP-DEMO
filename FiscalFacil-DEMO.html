@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FiscalFácil — Painel Tributário</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root{
+  --am:#F59E0B;--am2:#D97706;--amb:rgba(245,158,11,.12);
+  --gr:#10B981;--grb:rgba(16,185,129,.1);
+  --re:#EF4444;--reb:rgba(239,68,68,.1);
+  --bl:#3B82F6;--blb:rgba(59,130,246,.1);
+  --pu:#8B5CF6;--pub:rgba(139,92,246,.1);
+  --cy:#06B6D4;--cyb:rgba(6,182,212,.1);
+  --bg:#07080D;--s1:#0D0F16;--s2:#13151E;--s3:#191C27;
+  --b1:#1E2130;--b2:#252840;
+  --tx:#E8EAF2;--mu:#5A6080;--mu2:#3A3F58;
+  --shadow:0 4px 24px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:'Outfit',sans-serif;min-height:100vh;font-size:14px;overflow-x:hidden}
+
+/* ── WELCOME ── */
+.wov{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,#0f1628,#07080D 60%);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.wbox{background:var(--s1);border:1px solid var(--b1);border-radius:22px;padding:36px 32px;max-width:520px;width:100%;box-shadow:0 0 80px rgba(245,158,11,.07)}
+.wic{width:58px;height:58px;border-radius:14px;background:linear-gradient(135deg,#F59E0B,#D97706);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 16px;box-shadow:0 0 32px rgba(245,158,11,.35)}
+.wbox h2{font-size:1.4rem;font-weight:800;text-align:center;margin-bottom:4px;color:var(--tx);letter-spacing:-.5px}
+.wbox h2 em{color:var(--am);font-style:normal}
+.wsub{font-size:.77rem;color:var(--mu);text-align:center;margin-bottom:24px;line-height:1.55}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
+.wf{display:flex;flex-direction:column;gap:3px}.wf.full{grid-column:1/-1}
+.wf label{font-size:.58rem;color:var(--mu);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.wf input,.wf select{padding:8px 11px;background:var(--bg);border:1.5px solid var(--b1);border-radius:8px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.82rem;transition:border-color .14s;-webkit-appearance:none;outline:none}
+.wf input:focus,.wf select:focus{border-color:var(--am)}
+.wf input::placeholder{color:var(--mu2)}
+.wslbl{font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mu2);margin:10px 0 6px;padding-bottom:5px;border-bottom:1px solid var(--b1);grid-column:1/-1}
+.wlup{display:flex;flex-direction:column;align-items:center;padding:10px;background:var(--bg);border:1.5px dashed var(--b2);border-radius:8px;cursor:pointer;transition:all .14s;text-align:center;grid-column:1/-1}
+.wlup:hover{border-color:var(--am);background:var(--amb)}
+.wlup input{display:none}
+.wlprev{display:none;align-items:center;gap:8px;padding:7px 10px;background:var(--grb);border:1px solid rgba(16,185,129,.25);border-radius:7px;font-size:.7rem;color:var(--gr);grid-column:1/-1}
+.wlprev img{height:24px;object-fit:contain}
+.wlprev button{margin-left:auto;background:none;border:none;color:var(--gr);cursor:pointer}
+.wbtn{width:100%;padding:12px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#000;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:800;cursor:pointer;margin-top:8px;transition:all .15s}
+.wbtn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(245,158,11,.3)}
+.wbtn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.wfoot{margin-top:14px;text-align:center;font-size:.58rem;color:var(--mu2);line-height:1.6}
+.wfoot strong{color:var(--mu)}.wfoot a{color:var(--am);text-decoration:none}
+
+/* ── HEADER ── */
+header{background:var(--s1);border-bottom:1px solid var(--b1);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100}
+.hlogo{display:flex;align-items:center;gap:11px}
+.hic{width:32px;height:32px;background:linear-gradient(135deg,#F59E0B,#D97706);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 0 14px rgba(245,158,11,.3)}
+.hname{font-size:.9rem;font-weight:800;color:var(--tx);line-height:1}
+.hname em{color:var(--am);font-style:normal}
+.hsub{font-size:.56rem;color:var(--mu)}
+.hright{display:flex;align-items:center;gap:8px}
+.emp-badge{display:flex;align-items:center;gap:7px;background:var(--s2);border:1px solid var(--b1);border-radius:20px;padding:4px 12px;font-size:.66rem;font-weight:600;color:var(--tx)}
+.emp-badge img{height:17px;object-fit:contain}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;background:var(--s1);border-bottom:1px solid var(--b1);padding:8px 24px 0;overflow-x:auto}
+.tab{padding:9px 16px;background:transparent;border:none;color:var(--mu);font-family:'Outfit',sans-serif;font-size:.74rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .14s}
+.tab.on{color:var(--am);border-bottom-color:var(--am)}
+.tab:hover:not(.on){color:var(--tx)}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 80px}
+.sec{display:none;animation:fi .17s ease}.sec.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ── CARDS ── */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:16px;margin-bottom:12px}
+.card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-t{font-size:.84rem;font-weight:700;display:flex;align-items:center;gap:7px}
+
+/* ── KPIs ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:var(--s1);border:1px solid var(--b1);border-radius:13px;padding:14px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.am::before{background:var(--am)}.kpi.gr::before{background:var(--gr)}
+.kpi.re::before{background:var(--re)}.kpi.bl::before{background:var(--bl)}
+.kpi.pu::before{background:var(--pu)}.kpi.cy::before{background:var(--cy)}
+.kv{font-size:1.5rem;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
+.kl{font-size:.62rem;color:var(--mu);margin-top:4px}
+.ks{font-size:.64rem;margin-top:3px}
+
+/* ── FORM ── */
+.fg{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}
+.f{flex:1;min-width:110px;display:flex;flex-direction:column;gap:3px}
+.f label{font-size:.6rem;color:var(--mu);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:8px 10px;background:var(--s2);border:1.5px solid var(--b1);border-radius:8px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.8rem;transition:border-color .14s;-webkit-appearance:none;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--am);background:var(--s3)}
+input::placeholder{color:var(--mu2)}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 14px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:.76rem;font-weight:700;cursor:pointer;transition:all .13s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.bam{background:linear-gradient(135deg,#F59E0B,#D97706);color:#000}.bam:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(245,158,11,.3)}
+.bgr{background:var(--grb);color:var(--gr);border:1px solid rgba(16,185,129,.25)}.bgr:hover{background:rgba(16,185,129,.18)}
+.bbl{background:var(--blb);color:var(--bl);border:1px solid rgba(59,130,246,.25)}.bbl:hover{background:rgba(59,130,246,.18)}
+.bgh{background:var(--s2);color:var(--tx);border:1px solid var(--b1)}.bgh:hover{border-color:var(--b2)}
+.bre{background:var(--reb);color:var(--re);border:1px solid rgba(239,68,68,.2);padding:5px 9px}
+.bpu{background:var(--pub);color:var(--pu);border:1px solid rgba(139,92,246,.25)}.bpu:hover{background:rgba(139,92,246,.18)}
+
+/* ── TABELA ── */
+.tbl{width:100%;border-collapse:collapse;font-size:.77rem}
+.tbl th{background:var(--s2);padding:8px 10px;text-align:left;font-size:.6rem;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--b1);white-space:nowrap}
+.tbl td{padding:7px 10px;border-bottom:1px solid var(--b1);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.012)}
+
+/* ── TAGS ── */
+.tag{font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px}
+.tag-am{background:var(--amb);color:var(--am)}
+.tag-gr{background:var(--grb);color:var(--gr)}
+.tag-re{background:var(--reb);color:var(--re)}
+.tag-bl{background:var(--blb);color:var(--bl)}
+.tag-pu{background:var(--pub);color:var(--pu)}
+.tag-cy{background:var(--cyb);color:var(--cy)}
+
+/* ── REGIME BADGE ── */
+.regime-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:.66rem;font-weight:700}
+
+/* ── PROGRESS BAR ── */
+.pbar-wrap{background:var(--s2);border-radius:20px;height:8px;overflow:hidden;margin-top:5px}
+.pbar{height:100%;border-radius:20px;transition:width .4s ease}
+
+/* ── CALENDÁRIO ── */
+.cal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.cal-item{background:var(--s2);border:1px solid var(--b1);border-radius:11px;padding:13px;position:relative;overflow:hidden}
+.cal-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.cal-item.vencido::before{background:var(--re)}
+.cal-item.hoje::before{background:var(--am)}
+.cal-item.proximo::before{background:var(--am)}
+.cal-item.ok::before{background:var(--gr)}
+.cal-dt{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--mu);margin-bottom:4px}
+.cal-nome{font-size:.8rem;font-weight:700;margin-bottom:3px}
+.cal-desc{font-size:.66rem;color:var(--mu);line-height:1.4}
+
+/* ── SIMULADOR ── */
+.sim-result{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:16px;margin-top:12px}
+.sim-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--b1);font-size:.8rem}
+.sim-row:last-child{border-bottom:none;padding-top:10px;margin-top:2px}
+.sim-row .label{color:var(--mu)}
+.sim-row .val{font-family:'JetBrains Mono',monospace;font-weight:700}
+.sim-winner{background:var(--grb);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-top:10px}
+
+/* ── CONFERÊNCIA ── */
+.up-area{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.up-card{background:var(--s2);border:1.5px dashed var(--b2);border-radius:12px;padding:18px;text-align:center;cursor:pointer;transition:all .17s}
+.up-card:hover{border-color:var(--am);background:var(--amb)}
+.up-card input{display:none}
+.fok{display:none;align-items:center;gap:8px;padding:7px 10px;background:var(--grb);border:1px solid rgba(16,185,129,.25);border-radius:7px;font-size:.72rem;color:var(--gr);margin-top:7px}
+.fok button{margin-left:auto;background:none;border:none;color:var(--gr);cursor:pointer}
+.conf-stat{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.cst{background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:10px;text-align:center}
+.csn{font-size:1.4rem;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
+.csl{font-size:.58rem;color:var(--mu);margin-top:2px}
+.row-ok td:first-child{border-left:2px solid var(--gr)}.row-ok{background:rgba(16,185,129,.025)}
+.row-diff td:first-child{border-left:2px solid var(--re)}.row-diff{background:rgba(239,68,68,.025)}
+.row-miss td:first-child{border-left:2px solid var(--am)}.row-miss{background:rgba(245,158,11,.025)}
+
+/* ── REFORMA ── */
+.reforma-banner{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(139,92,246,.06));border:1px solid rgba(245,158,11,.2);border-radius:14px;padding:16px;margin-bottom:14px}
+.reforma-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.ref-card{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:13px}
+.ref-card h4{font-size:.76rem;font-weight:700;margin-bottom:8px}
+
+/* ── TUTORIAL ── */
+.tov{position:fixed;inset:0;background:rgba(7,8,13,.95);z-index:8888;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.tov.on{display:flex}
+.tbox{background:var(--s1);border:1px solid var(--b1);border-radius:17px;padding:26px;max-width:640px;width:100%;max-height:88vh;overflow-y:auto}
+.tbox h3{font-size:.95rem;font-weight:800;margin-bottom:3px}
+.tsub{font-size:.72rem;color:var(--mu);margin-bottom:16px;line-height:1.5}
+.tstep{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;margin-bottom:8px}
+.tsn{width:26px;height:26px;background:linear-gradient(135deg,#F59E0B,#D97706);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;color:#000;flex-shrink:0}
+.tsb h4{font-size:.78rem;font-weight:800;color:var(--tx);margin-bottom:3px}
+.tsb p{font-size:.7rem;color:var(--mu);line-height:1.5;margin:0}
+.tsb code{background:var(--bg);border:1px solid var(--b1);border-radius:3px;padding:1px 5px;font-size:.65rem;color:var(--am)}
+.ttip{background:var(--amb);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:8px 11px;font-size:.7rem;color:var(--am);line-height:1.5;margin:10px 0 14px}
+.tclose{width:100%;padding:9px;background:linear-gradient(135deg,#F59E0B,#D97706);color:#000;border:none;border-radius:7px;font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer}
+
+/* ── LOADER / TOAST / FOOTER ── */
+.lov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:9px;backdrop-filter:blur(3px)}
+.lov.on{display:flex}
+.sp{width:36px;height:36px;border:2.5px solid var(--b2);border-top-color:var(--am);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lm{font-size:.82rem;font-weight:600;color:var(--am)}
+#tst{position:fixed;bottom:18px;right:14px;background:var(--s2);border:1px solid var(--b2);border-radius:9px;padding:8px 14px;font-size:.74rem;font-weight:600;transform:translateY(55px);opacity:0;transition:all .2s;z-index:9999;max-width:270px;pointer-events:none;color:var(--tx)}
+#tst.on{transform:translateY(0);opacity:1}
+footer{position:fixed;bottom:0;left:0;right:0;background:var(--s1);border-top:1px solid var(--b1);padding:7px 22px;display:flex;align-items:center;justify-content:space-between;font-size:.58rem;color:var(--mu);z-index:100;flex-wrap:wrap;gap:4px}
+footer strong{color:var(--mu2)}
+footer a{color:var(--am);text-decoration:none;font-weight:600}
+footer button{background:var(--amb);border:1px solid rgba(245,158,11,.2);color:var(--am);border-radius:5px;padding:3px 8px;font-size:.57rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif}
+.mono{font-family:'JetBrains Mono',monospace;font-size:.76rem}
+.empty-st{text-align:center;padding:24px;color:var(--mu);font-size:.78rem}
+.empty-st .ei{font-size:1.8rem;margin-bottom:6px}
+.exp-row{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:600px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .fg{flex-direction:column}
+  .tab{font-size:.64rem;padding:7px 9px}
+  .cal-grid,.up-area,.reforma-grid{grid-template-columns:1fr}
+  footer{flex-direction:column;gap:2px;text-align:center}
+}
+</style>
+<script>
+(function(){
+  var cfg = JSON.parse(localStorage.getItem('fiscal_cfg')||'null');
+  if(cfg && cfg.nome) return;
+  localStorage.setItem('fiscal_cfg', JSON.stringify({
+    nome:'Transportes Belém LTDA', cnpj:'12.345.678/0001-90', regime:'simples',
+    at:'comercio', mes:'Maio', ano:'2026',
+    escritorio:'Contabilidade JG & Associados', logo:''
+  }));
+  localStorage.setItem('fiscal_hist', JSON.stringify([
+    {key:'Janeiro/2026',mes:'Janeiro',ano:'2026',rec:380000,fed:19000,est:9500,mun:0,total:28500},
+    {key:'Fevereiro/2026',mes:'Fevereiro',ano:'2026',rec:410000,fed:20500,est:10250,mun:0,total:30750},
+    {key:'Março/2026',mes:'Março',ano:'2026',rec:395000,fed:19750,est:9875,mun:0,total:29625},
+    {key:'Abril/2026',mes:'Abril',ano:'2026',rec:425000,fed:21250,est:10625,mun:0,total:31875}
+  ]));
+})();
+</script>
+</head>
+<body>
+<div style="position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#F59E0B,#EF4444);color:#000;text-align:center;font-size:.7rem;font-weight:800;padding:5px;z-index:99999;letter-spacing:.5px">
+⚡ VERSÃO DEMO — Dados fictícios para demonstração &nbsp;·&nbsp; Adquira pelo WhatsApp: (91) 99987-9932
+</div>
+<div style="height:25px"></div>
+<div class="lov" id="ldr"><div class="sp"></div><div class="lm" id="lmsg">Processando...</div></div>
+<div id="tst"></div>
+
+<!-- WELCOME -->
+<div class="wov" id="wov">
+  <div class="wbox">
+    <div class="wic">📊</div>
+    <h2>Fiscal<em>Fácil</em></h2>
+    <p class="wsub">Painel de Carga Tributária para Contadores e Escritórios<br>Configure o cliente para começar</p>
+    <div class="wgrid">
+      <div class="wslbl">🏢 Dados do Cliente</div>
+      <div class="wf full"><label>Nome da Empresa *</label><input id="wn" type="text" placeholder="Ex: Comércio do João LTDA" oninput="chkW()"></div>
+      <div class="wf"><label>CNPJ</label><input id="wc" type="text" placeholder="00.000.000/0001-00" oninput="mCNPJ(this)"></div>
+      <div class="wf"><label>Regime Tributário</label>
+        <select id="wr">
+          <option value="simples">Simples Nacional</option>
+          <option value="presumido">Lucro Presumido</option>
+          <option value="real">Lucro Real</option>
+          <option value="mei">MEI</option>
+        </select>
+      </div>
+      <div class="wf"><label>Atividade</label>
+        <select id="wat">
+          <option value="comercio">Comércio</option>
+          <option value="servico">Serviços</option>
+          <option value="industria">Indústria</option>
+          <option value="misto">Misto</option>
+        </select>
+      </div>
+      <div class="wf"><label>Mês de Referência</label>
+        <select id="wm">
+          <option>Janeiro</option><option>Fevereiro</option><option>Março</option>
+          <option>Abril</option><option selected>Maio</option><option>Junho</option>
+          <option>Julho</option><option>Agosto</option><option>Setembro</option>
+          <option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+        </select>
+      </div>
+      <div class="wf"><label>Ano</label><input id="wano" type="number" value="2026" min="2020" max="2035"></div>
+      <div class="wslbl">🏢 Seu Escritório</div>
+      <div class="wf full"><label>Nome do Escritório Contábil</label><input id="wesc" type="text" placeholder="Ex: Contabilidade João & Associados"></div>
+      <label class="wlup" for="wlogo"><input type="file" id="wlogo" accept="image/*" onchange="pLogo(this)">
+        <div style="font-size:1.2rem;margin-bottom:3px">🖼️</div>
+        <div style="font-size:.72rem;font-weight:600;color:var(--tx)">Logo do escritório (opcional)</div>
+        <div style="font-size:.6rem;color:var(--mu)">Aparece nos relatórios PDF</div>
+      </label>
+      <div class="wlprev" id="wlprev"><img id="wlimg" src="" alt=""><span id="wlfn"></span><button onclick="rLogo()">✕</button></div>
+    </div>
+    <button class="wbtn" id="wbtn" onclick="startApp()" disabled>Entrar no Sistema →</button>
+    <div class="wfoot"><strong>FiscalFácil v1.0</strong> — Painel de Carga Tributária<br>Desenvolvido por <strong>João Gomes</strong> · <a href="https://wa.me/5591999879932" target="_blank">📱 (91) 99987-9932</a></div>
+  </div>
+</div>
+
+<!-- TUTORIAL -->
+<div class="tov" id="tov">
+  <div class="tbox">
+    <h3>📖 Como usar o FiscalFácil</h3>
+    <p class="tsub">Painel completo de carga tributária para apresentar ao cliente</p>
+    <div class="tstep"><div class="tsn">1</div><div class="tsb"><h4>Configure o cliente na tela inicial</h4><p>Informe o nome, CNPJ, regime tributário (Simples, Presumido ou Real), atividade e mês de referência. Também configure o nome do seu escritório e logo.</p></div></div>
+    <div class="tstep"><div class="tsn">2</div><div class="tsb"><h4>Preencha a carga tributária — aba Dashboard</h4><p>Lance os impostos pagos no mês: Simples Nacional (DAS), IRPJ, CSLL, PIS, COFINS, ICMS e ISS. O dashboard calcula automaticamente a carga total e percentual.</p></div></div>
+    <div class="tstep"><div class="tsn">3</div><div class="tsb"><h4>Use o Simulador de Regimes</h4><p>Na aba <code>🔢 Simulador</code>, informe o faturamento e o sistema calcula a carga estimada nos três regimes — Simples, Presumido e Real — e indica qual é o mais vantajoso.</p></div></div>
+    <div class="tstep"><div class="tsn">4</div><div class="tsb"><h4>Confira as guias — aba Conferência</h4><p>Importe dois arquivos (calculado vs guia real) e o app compara automaticamente, identificando divergências, multas e juros não lançados.</p></div></div>
+    <div class="tstep"><div class="tsn">5</div><div class="tsb"><h4>Monitore os vencimentos — aba Calendário</h4><p>O calendário fiscal mostra todas as obrigações do mês com alertas de prazo. Marque como pago e receba alertas de vencimento próximo.</p></div></div>
+    <div class="tstep"><div class="tsn">6</div><div class="tsb"><h4>Reforma Tributária — aba CBS/IBS</h4><p>Simule o impacto da Reforma Tributária de 2026 no cliente. Compare a carga atual com a estimada sob o novo sistema CBS/IBS.</p></div></div>
+    <div class="tstep"><div class="tsn">7</div><div class="tsb"><h4>Gere o relatório para o cliente</h4><p>Clique em <code>📄 Relatório PDF</code> para gerar um documento executivo com carga tributária, evolução mensal e análise de regime — pronto para apresentar.</p></div></div>
+    <div class="ttip">💡 Os dados ficam salvos no navegador. Use o botão <strong>⬆ Backup</strong> para exportar em Excel e não perder o histórico mensal.</div>
+    <button class="tclose" onclick="document.getElementById('tov').classList.remove('on')">✓ Entendido — Fechar Tutorial</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="hlogo">
+    <div class="hic">📊</div>
+    <div><div class="hname">Fiscal<em>Fácil</em></div><div class="hsub">Painel Tributário</div></div>
+  </div>
+  <div class="hright">
+    <div class="emp-badge" id="emp-badge"><span id="emp-h">—</span></div>
+    <span style="font-size:.58rem;color:var(--mu2);border:1px solid var(--b1);padding:2px 7px;border-radius:20px">v1.0</span>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab on" onclick="goTab('dash',this)">📊 Dashboard</button>
+  <button class="tab" onclick="goTab('lanc',this)">💰 Lançar Impostos</button>
+  <button class="tab" onclick="goTab('sim',this)">🔢 Simulador de Regimes</button>
+  <button class="tab" onclick="goTab('conf',this)">🔍 Conferência de Guias</button>
+  <button class="tab" onclick="goTab('cal',this)">📅 Calendário Fiscal</button>
+  <button class="tab" onclick="goTab('ref',this)">⚖️ Reforma Tributária</button>
+  <button class="tab" onclick="goTab('tut',this)">📖 Tutorial</button>
+</div>
+
+<div class="wrap">
+
+  <!-- ══ DASHBOARD ══ -->
+  <div id="sec-dash" class="sec on">
+    <div class="kpi-grid">
+      <div class="kpi am"><div class="kv" id="kpi-total">R$ 0,00</div><div class="kl">Carga Tributária Total</div><div class="ks" id="kpi-pct" style="color:var(--am)">0% da Receita</div></div>
+      <div class="kpi re"><div class="kv" id="kpi-federal">R$ 0,00</div><div class="kl">Tributos Federais</div><div class="ks" id="kpi-fed-pct" style="color:var(--mu)">—</div></div>
+      <div class="kpi bl"><div class="kv" id="kpi-estadual">R$ 0,00</div><div class="kl">ICMS Estadual</div></div>
+      <div class="kpi pu"><div class="kv" id="kpi-municipal">R$ 0,00</div><div class="kl">ISS Municipal</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">📊 Composição da Carga Tributária — <span id="dash-mes" style="color:var(--am);font-weight:600">—</span></div>
+        <div id="regime-badge"></div>
+      </div>
+      <div id="dash-comp"><div class="empty-st"><div class="ei">💰</div>Lance os impostos na aba <strong>Lançar Impostos</strong> para ver a composição</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="card">
+        <div class="card-h"><div class="card-t">📈 Evolução Mensal</div></div>
+        <div id="dash-evolucao"><div class="empty-st" style="padding:14px"><div class="ei" style="font-size:1.2rem">📈</div>Acumule 2+ meses para ver evolução</div></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div class="card-t">⚠️ Alertas do Mês</div></div>
+        <div id="dash-alertas"><div class="empty-st" style="padding:14px"><div class="ei" style="font-size:1.2rem">✅</div>Sem alertas no momento</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ LANÇAR IMPOSTOS ══ -->
+  <div id="sec-lanc" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">💰 Receita do Mês</div></div>
+      <div class="fg">
+        <div class="f"><label>Receita Bruta R$ *</label><input id="l-rec" type="number" step="0.01" placeholder="0,00" oninput="calcTotais()"></div>
+        <div class="f"><label>Mês / Ano</label>
+          <select id="l-mes">
+            <option>Janeiro</option><option>Fevereiro</option><option>Março</option>
+            <option>Abril</option><option selected>Maio</option><option>Junho</option>
+            <option>Julho</option><option>Agosto</option><option>Setembro</option>
+            <option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+          </select>
+        </div>
+        <div class="f" style="max-width:90px"><label>Ano</label><input id="l-ano" type="number" value="2026"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><div class="card-t">🧾 Tributos Federais</div></div>
+      <div class="fg">
+        <div class="f"><label>DAS / Simples Nacional R$</label><input id="l-das" type="number" step="0.01" placeholder="0,00" oninput="calcTotais()"></div>
+        <div class="f"><label>IRPJ R$</label><input id="l-irpj" type="number" step="0.01" placeholder="0,00" oninput="calcTotais()"></div>
+        <div class="f"><label>CSLL R$</label><input id="l-csll" type="number" step="0.01" placeholder="0,00" oninput="calcTotais()"></div>
+      </div>
+      <div class="fg">
+        <div class="f"><label>PIS R$</label><input id="l-pis" type="number" step="0.01" placeholder="0,00" oninput="calcTotais()"></div>
+        <div class="f"><label>COFINS R$</label><input id="l-cof" type="number" step="0.01" placeholder="0,00" oninput="calcTotais()"></div>
+        <div class="f"><label>IPI R$</label><input id="l-ipi" type="number" step="0.01" placeholder="0,00" oninput="calcTotais()"></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="card">
+        <div class="card-h"><div class="card-t">🏛️ Tributo Estadual</div></div>
+        <div class="fg">
+          <div class="f"><label>ICMS R$</label><input id="l-icms" type="number" step="0.01" placeholder="0,00" oninput="calcTotais()"></div>
+          <div class="f"><label>ICMS-ST R$</label><input id="l-icms-st" type="number" step="0.01" placeholder="0,00" oninput="calcTotais()"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div class="card-t">🏙️ Tributo Municipal</div></div>
+        <div class="fg">
+          <div class="f"><label>ISS R$</label><input id="l-iss" type="number" step="0.01" placeholder="0,00" oninput="calcTotais()"></div>
+          <div class="f"><label>Outros R$</label><input id="l-outros" type="number" step="0.01" placeholder="0,00" oninput="calcTotais()"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><div class="card-t">📊 Resumo do Mês</div></div>
+      <div id="resumo-mes"><div class="empty-st"><div class="ei">💰</div>Preencha os valores acima para ver o resumo</div></div>
+    </div>
+
+    <div class="exp-row">
+      <button class="btn bam" onclick="salvarMes()">💾 Salvar Mês no Histórico</button>
+      <button class="btn bgr" onclick="expPDF()">📄 Relatório PDF</button>
+      <button class="btn bbl" onclick="expXLS()">📊 Exportar Excel</button>
+      <button class="btn bgh" onclick="limparLanc()">🗑 Limpar</button>
+    </div>
+  </div>
+
+  <!-- ══ SIMULADOR ══ -->
+  <div id="sec-sim" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">🔢 Simulador de Regimes Tributários</div></div>
+      <p style="font-size:.76rem;color:var(--mu);margin-bottom:14px;line-height:1.5">Informe os dados do cliente e veja qual regime gera menor carga tributária. Use para orientar na escolha ou revisão do regime.</p>
+      <div class="fg">
+        <div class="f"><label>Receita Bruta Anual R$ *</label><input id="s-rec" type="number" step="0.01" placeholder="Ex: 360000,00"></div>
+        <div class="f"><label>Folha de Pagamento Anual R$</label><input id="s-folha" type="number" step="0.01" placeholder="Ex: 120000,00"></div>
+        <div class="f"><label>Atividade</label>
+          <select id="s-at"><option value="comercio">Comércio</option><option value="servico">Serviços</option><option value="industria">Indústria</option></select>
+        </div>
+        <div class="f"><label>Lucro Estimado %</label><input id="s-lucro" type="number" step="1" placeholder="Ex: 20" min="1" max="100"></div>
+      </div>
+      <button class="btn bam" onclick="simular()">🔢 Simular Regimes</button>
+      <div id="sim-result" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><div class="card-t">📅 Histórico de Simulações</div></div>
+      <div id="sim-hist"><div class="empty-st"><div class="ei">🔢</div>Nenhuma simulação salva ainda</div></div>
+    </div>
+  </div>
+
+  <!-- ══ CONFERÊNCIA ══ -->
+  <div id="sec-conf" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">🔍 Conferência de Guias vs. Calculado</div></div>
+      <p style="font-size:.76rem;color:var(--mu);margin-bottom:14px;line-height:1.5">Importe o valor calculado pelo sistema e o valor real das guias pagas. O app compara e identifica diferenças, multas e juros não lançados.</p>
+      <div class="up-area">
+        <div>
+          <label class="up-card" for="cf1">
+            <input type="file" id="cf1" accept=".xlsx,.xls,.csv,.pdf" onchange="onConf(this,'r1')">
+            <div style="font-size:1.6rem;margin-bottom:5px">📋</div>
+            <div style="font-size:.8rem;font-weight:700">Valor Calculado</div>
+            <div style="font-size:.66rem;color:var(--mu)">Sistema / Escritório · PDF, Excel, CSV</div>
+          </label>
+          <div class="fok" id="fok-r1"><span>✅</span><span id="fn-r1">—</span><button onclick="remConf('r1')">✕</button></div>
+        </div>
+        <div>
+          <label class="up-card" for="cf2">
+            <input type="file" id="cf2" accept=".xlsx,.xls,.csv,.pdf" onchange="onConf(this,'r2')">
+            <div style="font-size:1.6rem;margin-bottom:5px">🧾</div>
+            <div style="font-size:.8rem;font-weight:700">Guias Pagas</div>
+            <div style="font-size:.66rem;color:var(--mu)">DARF / GPS / GRF reais · PDF, Excel, CSV</div>
+          </label>
+          <div class="fok" id="fok-r2"><span>✅</span><span id="fn-r2">—</span><button onclick="remConf('r2')">✕</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="conf-stat">
+      <div class="cst"><div class="csn" id="cs-tot">0</div><div class="csl">Total</div></div>
+      <div class="cst"><div class="csn" style="color:var(--gr)" id="cs-ok">0</div><div class="csl">✅ OK</div></div>
+      <div class="cst"><div class="csn" style="color:var(--re)" id="cs-diff">0</div><div class="csl">❌ Divergente</div></div>
+      <div class="cst"><div class="csn" style="color:var(--am)" id="cs-miss">0</div><div class="csl">⚠️ Ausente</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">Resultado <span id="conf-auto" style="display:none;font-size:.6rem;padding:2px 7px;background:var(--grb);color:var(--gr);border-radius:20px;font-weight:700">⚡ automático</span></div></div>
+      <div id="conf-result"><div class="empty-st"><div class="ei">🔍</div>Importe os dois arquivos — a conferência acontece automaticamente</div></div>
+    </div>
+    <div class="exp-row">
+      <button class="btn bam" onclick="runConf()">🔍 Conferir Agora</button>
+      <button class="btn bgr" onclick="expConfPDF()">📄 Exportar PDF</button>
+      <button class="btn bbl" onclick="expConfXLS()">📊 Exportar Excel</button>
+    </div>
+  </div>
+
+  <!-- ══ CALENDÁRIO ══ -->
+  <div id="sec-cal" class="sec">
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">📅 Calendário Fiscal — <span id="cal-mes" style="color:var(--am)">—</span></div>
+        <button class="btn bam" onclick="gerarCal()">🔄 Atualizar</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"><div class="empty-st"><div class="ei">📅</div>Clique em Atualizar para carregar as obrigações do mês</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">➕ Adicionar Obrigação Personalizada</div></div>
+      <div class="fg">
+        <div class="f" style="flex:2"><label>Descrição *</label><input id="ob-desc" type="text" placeholder="Ex: DCTF, EFD-Contribuições, ECF..."></div>
+        <div class="f"><label>Vencimento *</label><input id="ob-data" type="date"></div>
+        <div class="f"><label>Tipo</label>
+          <select id="ob-tipo"><option value="federal">Federal</option><option value="estadual">Estadual</option><option value="municipal">Municipal</option><option value="acessoria">Acessória</option></select>
+        </div>
+        <button class="btn bam" onclick="addOb()" style="margin-top:19px">＋ Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ REFORMA TRIBUTÁRIA ══ -->
+  <div id="sec-ref" class="sec">
+    <div class="reforma-banner">
+      <div style="font-size:.62rem;font-weight:700;color:var(--am);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">⚖️ REFORMA TRIBUTÁRIA 2026 — LC 214/2025</div>
+      <div style="font-size:.84rem;font-weight:700;color:var(--tx);margin-bottom:6px">PIS/COFINS → CBS · ICMS/ISS → IBS · + Imposto Seletivo (IS)</div>
+      <div style="font-size:.74rem;color:var(--mu);line-height:1.55">A Reforma Tributária substitui 5 tributos por 2 novos: <strong style="color:var(--am)">CBS</strong> (federal) e <strong style="color:var(--am)">IBS</strong> (estadual e municipal). A transição começa em 2026 com alíquotas reduzidas e vai até 2033. Use o simulador abaixo para estimar o impacto no seu cliente.</div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">🔮 Simulador de Impacto CBS/IBS</div></div>
+      <div class="fg">
+        <div class="f"><label>Receita Bruta Mensal R$ *</label><input id="r-rec" type="number" step="0.01" placeholder="0,00"></div>
+        <div class="f"><label>PIS atual R$</label><input id="r-pis" type="number" step="0.01" placeholder="0,00"></div>
+        <div class="f"><label>COFINS atual R$</label><input id="r-cof" type="number" step="0.01" placeholder="0,00"></div>
+        <div class="f"><label>ICMS atual R$</label><input id="r-icms" type="number" step="0.01" placeholder="0,00"></div>
+        <div class="f"><label>ISS atual R$</label><input id="r-iss" type="number" step="0.01" placeholder="0,00"></div>
+        <div class="f"><label>Créditos fiscais disponíveis R$</label><input id="r-cred" type="number" step="0.01" placeholder="0,00"></div>
+      </div>
+      <button class="btn bam" onclick="simReforma()">⚖️ Simular Impacto da Reforma</button>
+      <div id="ref-result" style="margin-top:14px"></div>
+    </div>
+    <div class="reforma-grid">
+      <div class="ref-card">
+        <h4 style="color:var(--am)">📌 O que muda em 2026</h4>
+        <div style="font-size:.72rem;color:var(--mu);line-height:1.7;margin-top:6px">
+          ✔ PIS e COFINS → <strong style="color:var(--tx)">CBS</strong> (alíquota estimada 8,8%)<br>
+          ✔ ICMS e ISS → <strong style="color:var(--tx)">IBS</strong> (alíquota estimada 17,7%)<br>
+          ✔ Cobrança no destino — fim da guerra fiscal<br>
+          ✔ Não cumulatividade plena — crédito em toda a cadeia<br>
+          ✔ Split payment — imposto retido na fonte pelo banco<br>
+          ✔ Transição gradual: 2026 a 2033
+        </div>
+      </div>
+      <div class="ref-card">
+        <h4 style="color:var(--am)">⚠️ Impacto por Regime</h4>
+        <div style="font-size:.72rem;color:var(--mu);line-height:1.7;margin-top:6px">
+          <strong style="color:var(--tx)">Simples Nacional:</strong> impacto menor — alíquotas do Simples absorvem parte<br>
+          <strong style="color:var(--tx)">Lucro Presumido:</strong> maior impacto — sem crédito atualmente<br>
+          <strong style="color:var(--tx)">Lucro Real:</strong> pode se beneficiar — já usa não cumulatividade<br>
+          <strong style="color:var(--tx)">Serviços:</strong> atenção ao IBS — ISS atual pode ser menor
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TUTORIAL ══ -->
+  <div id="sec-tut" class="sec">
+    <div class="card" style="text-align:center;padding:28px">
+      <div style="font-size:2rem;margin-bottom:10px">📖</div>
+      <div style="font-size:.9rem;font-weight:700;margin-bottom:6px">Tutorial Completo</div>
+      <div style="font-size:.76rem;color:var(--mu);margin-bottom:18px">Veja o passo a passo completo de como usar o FiscalFácil</div>
+      <button class="btn bam" onclick="document.getElementById('tov').classList.add('on')" style="margin:0 auto">📖 Abrir Tutorial</button>
+    </div>
+    <div class="card" style="text-align:center;padding:22px">
+      <div style="font-size:1.2rem;margin-bottom:6px">💬</div>
+      <div style="font-size:.82rem;font-weight:700;margin-bottom:4px">Suporte com o Desenvolvedor</div>
+      <div style="font-size:.74rem;color:var(--mu);margin-bottom:14px">Dúvidas, ajustes ou sugestões — fale diretamente pelo WhatsApp</div>
+      <a href="https://wa.me/5591999879932" target="_blank" class="btn bam" style="text-decoration:none;margin:0 auto">💬 João Gomes · (91) 99987-9932</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div><strong>FiscalFácil v1.0</strong> &nbsp;·&nbsp; Painel de Carga Tributária para Contadores</div>
+  <button onclick="document.getElementById('tov').classList.add('on')">📖 Tutorial</button>
+  <div>Desenvolvido por <strong>João Gomes</strong> &nbsp;·&nbsp; <a href="https://wa.me/5591999879932" target="_blank">📱 (91) 99987-9932</a></div>
+</footer>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────
+var cfg={nome:'',cnpj:'',regime:'simples',at:'comercio',mes:'Maio',ano:'2026',escritorio:'',logo:''};
+var historico=[],simHistorico=[],obrigacoes=[],confR1=[],confR2=[],confResult=[];
+var impostos={rec:0,das:0,irpj:0,csll:0,pis:0,cof:0,ipi:0,icms:0,icmsst:0,iss:0,outros:0};
+
+// ── WELCOME ───────────────────────────────────────────────
+function chkW(){document.getElementById('wbtn').disabled=document.getElementById('wn').value.trim().length<2;}
+function mCNPJ(el){var v=el.value.replace(/\D/g,'').slice(0,14);if(v.length>12)v=v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/,'$1.$2.$3/$4-$5');else if(v.length>8)v=v.replace(/(\d{2})(\d{3})(\d{3})(\d{0,4})/,'$1.$2.$3/$4');else if(v.length>5)v=v.replace(/(\d{2})(\d{3})(\d{0,3})/,'$1.$2.$3');else if(v.length>2)v=v.replace(/(\d{2})(\d{0,3})/,'$1.$2');el.value=v;}
+var _logo='';
+function pLogo(inp){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){document.getElementById('wlimg').src=e.target.result;document.getElementById('wlfn').textContent=f.name;document.getElementById('wlprev').style.display='flex';_logo=e.target.result;};r.readAsDataURL(f);}
+function rLogo(){document.getElementById('wlprev').style.display='none';document.getElementById('wlogo').value='';_logo='';}
+function startApp(){
+  cfg.nome=document.getElementById('wn').value.trim();
+  cfg.cnpj=document.getElementById('wc').value.trim();
+  cfg.regime=document.getElementById('wr').value;
+  cfg.at=document.getElementById('wat').value;
+  cfg.mes=document.getElementById('wm').value;
+  cfg.ano=document.getElementById('wano').value;
+  cfg.escritorio=document.getElementById('wesc').value.trim();
+  cfg.logo=_logo;
+  localStorage.setItem('fiscal_cfg',JSON.stringify(cfg));
+  var ov=document.getElementById('wov');ov.style.transition='opacity .3s';ov.style.opacity='0';setTimeout(function(){ov.style.display='none';},320);
+  document.getElementById('emp-h').textContent='🏢 '+cfg.nome;
+  document.getElementById('l-mes').value=cfg.mes;
+  document.getElementById('l-ano').value=cfg.ano;
+  document.getElementById('dash-mes').textContent=cfg.mes+'/'+cfg.ano;
+  document.getElementById('cal-mes').textContent=cfg.mes+'/'+cfg.ano;
+  atualizarRegimeBadge();
+  gerarCal();
+  loadHistorico();
+}
+function loadCfg(){
+  try{
+    var c=JSON.parse(localStorage.getItem('fiscal_cfg')||'null');
+    if(!c)return false;
+    Object.assign(cfg,c);_logo=c.logo||'';
+    document.getElementById('wov').style.display='none';
+    document.getElementById('emp-h').textContent='🏢 '+cfg.nome;
+    document.getElementById('l-mes').value=cfg.mes;
+    document.getElementById('l-ano').value=cfg.ano;
+    document.getElementById('dash-mes').textContent=cfg.mes+'/'+cfg.ano;
+    document.getElementById('cal-mes').textContent=cfg.mes+'/'+cfg.ano;
+    atualizarRegimeBadge();
+    gerarCal();
+    loadHistorico();
+    return true;
+  }catch(e){return false;}
+}
+function atualizarRegimeBadge(){
+  var labels={simples:'Simples Nacional',presumido:'Lucro Presumido',real:'Lucro Real',mei:'MEI'};
+  var cores={simples:'var(--gr)',presumido:'var(--bl)',real:'var(--pu)',mei:'var(--cy)'};
+  var r=cfg.regime;
+  document.getElementById('regime-badge').innerHTML='<span style="background:'+cores[r]+'22;border:1px solid '+cores[r]+'55;color:'+cores[r]+';padding:4px 12px;border-radius:20px;font-size:.64rem;font-weight:700">'+labels[r]+'</span>';
+}
+
+// ── TABS ──────────────────────────────────────────────────
+function goTab(n,b){document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('on')});document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on')});document.getElementById('sec-'+n).classList.add('on');b.classList.add('on');}
+
+// ── TOAST ─────────────────────────────────────────────────
+function toast(m){var t=document.getElementById('tst');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on');},2800);}
+
+// ── LANÇAMENTOS ───────────────────────────────────────────
+function getImpostos(){
+  return{
+    rec:pf('l-rec'),das:pf('l-das'),irpj:pf('l-irpj'),csll:pf('l-csll'),
+    pis:pf('l-pis'),cof:pf('l-cof'),ipi:pf('l-ipi'),
+    icms:pf('l-icms'),icmsst:pf('l-icms-st'),iss:pf('l-iss'),outros:pf('l-outros')
+  };
+}
+function calcTotais(){
+  var imp=getImpostos();
+  var fed=imp.das+imp.irpj+imp.csll+imp.pis+imp.cof+imp.ipi;
+  var est=imp.icms+imp.icmsst;
+  var mun=imp.iss+imp.outros;
+  var total=fed+est+mun;
+  var pct=imp.rec>0?((total/imp.rec)*100).toFixed(2):0;
+  // KPIs dashboard
+  document.getElementById('kpi-total').textContent=fmt(total);
+  document.getElementById('kpi-pct').textContent=pct+'% da Receita';
+  document.getElementById('kpi-federal').textContent=fmt(fed);
+  document.getElementById('kpi-fed-pct').textContent=imp.rec>0?((fed/imp.rec)*100).toFixed(1)+'% da Receita':'—';
+  document.getElementById('kpi-estadual').textContent=fmt(est);
+  document.getElementById('kpi-municipal').textContent=fmt(mun);
+  // Resumo
+  if(total===0){document.getElementById('resumo-mes').innerHTML='<div class="empty-st"><div class="ei">💰</div>Preencha os valores acima para ver o resumo</div>';document.getElementById('dash-comp').innerHTML='<div class="empty-st"><div class="ei">💰</div>Lance os impostos na aba <strong>Lançar Impostos</strong> para ver a composição</div>';return;}
+  // Resumo cards
+  var itens=[
+    {n:'DAS / Simples',v:imp.das,c:'var(--gr)'},
+    {n:'IRPJ',v:imp.irpj,c:'var(--re)'},
+    {n:'CSLL',v:imp.csll,c:'var(--re)'},
+    {n:'PIS',v:imp.pis,c:'var(--am)'},
+    {n:'COFINS',v:imp.cof,c:'var(--am)'},
+    {n:'IPI',v:imp.ipi,c:'var(--bl)'},
+    {n:'ICMS',v:imp.icms,c:'var(--bl)'},
+    {n:'ICMS-ST',v:imp.icmsst,c:'var(--bl)'},
+    {n:'ISS',v:imp.iss,c:'var(--pu)'},
+    {n:'Outros',v:imp.outros,c:'var(--cy)'},
+  ].filter(function(x){return x.v>0;});
+  document.getElementById('resumo-mes').innerHTML=itens.map(function(it){
+    var pctItem=total>0?((it.v/total)*100).toFixed(1):0;
+    var pctRec=imp.rec>0?((it.v/imp.rec)*100).toFixed(2):0;
+    return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:.78rem"><span style="font-weight:600">'+it.n+'</span><span style="font-family:JetBrains Mono,monospace;font-weight:700">'+fmt(it.v)+' <span style="color:var(--mu);font-size:.68rem">('+pctRec+'% receita)</span></span></div><div class="pbar-wrap"><div class="pbar" style="width:'+pctItem+'%;background:'+it.c+'"></div></div></div>';
+  }).join('')+'<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--b1);display:flex;justify-content:space-between;font-size:.82rem"><span style="font-weight:700">TOTAL TRIBUTÁRIO</span><span style="font-family:JetBrains Mono,monospace;font-weight:800;color:var(--am)">'+fmt(total)+' ('+pct+'% da receita)</span></div>';
+  // Dash comp
+  document.getElementById('dash-comp').innerHTML=itens.map(function(it){
+    var pctItem=total>0?((it.v/total)*100).toFixed(1):0;
+    return '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;margin-bottom:3px;font-size:.76rem"><span style="font-weight:600">'+it.n+'</span><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:'+it.c+'">'+fmt(it.v)+'</span></div><div class="pbar-wrap"><div class="pbar" style="width:'+pctItem+'%;background:'+it.c+'"></div></div></div>';
+  }).join('');
+  // Alertas
+  var alertas=[];
+  if(parseFloat(pct)>30)alertas.push({t:'⚠️ Carga tributária elevada',d:'A carga está em '+pct+'% da receita. Considere revisão do regime.',c:'var(--re)'});
+  if(imp.rec>0&&imp.das===0&&cfg.regime==='simples')alertas.push({t:'⚠️ DAS não lançado',d:'Cliente no Simples Nacional sem lançamento do DAS.',c:'var(--am)'});
+  var adiv=document.getElementById('dash-alertas');
+  if(!alertas.length){adiv.innerHTML='<div class="empty-st" style="padding:14px"><div class="ei" style="font-size:1.2rem">✅</div>Nenhum alerta identificado</div>';}
+  else{adiv.innerHTML=alertas.map(function(a){return'<div style="background:'+a.c+'15;border:1px solid '+a.c+'44;border-radius:9px;padding:10px 13px;margin-bottom:7px"><div style="font-size:.76rem;font-weight:700;color:'+a.c+';margin-bottom:2px">'+a.t+'</div><div style="font-size:.68rem;color:var(--mu)">'+a.d+'</div></div>';}).join('');}
+}
+function salvarMes(){
+  var imp=getImpostos();var mes=document.getElementById('l-mes').value;var ano=document.getElementById('l-ano').value;
+  var fed=imp.das+imp.irpj+imp.csll+imp.pis+imp.cof+imp.ipi;var est=imp.icms+imp.icmsst;var mun=imp.iss+imp.outros;var total=fed+est+mun;
+  if(total===0){toast('⚠️ Nenhum imposto lançado');return;}
+  var key=mes+'/'+ano;
+  historico=historico.filter(function(h){return h.key!==key;});
+  historico.unshift({key:key,mes:mes,ano:ano,rec:imp.rec,fed:fed,est:est,mun:mun,total:total,imp:imp});
+  localStorage.setItem('fiscal_hist',JSON.stringify(historico));
+  renderEvolucao();toast('✅ Mês '+key+' salvo no histórico!');
+}
+function loadHistorico(){try{var h=JSON.parse(localStorage.getItem('fiscal_hist')||'[]');historico=h;renderEvolucao();}catch(e){}}
+function renderEvolucao(){
+  var ul=historico.slice(0,6).reverse();var el=document.getElementById('dash-evolucao');
+  if(ul.length<2){el.innerHTML='<div class="empty-st" style="padding:14px"><div class="ei" style="font-size:1.2rem">📈</div>Acumule 2+ meses para ver evolução</div>';return;}
+  var max=Math.max.apply(null,ul.map(function(h){return h.total;}));
+  el.innerHTML='<div style="display:flex;align-items:flex-end;gap:6px;height:80px;margin-bottom:8px">'+ul.map(function(h){var pct=max>0?(h.total/max*100):0;return'<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="flex:1;width:100%;display:flex;align-items:flex-end"><div style="width:100%;height:'+pct+'%;background:var(--am);border-radius:4px 4px 0 0;min-height:4px"></div></div><div style="font-size:.52rem;color:var(--mu)">'+h.mes.slice(0,3)+'</div></div>';}).join('')+'</div>'+ul.map(function(h){return'<div style="display:flex;justify-content:space-between;font-size:.68rem;padding:3px 0;border-bottom:1px solid var(--b1)"><span style="color:var(--mu)">'+h.key+'</span><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:var(--am)">'+fmt(h.total)+'</span></div>';}).join('');
+}
+function limparLanc(){if(!confirm('Limpar lançamentos?'))return;['l-rec','l-das','l-irpj','l-csll','l-pis','l-cof','l-ipi','l-icms','l-icms-st','l-iss','l-outros'].forEach(function(id){document.getElementById(id).value='';});calcTotais();toast('🗑 Campos limpos');}
+
+// ── SIMULADOR ─────────────────────────────────────────────
+function simular(){
+  var rec=pf('s-rec');var folha=pf('s-folha');var at=document.getElementById('s-at').value;var lucro=pf('s-lucro')/100;
+  if(rec<=0){toast('⚠️ Informe a receita bruta anual');return;}
+  // Simples Nacional — alíquota estimada por faturamento e atividade
+  var tabSimples={comercio:[{ate:180000,al:0.04},{ate:360000,al:0.073},{ate:720000,al:0.095},{ate:1800000,al:0.107},{ate:3600000,al:0.143},{ate:4800000,al:0.19}],servico:[{ate:180000,al:0.06},{ate:360000,al:0.112},{ate:720000,al:0.135},{ate:1800000,al:0.16},{ate:3600000,al:0.21},{ate:4800000,al:0.33}],industria:[{ate:180000,al:0.045},{ate:360000,al:0.078},{ate:720000,al:0.10},{ate:1800000,al:0.112},{ate:3600000,al:0.147},{ate:4800000,al:0.30}]};
+  var tab=tabSimples[at]||tabSimples.comercio;var alSimples=tab[tab.length-1].al;
+  for(var i=0;i<tab.length;i++){if(rec<=tab[i].ate){alSimples=tab[i].al;break;}}
+  var impSimples=rec*alSimples;
+  // Lucro Presumido
+  var pres={comercio:0.08,servico:0.32,industria:0.08};var baseIRPJ=rec*(pres[at]||0.08);
+  var irpjPres=baseIRPJ*0.15+(baseIRPJ>240000?(baseIRPJ-240000)*0.10:0);
+  var csllPres=baseIRPJ*0.09;
+  var pisCofPres=rec*(at==='comercio'?0.0365:0.0365);
+  var impPresumido=irpjPres+csllPres+pisCofPres;
+  // Lucro Real
+  var lucroLiq=rec*lucro;var irpjReal=lucroLiq*0.15+(lucroLiq>240000?(lucroLiq-240000)*0.10:0);
+  var csllReal=lucroLiq*0.09;var pisCofReal=rec*(at==='comercio'?0.0925:0.0925);
+  var impReal=irpjReal+csllReal+pisCofReal;
+  var resultados=[{nome:'Simples Nacional',val:impSimples,al:(alSimples*100).toFixed(1)+'%',cor:'var(--gr)'},{nome:'Lucro Presumido',val:impPresumido,al:((impPresumido/rec)*100).toFixed(1)+'%',cor:'var(--bl)'},{nome:'Lucro Real',val:impReal,al:((impReal/rec)*100).toFixed(1)+'%',cor:'var(--pu)'}];
+  resultados.sort(function(a,b){return a.val-b.val;});
+  var winner=resultados[0];
+  var economia=resultados[1].val-resultados[0].val;
+  document.getElementById('sim-result').innerHTML=
+    '<div class="sim-winner"><span style="font-size:1.5rem">🏆</span><div><div style="font-size:.84rem;font-weight:800;color:var(--gr)">Melhor regime: '+winner.nome+'</div><div style="font-size:.72rem;color:var(--mu)">Economia de '+fmt(economia)+' em relação ao 2º colocado · Alíquota efetiva: '+winner.al+'</div></div><div style="margin-left:auto;font-family:JetBrains Mono,monospace;font-size:1.1rem;font-weight:800;color:var(--gr)">'+fmt(winner.val)+'</div></div>'+
+    '<div class="sim-result">'+resultados.map(function(r,i){return'<div class="sim-row"><span class="label">'+(i===0?'🥇':i===1?'🥈':'🥉')+' '+r.nome+'</span><div style="text-align:right"><span class="val" style="color:'+r.cor+'">'+fmt(r.val)+'</span><span style="font-size:.66rem;color:var(--mu);margin-left:8px">'+r.al+' da receita</span></div></div>';}).join('')+'<div class="sim-row" style="font-size:.72rem"><span style="color:var(--mu)">Receita Bruta Anual</span><span class="val">'+fmt(rec)+'</span></div></div>';
+  simHistorico.unshift({data:hoje(),rec:rec,winner:winner.nome,val:winner.val});
+  document.getElementById('sim-hist').innerHTML=simHistorico.slice(0,5).map(function(s){return'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--b1);font-size:.76rem"><div><div style="font-weight:600">Receita: '+fmt(s.rec)+'</div><div style="font-size:.66rem;color:var(--mu)">'+s.data+'</div></div><div style="text-align:right"><span style="background:var(--grb);color:var(--gr);padding:3px 9px;border-radius:20px;font-size:.62rem;font-weight:700">'+s.winner+'</span><div style="font-family:JetBrains Mono,monospace;font-size:.76rem;font-weight:700;margin-top:2px">'+fmt(s.val)+'</div></div></div>';}).join('');
+  toast('✅ Simulação concluída — melhor regime: '+winner.nome);
+}
+
+// ── REFORMA ───────────────────────────────────────────────
+function simReforma(){
+  var rec=pf('r-rec');var pis=pf('r-pis');var cof=pf('r-cof');var icms=pf('r-icms');var iss=pf('r-iss');var cred=pf('r-cred');
+  if(rec<=0){toast('⚠️ Informe a receita bruta');return;}
+  var atualTotal=pis+cof+icms+iss;
+  // CBS = substitui PIS/COFINS (alíquota 8.8%)
+  var cbs=rec*0.088;
+  // IBS = substitui ICMS+ISS (alíquota 17.7% - fase 2033)
+  // 2026: IBS a 0.1% apenas (teste)
+  var ibs2026=rec*0.001;var ibs2033=rec*0.177;
+  // Créditos
+  var cbsLiq=Math.max(0,cbs-cred);
+  var novoTotal2026=cbsLiq+ibs2026;
+  var novoTotal2033=cbsLiq+ibs2033;
+  var dif2026=novoTotal2026-atualTotal;
+  var dif2033=novoTotal2033-atualTotal;
+  document.getElementById('ref-result').innerHTML=
+    '<div class="sim-result"><div class="sim-row"><span class="label">Carga Atual (PIS+COFINS+ICMS+ISS)</span><span class="val" style="color:var(--re)">'+fmt(atualTotal)+'</span></div>'+
+    '<div class="sim-row"><span class="label">CBS estimado (8,8% sobre receita)</span><span class="val">'+fmt(cbs)+'</span></div>'+
+    '<div class="sim-row"><span class="label">Créditos fiscais disponíveis</span><span class="val" style="color:var(--gr)">- '+fmt(cred)+'</span></div>'+
+    '<div class="sim-row"><span class="label">CBS líquido após créditos</span><span class="val">'+fmt(cbsLiq)+'</span></div>'+
+    '<div class="sim-row"><span class="label">IBS 2026 (alíq. 0,1% — fase teste)</span><span class="val">'+fmt(ibs2026)+'</span></div>'+
+    '<div class="sim-row"><span class="label">Carga Projetada 2026 (início transição)</span><span class="val" style="color:var(--am)">'+fmt(novoTotal2026)+' ('+(dif2026>=0?'+':'')+fmt(dif2026)+')</span></div>'+
+    '<div class="sim-row"><span class="label">IBS 2033 (alíq. 17,7% — regime pleno)</span><span class="val">'+fmt(ibs2033)+'</span></div>'+
+    '<div class="sim-row"><span class="label" style="font-weight:700">Carga Projetada 2033 (regime pleno)</span><span class="val" style="font-size:.9rem;color:'+(dif2033<0?'var(--gr)':'var(--re)')+'">'+fmt(novoTotal2033)+' ('+(dif2033>=0?'+':'')+fmt(dif2033)+')</span></div>'+
+    '</div><div style="margin-top:10px;font-size:.7rem;color:var(--mu);line-height:1.5">⚠️ <strong>Atenção:</strong> As alíquotas definitivas da Reforma ainda serão confirmadas. Este simulador usa estimativas baseadas na LC 214/2025. Consulte sempre a legislação vigente.</div>';
+}
+
+// ── CALENDÁRIO ────────────────────────────────────────────
+var CALENDAR_BASE=[
+  {dia:7,nome:'FGTS',desc:'Recolhimento do FGTS — competência mês anterior',tipo:'federal'},
+  {dia:10,nome:'DAS Simples',desc:'Pagamento do DAS — Simples Nacional',tipo:'federal'},
+  {dia:15,nome:'DCTF',desc:'Entrega da Declaração de Débitos e Créditos Tributários Federais',tipo:'federal'},
+  {dia:20,nome:'INSS Patronal',desc:'Recolhimento da GPS — contribuição patronal',tipo:'federal'},
+  {dia:20,nome:'IRRF',desc:'Recolhimento do IRRF sobre salários (DARF)',tipo:'federal'},
+  {dia:25,nome:'PIS/COFINS',desc:'Recolhimento de PIS e COFINS (Lucro Real/Presumido)',tipo:'federal'},
+  {dia:25,nome:'ICMS',desc:'ICMS — prazo comum para a maioria dos estados',tipo:'estadual'},
+  {dia:10,nome:'ISS Mensal',desc:'ISS — Imposto Sobre Serviços (municipal)',tipo:'municipal'},
+  {dia:28,nome:'CSLL/IRPJ',desc:'Estimativa mensal de IRPJ e CSLL (Lucro Real)',tipo:'federal'},
+];
+function gerarCal(){
+  var hoje=new Date();var mesNum=mesIdx(cfg.mes)+1;var anoNum=parseInt(cfg.ano);
+  var todas=[...CALENDAR_BASE,...obrigacoes];
+  todas.sort(function(a,b){return(a.dia||parseInt((a.data||'99').split('/')[0]))-(b.dia||parseInt((b.data||'99').split('/')[0]));});
+  document.getElementById('cal-grid').innerHTML=todas.map(function(ob){
+    var dia=ob.dia||parseInt((ob.data||'').split('/')[0]);
+    var dataOb=new Date(anoNum,mesNum-1,dia);
+    var diff=Math.floor((dataOb-hoje)/(1000*60*60*24));
+    var cls=ob.pago?'ok':diff<0?'vencido':diff===0?'hoje':diff<=5?'proximo':'';
+    var status=ob.pago?'<span style="color:var(--gr);font-size:.6rem;font-weight:700">✅ Pago</span>':diff<0?'<span style="color:var(--re);font-size:.6rem;font-weight:700">❌ Vencido</span>':diff===0?'<span style="color:var(--am);font-size:.6rem;font-weight:700">⚡ Vence hoje</span>':diff<=5?'<span style="color:var(--am);font-size:.6rem;font-weight:700">⚠️ Em '+diff+'d</span>':'<span style="color:var(--mu);font-size:.6rem">'+diff+'d</span>';
+    var corTipo={federal:'var(--re)',estadual:'var(--bl)',municipal:'var(--pu)',acessoria:'var(--cy)'};
+    return'<div class="cal-item '+cls+'"><div class="cal-dt">'+String(dia).padStart(2,'0')+'/'+String(mesNum).padStart(2,'0')+'/'+anoNum+'</div><div class="cal-nome">'+ob.nome+'</div><div class="cal-desc">'+ob.desc+'</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">'+status+'<span style="font-size:.56rem;padding:2px 7px;background:'+corTipo[ob.tipo||'federal']+'22;color:'+corTipo[ob.tipo||'federal']+';border-radius:20px;font-weight:700">'+( ob.tipo||'federal')+'</span></div></div>';
+  }).join('');
+  document.getElementById('cal-mes').textContent=cfg.mes+'/'+cfg.ano;
+}
+function addOb(){
+  var desc=document.getElementById('ob-desc').value.trim();
+  var data=document.getElementById('ob-data').value;
+  var tipo=document.getElementById('ob-tipo').value;
+  if(!desc||!data){toast('⚠️ Preencha descrição e vencimento');return;}
+  var parts=data.split('-');
+  var dia=parseInt(parts[2]);
+  obrigacoes.push({nome:desc,desc:'Obrigação personalizada',data:parts[2]+'/'+parts[1]+'/'+parts[0],dia:dia,tipo:tipo});
+  document.getElementById('ob-desc').value='';document.getElementById('ob-data').value='';
+  gerarCal();toast('✅ Obrigação adicionada!');
+}
+
+// ── CONFERÊNCIA ───────────────────────────────────────────
+function onConf(inp,w){
+  var f=inp.files[0];if(!f)return;
+  document.getElementById('fn-'+w).textContent=f.name;
+  document.getElementById('fok-'+w).style.display='flex';
+  var ext=f.name.split('.').pop().toLowerCase();
+  if(ext==='pdf')readConfPDF(f,w);else readConfXLS(f,w);
+}
+function remConf(w){document.getElementById('fok-'+w).style.display='none';document.getElementById('cf'+(w==='r1'?'1':'2')).value='';if(w==='r1')confR1=[];else confR2=[];}
+function readConfXLS(f,w){
+  var r=new FileReader();
+  r.onload=function(e){
+    try{var wb=XLSX.read(e.target.result,{type:'array'});var ws=wb.Sheets[wb.SheetNames[0]];var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});var items=parseConfRows(rows);if(w==='r1')confR1=items;else confR2=items;toast('✅ '+items.length+' itens lidos!');if(confR1.length&&confR2.length)runConf();}catch(e){toast('❌ Erro ao ler arquivo');}
+  };r.readAsArrayBuffer(f);
+}
+function readConfPDF(f,w){
+  var r=new FileReader();
+  r.onload=function(e){
+    var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+    s.onload=function(){
+      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+      pdfjsLib.getDocument({data:new Uint8Array(e.target.result)}).promise.then(function(pdf){
+        var n=pdf.numPages,done=0,lines=[];
+        for(var i=1;i<=n;i++){pdf.getPage(i).then(function(pg){pg.getTextContent().then(function(c){var rows={};c.items.forEach(function(it){var y=Math.round(it.transform[5]);if(!rows[y])rows[y]=[];rows[y].push(it.str);});Object.keys(rows).sort(function(a,b){return b-a;}).forEach(function(y){lines.push(rows[y].join(' '));});done++;if(done===n){var items=parseConfLines(lines);if(w==='r1')confR1=items;else confR2=items;toast('✅ '+items.length+' itens lidos do PDF!');if(confR1.length&&confR2.length)runConf();}});})}); 
+    };document.head.appendChild(s);
+  };r.readAsArrayBuffer(f);
+}
+function parseConfRows(rows){var items=[];var ci={n:0,v:1};for(var i=0;i<Math.min(rows.length,5);i++){var r=rows[i].map(function(c){return String(c).toLowerCase();});if(r.some(function(c){return c.includes('nome')||c.includes('desc')||c.includes('trib');})){r.forEach(function(c,j){if(c.includes('nome')||c.includes('desc')||c.includes('trib'))ci.n=j;else if(c.includes('valor')||c.includes('val'))ci.v=j;});rows=rows.slice(i+1);break;}}rows.forEach(function(row){if(!row||row.every(function(c){return c==='';)))return;var nome=String(row[ci.n]||'').trim();var val=parseFloat(String(row[ci.v]||'0').replace(/R\$|\s/g,'').replace(/\./g,'').replace(',','.'));if(nome&&val>0)items.push({nome,val});});return items;}
+function parseConfLines(lines){var items=[];lines.forEach(function(line){line=line.trim();if(!line)return;var m=line.match(/^(.+?)\s+([\d.,]+)\s*$/);if(m){var nome=m[1].trim();var val=parseFloat(m[2].replace(/\./g,'').replace(',','.'));if(nome&&val>0)items.push({nome,val});}});return items;}
+function norm(s){return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();}
+function runConf(){
+  if(!confR1.length||!confR2.length){toast('⚠️ Importe os dois arquivos');return;}
+  document.getElementById('conf-auto').style.display='inline-block';
+  var rows=[];var used=new Set();
+  confR1.forEach(function(p){
+    var nP=norm(p.nome);var best=null,bestIdx=-1,bestScore=0;
+    confR2.forEach(function(f,i){if(used.has(i))return;var nF=norm(f.nome);var score=nF===nP?100:nF.includes(nP)||nP.includes(nF)?80:0;var wP=nP.split(' '),wF=nF.split(' ');var cm=wP.filter(function(w){return wF.indexOf(w)>=0;}).length;if(cm>0&&score===0)score=Math.round(cm/Math.max(wP.length,wF.length)*70);if(score>bestScore&&score>=45){bestScore=score;best=f;bestIdx=i;}});
+    if(best){used.add(bestIdx);var ok=Math.abs(best.val-p.val)<0.015;rows.push({s:ok?'ok':'diff',n1:p.nome,v1:p.val,n2:best.nome,v2:best.val});}
+    else rows.push({s:'miss1',n1:p.nome,v1:p.val,n2:'—',v2:null});
+  });
+  confR2.forEach(function(f,i){if(!used.has(i))rows.push({s:'miss2',n1:'—',v1:null,n2:f.nome,v2:f.val});});
+  confResult=rows;
+  var ok=rows.filter(function(r){return r.s==='ok';}).length;
+  var diff=rows.filter(function(r){return r.s==='diff';}).length;
+  var miss=rows.filter(function(r){return r.s.includes('miss');}).length;
+  document.getElementById('cs-tot').textContent=rows.length;
+  document.getElementById('cs-ok').textContent=ok;
+  document.getElementById('cs-diff').textContent=diff;
+  document.getElementById('cs-miss').textContent=miss;
+  document.getElementById('conf-result').innerHTML='<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Status</th><th>Tributo (Calculado)</th><th>Valor Calculado</th><th>Tributo (Guia)</th><th>Valor Guia</th><th>Diferença</th></tr></thead><tbody>'+
+    rows.map(function(r){var cls=r.s==='ok'?'row-ok':r.s==='diff'?'row-diff':'row-miss';var ico=r.s==='ok'?'✅':r.s==='diff'?'❌':'⚠️';var dif=r.v1!==null&&r.v2!==null?fmt(r.v2-r.v1):'—';var difColor=r.v1!==null&&r.v2!==null?(r.v2-r.v1>0?'var(--re)':'var(--gr)'):'var(--mu)';return'<tr class="'+cls+'"><td>'+ico+'</td><td style="font-weight:500">'+esc(r.n1)+'</td><td class="mono">'+(r.v1!==null?fmt(r.v1):'—')+'</td><td style="font-weight:500">'+esc(r.n2)+'</td><td class="mono">'+(r.v2!==null?fmt(r.v2):'—')+'</td><td class="mono" style="color:'+difColor+'">'+dif+'</td></tr>';}).join('')+'</tbody></table></div>';
+  toast(ok+' OK · '+diff+' divergente(s) · '+miss+' ausente(s)');
+}
+
+// ── EXPORTS ───────────────────────────────────────────────
+function cabPDF(){var logo=_logo?'<img src="'+_logo+'" style="height:38px;object-fit:contain">':'<div style="font-size:9px;color:#94a3b8">'+esc(cfg.escritorio||'ESCRITÓRIO')+'</div>';return'<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:2px solid #F59E0B;margin-bottom:14px">'+logo+'<div style="text-align:right"><div style="font-size:.88rem;font-weight:800">'+esc(cfg.nome)+'</div><div style="font-size:.62rem;color:#64748b">CNPJ: '+esc(cfg.cnpj||'—')+'</div><div style="font-size:.62rem;color:#64748b">'+esc(cfg.mes)+'/'+esc(cfg.ano)+'</div></div></div>';}
+function rodaPDF(){return'<div style="margin-top:14px;padding-top:8px;border-top:1px solid #e2e8f0;font-size:.6rem;color:#94a3b8;text-align:center">'+esc(cfg.escritorio||'Escritório Contábil')+' &nbsp;·&nbsp; FiscalFácil v1.0 &nbsp;·&nbsp; João Gomes · (91) 99987-9932 &nbsp;·&nbsp; Gerado em '+hoje()+'</div>';}
+function expPDF(){
+  var imp=getImpostos();var fed=imp.das+imp.irpj+imp.csll+imp.pis+imp.cof+imp.ipi;var est=imp.icms+imp.icmsst;var mun=imp.iss+imp.outros;var total=fed+est+mun;var pct=imp.rec>0?((total/imp.rec)*100).toFixed(2):0;
+  var rows=[['DAS/Simples',imp.das],['IRPJ',imp.irpj],['CSLL',imp.csll],['PIS',imp.pis],['COFINS',imp.cof],['IPI',imp.ipi],['ICMS',imp.icms],['ICMS-ST',imp.icmsst],['ISS',imp.iss],['Outros',imp.outros]].filter(function(r){return r[1]>0;});
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório Tributário</title><style>body{font-family:Arial,sans-serif;margin:24px;color:#111}h2{font-size:15px;color:#F59E0B}table{width:100%;border-collapse:collapse}th{background:#F59E0B;color:#000;padding:6px 9px;font-size:10px;text-align:left;border:1px solid #D97706}.sum{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap}.sc{padding:8px 14px;border-radius:6px;text-align:center}.sc .n{font-size:16px;font-weight:bold}.sc .l{font-size:9px;color:#555;margin-top:1px}@media print{body{margin:6px}}</style></head><body>'+cabPDF()+'<h2>📊 Relatório de Carga Tributária — '+esc(cfg.mes)+'/'+esc(cfg.ano)+'</h2><p style="font-size:10px;color:#64748b;margin-bottom:12px">Regime: '+({simples:'Simples Nacional',presumido:'Lucro Presumido',real:'Lucro Real',mei:'MEI'}[cfg.regime])+'</p><div class="sum"><div class="sc" style="background:#fff8e1"><div class="n" style="color:#D97706">'+fmt(total)+'</div><div class="l">Carga Total</div></div><div class="sc" style="background:#f8fafc"><div class="n">'+pct+'%</div><div class="l">% da Receita</div></div><div class="sc" style="background:#fff1f2"><div class="n" style="color:#dc2626">'+fmt(fed)+'</div><div class="l">Federal</div></div><div class="sc" style="background:#eff6ff"><div class="n" style="color:#2563eb">'+fmt(est)+'</div><div class="l">Estadual</div></div><div class="sc" style="background:#f5f3ff"><div class="n" style="color:#7c3aed">'+fmt(mun)+'</div><div class="l">Municipal</div></div></div><table><thead><tr><th>Tributo</th><th style="text-align:right">Valor</th><th style="text-align:right">% Receita</th><th style="text-align:right">% Carga Total</th></tr></thead><tbody>'+rows.map(function(r){return'<tr><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px;font-weight:500">'+r[0]+'</td><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px;text-align:right;font-weight:700">'+fmt(r[1])+'</td><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px;text-align:right">'+(imp.rec>0?((r[1]/imp.rec)*100).toFixed(2)+'%':'—')+'</td><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px;text-align:right">'+(total>0?((r[1]/total)*100).toFixed(1)+'%':'—')+'</td></tr>';}).join('')+'<tr style="font-weight:800;background:#fff8e1"><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px">TOTAL</td><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px;text-align:right">'+fmt(total)+'</td><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px;text-align:right">'+pct+'%</td><td style="padding:6px 9px;border:1px solid #e5e7eb;font-size:11px;text-align:right">100%</td></tr></tbody></table>'+rodaPDF()+'</body></html>';
+  var w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(function(){w.print();},600);toast('📄 PDF aberto!');
+}
+function expXLS(){
+  var imp=getImpostos();var fed=imp.das+imp.irpj+imp.csll+imp.pis+imp.cof+imp.ipi;var est=imp.icms+imp.icmsst;var mun=imp.iss+imp.outros;var total=fed+est+mun;
+  var data=[['FiscalFácil v1.0 — '+cfg.nome+' — '+cfg.mes+'/'+cfg.ano],[],['Tributo','Valor (R$)','% Receita'],['DAS/Simples',imp.das],['IRPJ',imp.irpj],['CSLL',imp.csll],['PIS',imp.pis],['COFINS',imp.cof],['IPI',imp.ipi],['ICMS',imp.icms],['ICMS-ST',imp.icmsst],['ISS',imp.iss],['Outros',imp.outros],[],['TOTAL FEDERAL',fed],['TOTAL ESTADUAL',est],['TOTAL MUNICIPAL',mun],['CARGA TOTAL',total],['RECEITA BRUTA',imp.rec]];
+  var wb=XLSX.utils.book_new();var ws=XLSX.utils.aoa_to_sheet(data);ws['!cols']=[{wch:22},{wch:16},{wch:12}];XLSX.utils.book_append_sheet(wb,ws,'Impostos');
+  if(historico.length){var d2=[['Mês','Receita','Federal','Estadual','Municipal','Total'],...historico.map(function(h){return[h.key,h.rec,h.fed,h.est,h.mun,h.total];})];var ws2=XLSX.utils.aoa_to_sheet(d2);XLSX.utils.book_append_sheet(wb,ws2,'Histórico');}
+  XLSX.writeFile(wb,'FiscalFacil-'+cfg.nome.replace(/\s/g,'-')+'-'+cfg.mes+'-'+cfg.ano+'.xlsx');toast('📊 Excel exportado!');
+}
+function expConfPDF(){if(!confResult.length){runConf();if(!confResult.length)return;}var ok=confResult.filter(function(r){return r.s==='ok';}).length;var diff=confResult.filter(function(r){return r.s==='diff';}).length;var rows=confResult.map(function(r){var ico=r.s==='ok'?'✅':r.s==='diff'?'❌':'⚠️';var dif=r.v1!==null&&r.v2!==null?fmt(r.v2-r.v1):'—';return'<tr><td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:10px">'+ico+'</td><td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:11px">'+esc(r.n1)+'</td><td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:11px;text-align:right">'+(r.v1!==null?fmt(r.v1):'—')+'</td><td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:11px">'+esc(r.n2)+'</td><td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:11px;text-align:right">'+(r.v2!==null?fmt(r.v2):'—')+'</td><td style="padding:5px 8px;border:1px solid #e5e7eb;font-size:11px;text-align:right;color:'+(r.s==='ok'?'#16a34a':r.s==='diff'?'#dc2626':'#d97706')+'">'+dif+'</td></tr>';}).join('');var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Conferência de Guias</title><style>body{font-family:Arial,sans-serif;margin:24px;color:#111}h2{font-size:15px;color:#F59E0B}table{width:100%;border-collapse:collapse}th{background:#F59E0B;color:#000;padding:5px 8px;font-size:10px;text-align:left;border:1px solid #D97706}@media print{body{margin:6px}}</style></head><body>'+cabPDF()+'<h2>🔍 Conferência de Guias — '+esc(cfg.mes)+'/'+esc(cfg.ano)+'</h2><p style="font-size:10px;color:#64748b;margin-bottom:12px">'+confResult.length+' tributos conferidos · '+ok+' OK · '+diff+' divergência(s)</p><table><thead><tr><th>Status</th><th>Tributo Calculado</th><th>Valor Calc.</th><th>Tributo Guia</th><th>Valor Guia</th><th>Diferença</th></tr></thead><tbody>'+rows+'</tbody></table>'+rodaPDF()+'</body></html>';var w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(function(){w.print();},600);}
+function expConfXLS(){if(!confResult.length)return;var data=[['Status','Tributo Calculado','Valor Calc (R$)','Tributo Guia','Valor Guia (R$)','Diferença (R$)'],...confResult.map(function(r){return[r.s==='ok'?'OK':r.s==='diff'?'Divergente':'Ausente',r.n1,r.v1,r.n2,r.v2,r.v1!==null&&r.v2!==null?r.v2-r.v1:''];})];var wb=XLSX.utils.book_new();var ws=XLSX.utils.aoa_to_sheet(data);XLSX.utils.book_append_sheet(wb,ws,'Conferência');XLSX.writeFile(wb,'FiscalFacil-Conferencia-'+cfg.mes+'-'+cfg.ano+'.xlsx');toast('📊 Excel exportado!');}
+
+// ── UTILS ─────────────────────────────────────────────────
+function pf(id){return parseFloat(document.getElementById(id).value)||0;}
+function fmt(v){return'R$ '+parseFloat(v||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
+function hoje(){var d=new Date();return d.toISOString().slice(0,10).split('-').reverse().join('/');}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function mesIdx(m){return['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'].indexOf(m);}
+
+// ── INIT ──────────────────────────────────────────────────
+if(!loadCfg()){/* aguarda welcome */}
+</script>
+</body>
+</html>

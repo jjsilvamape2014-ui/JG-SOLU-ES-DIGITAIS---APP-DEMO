@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CotaFácil — Cotação de Fornecedores</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+:root{
+  --pr:#f97316;--pr2:#ea6c0a;--prg:rgba(249,115,22,.12);
+  --bg:#09090b;--s1:#111113;--s2:#18181b;--s3:#1f1f23;
+  --b1:#27272a;--b2:#3f3f46;
+  --tx:#f4f4f5;--mu:#71717a;--mu2:#52525b;
+  --gr:#22c55e;--grb:rgba(34,197,94,.1);
+  --re:#ef4444;--reb:rgba(239,68,68,.1);
+  --ye:#f59e0b;--yeb:rgba(245,158,11,.1);
+  --bl:#3b82f6;--blb:rgba(59,130,246,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:'Outfit',sans-serif;min-height:100vh;font-size:14px}
+
+/* WELCOME */
+.wov{position:fixed;inset:0;background:linear-gradient(135deg,#09090b,#1a0f05,#09090b);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.wbox{background:var(--s1);border:1px solid var(--b1);border-radius:20px;padding:36px 30px;max-width:440px;width:100%;box-shadow:0 0 60px rgba(249,115,22,.08)}
+.wlogo{width:60px;height:60px;background:linear-gradient(135deg,#f97316,#ea6c0a);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;box-shadow:0 0 30px rgba(249,115,22,.35)}
+.wbox h2{font-size:1.5rem;font-weight:800;text-align:center;margin-bottom:4px}
+.wbox h2 em{color:var(--pr);font-style:normal}
+.wsub{font-size:.8rem;color:var(--mu);text-align:center;margin-bottom:22px;line-height:1.5}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
+.wf{display:flex;flex-direction:column;gap:3px}
+.wf.full{grid-column:1/-1}
+.wf label{font-size:.6rem;color:var(--mu);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.wf input,.wf select{padding:8px 11px;background:var(--s2);border:1.5px solid var(--b1);border-radius:8px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.84rem;transition:border-color .14s;-webkit-appearance:none}
+.wf input:focus,.wf select:focus{outline:none;border-color:var(--pr)}
+.wf input::placeholder{color:var(--mu2)}
+.wlogo-up{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;background:var(--s2);border:1.5px dashed var(--b2);border-radius:8px;cursor:pointer;transition:all .14s;text-align:center;grid-column:1/-1}
+.wlogo-up:hover{border-color:var(--pr);background:var(--prg)}
+.wlogo-up input{display:none}
+.lprev{display:none;align-items:center;gap:8px;padding:7px 10px;background:var(--grb);border:1px solid rgba(34,197,94,.3);border-radius:7px;font-size:.74rem;color:var(--gr);grid-column:1/-1}
+.lprev img{height:28px;object-fit:contain}
+.lprev button{margin-left:auto;background:none;border:none;color:var(--gr);cursor:pointer}
+.wbtn{width:100%;padding:11px;background:linear-gradient(135deg,#f97316,#ea6c0a);color:#fff;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:800;cursor:pointer;margin-top:6px;transition:all .14s}
+.wbtn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(249,115,22,.3)}
+.wbtn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.wfoot{margin-top:14px;text-align:center;font-size:.6rem;color:var(--mu2)}
+.wfoot a{color:var(--mu);text-decoration:none}
+
+/* HEADER */
+header{background:var(--s1);border-bottom:1px solid var(--b1);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100}
+.hlogo{display:flex;align-items:center;gap:10px}
+.hicon{width:28px;height:28px;background:linear-gradient(135deg,#f97316,#ea6c0a);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.hname{font-size:.88rem;font-weight:800;line-height:1}
+.hname em{color:var(--pr);font-style:normal}
+.hsub{font-size:.56rem;color:var(--mu)}
+.hright{display:flex;align-items:center;gap:7px}
+.emp-badge{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--b1);border-radius:20px;padding:4px 10px;font-size:.66rem;font-weight:600}
+.emp-badge img{height:16px;object-fit:contain}
+.hver{font-size:.58rem;color:var(--mu2);border:1px solid var(--b1);padding:2px 6px;border-radius:20px}
+
+/* TABS */
+.tabs{display:flex;gap:2px;background:var(--s1);border-bottom:1px solid var(--b1);padding:8px 20px 0;overflow-x:auto}
+.tab{padding:8px 14px;background:transparent;border:none;color:var(--mu);font-family:'Outfit',sans-serif;font-size:.74rem;font-weight:600;cursor:pointer;transition:all .14s;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.on{color:var(--pr);border-bottom-color:var(--pr)}
+.tab:hover:not(.on){color:var(--tx)}
+
+/* LAYOUT */
+.wrap{max-width:1000px;margin:0 auto;padding:18px 14px 80px}
+.sec{display:none;animation:fi .16s ease}.sec.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+/* CARD */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:13px;padding:14px;margin-bottom:11px}
+.card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+.card-t{font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:6px}
+
+/* FORM */
+.fg{display:flex;gap:7px;align-items:flex-end;flex-wrap:wrap}
+.f{flex:1;min-width:120px;display:flex;flex-direction:column;gap:3px}
+.f label{font-size:.6rem;color:var(--mu);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:8px 10px;background:var(--s2);border:1.5px solid var(--b1);border-radius:7px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.8rem;transition:border-color .14s;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--pr);background:var(--s3)}
+input::placeholder,textarea::placeholder{color:var(--mu2)}
+textarea{resize:vertical;min-height:60px}
+
+/* BUTTONS */
+.btn{padding:8px 13px;border:none;border-radius:7px;font-family:'Outfit',sans-serif;font-size:.74rem;font-weight:700;cursor:pointer;transition:all .13s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.bpr{background:linear-gradient(135deg,#f97316,#ea6c0a);color:#fff}.bpr:hover{transform:translateY(-1px)}
+.bgr{background:var(--grb);color:var(--gr);border:1px solid rgba(34,197,94,.25)}.bgr:hover{background:rgba(34,197,94,.16)}
+.bbl{background:var(--blb);color:var(--bl);border:1px solid rgba(59,130,246,.25)}.bbl:hover{background:rgba(59,130,246,.16)}
+.bgh{background:var(--s2);color:var(--tx);border:1px solid var(--b1)}.bgh:hover{border-color:var(--b2)}
+.bre{background:var(--reb);color:var(--re);border:1px solid rgba(239,68,68,.2);padding:5px 9px}.bre:hover{background:rgba(239,68,68,.18)}
+
+/* COTAÇÃO GRID */
+.cota-wrap{overflow-x:auto;margin-top:4px}
+.cota-table{border-collapse:collapse;font-size:.76rem;min-width:100%}
+.cota-table th{background:var(--s2);padding:7px 9px;text-align:left;font-size:.6rem;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--b1);white-space:nowrap;position:sticky;top:0}
+.cota-table td{padding:6px 9px;border-bottom:1px solid var(--b1);vertical-align:middle}
+.cota-table tr:last-child td{border-bottom:none}
+.cota-table tr:hover td{background:rgba(255,255,255,.012)}
+.td-item{font-weight:600;min-width:150px}
+.td-un{color:var(--mu);font-size:.72rem;text-align:center}
+.td-qtd{font-family:'JetBrains Mono',monospace;text-align:center;font-size:.74rem}
+.td-val{font-family:'JetBrains Mono',monospace;font-size:.74rem;text-align:right}
+.td-melhor{background:rgba(34,197,94,.06)!important}
+.td-melhor .td-val{color:var(--gr);font-weight:700}
+.melhor-badge{background:var(--grb);color:var(--gr);font-size:.55rem;font-weight:700;padding:1px 6px;border-radius:20px;margin-left:4px}
+.td-venc{font-size:.7rem;color:var(--mu)}
+
+/* FORNECEDORES */
+.forn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:12px}
+.forn-card{background:var(--s2);border:1.5px solid var(--b1);border-radius:10px;padding:11px;cursor:pointer;transition:all .15s;position:relative}
+.forn-card:hover{border-color:var(--pr)}
+.forn-card.sel{border-color:var(--pr);background:var(--prg)}
+.forn-card.sel::before{content:'✓';position:absolute;top:8px;right:8px;background:var(--pr);color:#fff;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800}
+.forn-name{font-size:.78rem;font-weight:700;margin-bottom:3px}
+.forn-info{font-size:.65rem;color:var(--mu);line-height:1.4}
+.forn-nota{display:inline-flex;align-items:center;gap:3px;font-size:.62rem;font-weight:700;margin-top:5px}
+.nota-s{color:#fbbf24}
+
+/* RESULTADO */
+.result-box{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:13px;margin-bottom:10px}
+.result-winner{background:var(--grb);border:1px solid rgba(34,197,94,.3);border-radius:10px;padding:13px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.rw-icon{font-size:1.8rem;flex-shrink:0}
+.rw-title{font-size:.84rem;font-weight:800;color:var(--gr);margin-bottom:2px}
+.rw-sub{font-size:.72rem;color:var(--mu)}
+.rw-val{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:800;color:var(--gr)}
+
+/* SUMMARY */
+.sum-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.sum-card{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:11px;text-align:center;position:relative;overflow:hidden}
+.sum-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sum-card.or::before{background:var(--pr)}
+.sum-card.gr::before{background:var(--gr)}
+.sum-card.ye::before{background:var(--ye)}
+.sum-card.bl::before{background:var(--bl)}
+.sn{font-size:1.4rem;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
+.sl{font-size:.6rem;color:var(--mu);margin-top:3px}
+
+/* TUTORIAL */
+.tut-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:13px;padding:15px;margin-bottom:11px}
+.tut-head{text-align:center;margin-bottom:13px}
+.tut-head h3{font-size:.88rem;font-weight:700;margin-bottom:3px}
+.tut-head p{font-size:.7rem;color:var(--mu)}
+.tut-nav{display:flex;gap:2px;background:var(--s2);border-radius:8px;padding:3px;margin-bottom:13px;overflow-x:auto}
+.tn{flex:1;padding:6px 4px;background:transparent;border:none;color:var(--mu);font-family:'Outfit',sans-serif;font-size:.66rem;font-weight:600;border-radius:5px;cursor:pointer;transition:all .13s;white-space:nowrap}
+.tn.on{background:var(--pr);color:#fff}
+.tut-step{display:none;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.tut-step.on{display:grid}
+.tut-screen{background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:11px}
+.tut-num{font-size:2rem;font-weight:900;color:var(--pr);line-height:1;margin-bottom:5px;opacity:.4;font-family:'JetBrains Mono',monospace}
+.tut-info h4{font-size:.84rem;font-weight:700;margin-bottom:6px}
+.tut-info p{font-size:.71rem;color:var(--mu);line-height:1.5;margin-bottom:5px}
+.tut-tip{padding:7px 9px;background:var(--yeb);border:1px solid rgba(245,158,11,.25);border-radius:6px;font-size:.66rem;color:var(--ye);line-height:1.4;margin-top:7px}
+.tut-btns{display:flex;justify-content:space-between;margin-top:11px;padding-top:11px;border-top:1px solid var(--b1)}
+.mk{background:var(--bg);border:1px solid var(--b1);border-radius:7px;overflow:hidden;font-size:.56rem}
+.mk-h{background:var(--s1);padding:5px 8px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:5px}
+.mk-logo{background:var(--pr);padding:2px 6px;border-radius:4px;color:#fff;font-weight:800;font-size:.5rem}
+.mk-b{padding:8px}
+
+/* LOADER */
+.lov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:9px;backdrop-filter:blur(3px)}
+.lov.on{display:flex}
+.sp{width:36px;height:36px;border:2.5px solid var(--b2);border-top-color:var(--pr);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lm{font-size:.82rem;font-weight:600;color:var(--pr)}
+
+/* TOAST */
+#tst{position:fixed;bottom:16px;right:10px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:8px 13px;font-size:.74rem;font-weight:600;transform:translateY(50px);opacity:0;transition:all .2s;z-index:9999;max-width:260px;pointer-events:none}
+#tst.on{transform:translateY(0);opacity:1}
+
+/* FOOTER */
+footer{position:fixed;bottom:0;left:0;right:0;background:var(--s1);border-top:1px solid var(--b1);padding:7px 20px;display:flex;align-items:center;justify-content:space-between;font-size:.6rem;color:var(--mu);z-index:100}
+footer strong{color:var(--tx)}
+footer a{color:var(--pr);text-decoration:none;font-weight:600}
+
+.exp-row{display:flex;gap:7px;flex-wrap:wrap}
+.or-div{display:flex;align-items:center;gap:8px;margin:9px 0;color:var(--mu);font-size:.66rem}
+.or-div::before,.or-div::after{content:'';flex:1;height:1px;background:var(--b1)}
+.empty-st{text-align:center;padding:24px;color:var(--mu);font-size:.76rem}
+.empty-st .ei{font-size:1.7rem;margin-bottom:5px}
+
+@media(max-width:600px){
+  .sum-grid{grid-template-columns:repeat(2,1fr)}
+  .forn-grid{grid-template-columns:1fr}
+  .tut-step.on{grid-template-columns:1fr}
+  .fg{flex-direction:column}
+  .tab{font-size:.64rem;padding:7px 9px}
+  footer{flex-direction:column;gap:2px;text-align:center;padding:5px}
+}
+</style>
+<script>
+(function(){
+  var cfg = JSON.parse(localStorage.getItem('cota_cfg')||'null');
+  if(cfg && cfg.nome) return;
+  localStorage.setItem('cota_cfg', JSON.stringify({
+    nome:'Transportes Belém LTDA', cnpj:'12.345.678/0001-90', logo:''
+  }));
+  localStorage.setItem('cota_data', JSON.stringify({
+    fornecedores:[
+      {id:1,nome:'Petrobras Distribuidora',cnpj:'33.453.059/0001-40',contato:'Carlos Fonseca',tel:'(91) 3210-5000',prazo:30,pagamento:'Boleto 30 dias',nota:5},
+      {id:2,nome:'Ipiranga S.A.',cnpj:'34.274.233/0001-02',contato:'Ana Ribeiro',tel:'(91) 3211-6000',prazo:15,pagamento:'Boleto 15 dias',nota:4},
+      {id:3,nome:'Raízen Combustíveis',cnpj:'08.402.943/0001-52',contato:'Paulo Melo',tel:'(91) 3212-7000',prazo:30,pagamento:'Boleto 30 dias',nota:4}
+    ],
+    itens:[
+      {id:1,descricao:'Diesel S10',un:'Litros',qtd:5000},
+      {id:2,descricao:'Óleo Motor 15W40',un:'Litros',qtd:100},
+      {id:3,descricao:'Filtro de Óleo',un:'UN',qtd:20}
+    ],
+    precos:{
+      '1-1':6.48, '1-2':6.45, '1-3':6.52,
+      '2-1':32.50, '2-2':31.80, '2-3':33.00,
+      '3-1':29.00, '3-2':28.50, '3-3':30.00
+    },
+    historico:[
+      {id:1,data:'10/04/2026',descricao:'Combustível Maio/2026',vencedor:'Ipiranga S.A.',total:32250}
+    ]
+  }));
+})();
+</script>
+</head>
+<body>
+<div style="position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#F59E0B,#EF4444);color:#000;text-align:center;font-size:.7rem;font-weight:800;padding:5px;z-index:99999;letter-spacing:.5px">
+⚡ VERSÃO DEMO — Dados fictícios para demonstração &nbsp;·&nbsp; Adquira pelo WhatsApp: (91) 99987-9932
+</div>
+<div style="height:25px"></div>
+<div class="lov" id="ldr"><div class="sp"></div><div class="lm" id="lmsg">Processando...</div></div>
+<div id="tst"></div>
+
+<!-- WELCOME -->
+<div class="wov" id="welcome">
+  <div class="wbox">
+    <div class="wlogo">🛒</div>
+    <h2>Cota<em>Fácil</em></h2>
+    <p class="wsub">Sistema de Cotação e Comparação de Fornecedores<br>Encontre o melhor preço em segundos</p>
+    <div class="wgrid">
+      <div class="wf full"><label>Nome da Empresa</label><input id="w-emp" type="text" placeholder="Ex: Construtora João LTDA" oninput="chkW()"></div>
+      <div class="wf"><label>CNPJ</label><input id="w-cnpj" type="text" placeholder="00.000.000/0001-00" oninput="maskCNPJ(this)"></div>
+      <div class="wf"><label>Setor / Depto.</label><input id="w-set" type="text" placeholder="Ex: Compras, Suprimentos"></div>
+      <label class="wlogo-up" for="w-logo"><input type="file" id="w-logo" accept="image/*" onchange="prevLogo(this)"><div style="font-size:1.3rem;margin-bottom:3px">🖼️</div><div style="font-size:.72rem;font-weight:600">Logo da empresa (opcional)</div><div style="font-size:.6rem;color:var(--mu)">Aparece nos relatórios exportados</div></label>
+      <div class="lprev" id="lprev"><img id="limg" src="" alt="logo"><span id="lfn">logo.png</span><button onclick="remLogo()">✕</button></div>
+    </div>
+    <button class="wbtn" id="w-btn" onclick="startApp()" disabled>Entrar no Sistema →</button>
+    <div class="wfoot">Desenvolvido por <strong>João Gomes</strong> · <a href="https://wa.me/5591999879932" target="_blank">(91) 99987-9932</a> · v1.0</div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="hlogo">
+    <div class="hicon">🛒</div>
+    <div><div class="hname">Cota<em>Fácil</em></div><div class="hsub">Cotação de Fornecedores</div></div>
+  </div>
+  <div class="hright">
+    <div class="emp-badge" id="emp-badge"><span id="emp-h">—</span></div>
+    <span class="hver">v1.0</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab on" onclick="goTab('cota',this)">📋 Nova Cotação</button>
+  <button class="tab" onclick="goTab('forn',this)">🏢 Fornecedores</button>
+  <button class="tab" onclick="goTab('hist',this)">📊 Histórico</button>
+  <button class="tab" onclick="goTab('tut',this)">📖 Tutorial</button>
+</div>
+
+<div class="wrap">
+
+  <!-- NOVA COTAÇÃO -->
+  <div id="sec-cota" class="sec on">
+    <div class="card">
+      <div class="card-h"><div class="card-t">📋 Dados da Cotação</div></div>
+      <div class="fg" style="margin-bottom:10px">
+        <div class="f" style="flex:2"><label>Título da Cotação *</label><input id="c-titulo" type="text" placeholder="Ex: Cotação Material Escritório Junho/2026"></div>
+        <div class="f"><label>Data</label><input id="c-data" type="date"></div>
+        <div class="f"><label>Validade (dias)</label><input id="c-valid" type="number" min="1" max="90" placeholder="7" value="7"></div>
+      </div>
+      <div class="f"><label>Observações</label><textarea id="c-obs" placeholder="Condições de pagamento, prazo de entrega, especificações..."></textarea></div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">🏢 Selecione os Fornecedores <span id="forn-sel-count" style="font-size:.62rem;padding:2px 7px;border-radius:20px;background:var(--prg);color:var(--pr);font-weight:700">0</span></div>
+        <button class="btn bgh" onclick="goTabBtn('forn')" style="font-size:.68rem;padding:5px 9px">+ Novo Fornecedor</button>
+      </div>
+      <div class="forn-grid" id="forn-sel-grid">
+        <div class="empty-st"><div class="ei">🏢</div>Nenhum fornecedor cadastrado.<br>Vá em <strong>Fornecedores</strong> para adicionar.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">📦 Itens para Cotar <span id="item-count" style="font-size:.62rem;padding:2px 7px;border-radius:20px;background:var(--prg);color:var(--pr);font-weight:700">0</span></div>
+      </div>
+      <div class="fg" style="margin-bottom:10px">
+        <div class="f" style="flex:2"><label>Item / Produto *</label><input id="i-nome" type="text" placeholder="Ex: Papel A4 500 folhas, Caneta azul..."></div>
+        <div class="f" style="max-width:80px"><label>Qtd. *</label><input id="i-qtd" type="number" min="1" placeholder="1"></div>
+        <div class="f" style="max-width:80px"><label>Unidade</label><input id="i-un" type="text" placeholder="un, kg, cx..."></div>
+        <button class="btn bpr" onclick="addItem()">＋ Add</button>
+      </div>
+      <div id="items-list">
+        <div class="empty-st"><div class="ei">📦</div>Nenhum item adicionado ainda</div>
+      </div>
+    </div>
+
+    <div class="card" id="precos-card" style="display:none">
+      <div class="card-h"><div class="card-t">💰 Preencher Preços por Fornecedor</div></div>
+      <div class="cota-wrap">
+        <table class="cota-table" id="precos-table"></table>
+      </div>
+    </div>
+
+    <div id="resultado-wrap" style="display:none">
+      <div class="result-winner" id="result-winner"></div>
+      <div class="sum-grid" id="result-sum"></div>
+      <div class="card">
+        <div class="card-h"><div class="card-t">📊 Comparativo Completo</div></div>
+        <div class="cota-wrap"><table class="cota-table" id="result-table"></table></div>
+      </div>
+    </div>
+
+    <div class="exp-row">
+      <button class="btn bpr" onclick="calcular()">🏆 Calcular Melhor Preço</button>
+      <button class="btn bgr" onclick="expCotaPDF()">📄 Exportar PDF</button>
+      <button class="btn bbl" onclick="expCotaXLS()">📊 Exportar Excel</button>
+      <button class="btn bre" onclick="salvarCota()" style="margin-left:auto">💾 Salvar no Histórico</button>
+    </div>
+  </div>
+
+  <!-- FORNECEDORES -->
+  <div id="sec-forn" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">➕ Cadastrar Fornecedor</div></div>
+      <div class="fg" style="margin-bottom:8px">
+        <div class="f" style="flex:2"><label>Nome do Fornecedor / Empresa *</label><input id="f-nome" type="text" placeholder="Ex: Distribuidora ABC Ltda"></div>
+        <div class="f"><label>CNPJ</label><input id="f-cnpj" type="text" placeholder="00.000.000/0001-00" oninput="maskCNPJ(this)"></div>
+        <div class="f"><label>Contato / Telefone</label><input id="f-tel" type="text" placeholder="(91) 99999-9999" oninput="maskTel(this)"></div>
+      </div>
+      <div class="fg" style="margin-bottom:8px">
+        <div class="f"><label>E-mail</label><input id="f-email" type="text" placeholder="fornecedor@email.com"></div>
+        <div class="f"><label>Prazo de Entrega</label><input id="f-prazo" type="text" placeholder="Ex: 3 dias úteis"></div>
+        <div class="f"><label>Condição de Pagamento</label><input id="f-pag" type="text" placeholder="Ex: 30/60 dias, à vista"></div>
+        <div class="f" style="max-width:100px"><label>Nota (1-5)</label>
+          <select id="f-nota"><option value="5">⭐⭐⭐⭐⭐ 5</option><option value="4">⭐⭐⭐⭐ 4</option><option value="3">⭐⭐⭐ 3</option><option value="2">⭐⭐ 2</option><option value="1">⭐ 1</option></select>
+        </div>
+      </div>
+      <div class="f" style="margin-bottom:10px"><label>Observações</label><textarea id="f-obs" placeholder="Especialidade, produtos que fornece, observações gerais..." style="min-height:44px"></textarea></div>
+      <button class="btn bpr" onclick="addForn()">＋ Cadastrar Fornecedor</button>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">Fornecedores Cadastrados <span id="forn-count" style="font-size:.62rem;padding:2px 7px;border-radius:20px;background:var(--prg);color:var(--pr);font-weight:700">0</span></div>
+      </div>
+      <div id="forn-list"><div class="empty-st"><div class="ei">🏢</div>Nenhum fornecedor cadastrado ainda</div></div>
+    </div>
+  </div>
+
+  <!-- HISTÓRICO -->
+  <div id="sec-hist" class="sec">
+    <div class="card">
+      <div class="card-h"><div class="card-t">📊 Histórico de Cotações</div></div>
+      <div id="hist-list"><div class="empty-st"><div class="ei">📊</div>Nenhuma cotação salva ainda.<br>Faça uma cotação e clique em <strong>Salvar no Histórico</strong>.</div></div>
+    </div>
+  </div>
+
+  <!-- TUTORIAL -->
+  <div id="sec-tut" class="sec">
+    <div class="tut-wrap">
+      <div class="tut-head">
+        <div style="font-size:1.4rem;margin-bottom:4px">🎬</div>
+        <h3>Como usar o CotaFácil</h3>
+        <p>Passo a passo para comparar fornecedores e encontrar o melhor preço</p>
+      </div>
+      <div class="tut-nav">
+        <button class="tn on" onclick="showStep(0,this)">1. Fornecedores</button>
+        <button class="tn" onclick="showStep(1,this)">2. Itens</button>
+        <button class="tn" onclick="showStep(2,this)">3. Preços</button>
+        <button class="tn" onclick="showStep(3,this)">4. Resultado</button>
+      </div>
+
+      <div class="tut-step on" id="ts0">
+        <div class="tut-screen">
+          <div class="mk">
+            <div class="mk-h"><div class="mk-logo">🛒 CotaFácil</div></div>
+            <div class="mk-b">
+              <div style="font-size:.58rem;font-weight:700;margin-bottom:6px;color:var(--pr)">🏢 Cadastrar Fornecedor</div>
+              <div style="background:var(--s1);border:1px solid var(--b1);border-radius:4px;padding:4px 6px;margin-bottom:3px"><div style="font-size:.44rem;color:var(--mu)">Nome</div><div style="font-size:.56rem;font-weight:600">Distribuidora ABC Ltda</div></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:5px">
+                <div style="background:var(--s1);border:1px solid var(--b1);border-radius:4px;padding:4px 6px"><div style="font-size:.44rem;color:var(--mu)">Prazo</div><div style="font-size:.54rem;font-weight:600">3 dias úteis</div></div>
+                <div style="background:var(--s1);border:1px solid var(--b1);border-radius:4px;padding:4px 6px"><div style="font-size:.44rem;color:var(--mu)">Nota</div><div style="font-size:.54rem;font-weight:600;color:#fbbf24">⭐⭐⭐⭐⭐</div></div>
+              </div>
+              <div style="display:flex;gap:3px">
+                <div style="flex:1;background:var(--s1);border:1.5px solid var(--pr);border-radius:5px;padding:5px;text-align:center;font-size:.5rem;font-weight:700;color:var(--pr)">✓ Distribuidora ABC</div>
+                <div style="flex:1;background:var(--s1);border:1px solid var(--b1);border-radius:5px;padding:5px;text-align:center;font-size:.5rem;color:var(--mu)">Fornecedor XYZ</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tut-info">
+          <div class="tut-num">01</div>
+          <h4>Cadastre seus Fornecedores</h4>
+          <p>Na aba <strong>Fornecedores</strong>, cadastre todos os fornecedores com nome, contato, prazo de entrega e condição de pagamento.</p>
+          <p>Dê uma nota de 1 a 5 para cada fornecedor com base no seu histórico.</p>
+          <div class="tut-tip">💡 Cadastre uma vez e use em todas as cotações futuras. Seus fornecedores ficam salvos.</div>
+        </div>
+      </div>
+
+      <div class="tut-step" id="ts1">
+        <div class="tut-screen">
+          <div class="mk">
+            <div class="mk-h"><div class="mk-logo">🛒 CotaFácil</div></div>
+            <div class="mk-b">
+              <div style="font-size:.56rem;font-weight:700;margin-bottom:5px">📦 Itens para Cotar</div>
+              <div style="background:var(--s1);border:1px solid var(--b1);border-radius:4px;padding:4px 7px;margin-bottom:3px;display:flex;justify-content:space-between"><span style="font-size:.54rem;font-weight:600">Papel A4 500fls</span><span style="font-size:.5rem;color:var(--mu)">10 cx</span></div>
+              <div style="background:var(--s1);border:1px solid var(--b1);border-radius:4px;padding:4px 7px;margin-bottom:3px;display:flex;justify-content:space-between"><span style="font-size:.54rem;font-weight:600">Caneta Azul</span><span style="font-size:.5rem;color:var(--mu)">50 un</span></div>
+              <div style="background:var(--s1);border:1px solid var(--b1);border-radius:4px;padding:4px 7px;display:flex;justify-content:space-between"><span style="font-size:.54rem;font-weight:600">Envelope A4</span><span style="font-size:.5rem;color:var(--mu)">5 cx</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="tut-info">
+          <div class="tut-num">02</div>
+          <h4>Adicione os Itens</h4>
+          <p>Na aba <strong>Nova Cotação</strong>, adicione os produtos ou serviços que precisa cotar — com quantidade e unidade.</p>
+          <p>Selecione também quais fornecedores participam desta cotação.</p>
+          <div class="tut-tip">💡 Você pode adicionar quantos itens precisar. O app organiza tudo em uma tabela comparativa.</div>
+        </div>
+      </div>
+
+      <div class="tut-step" id="ts2">
+        <div class="tut-screen">
+          <div class="mk">
+            <div class="mk-h"><div class="mk-logo">🛒 CotaFácil</div></div>
+            <div class="mk-b">
+              <div style="font-size:.54rem;font-weight:700;margin-bottom:5px">💰 Preços por Fornecedor</div>
+              <table style="width:100%;border-collapse:collapse;font-size:.48rem">
+                <tr style="background:var(--s2)"><th style="padding:3px 4px;text-align:left">Item</th><th style="padding:3px 4px">ABC Ltda</th><th style="padding:3px 4px">XYZ Corp</th></tr>
+                <tr><td style="padding:3px 4px;font-weight:600">Papel A4</td><td style="padding:3px 4px;text-align:center"><input type="number" style="width:40px;padding:1px 3px;background:var(--s3);border:1px solid var(--b1);border-radius:3px;color:var(--tx);font-size:.46rem" placeholder="0,00"></td><td style="padding:3px 4px;text-align:center"><input type="number" style="width:40px;padding:1px 3px;background:var(--s3);border:1px solid var(--b1);border-radius:3px;color:var(--tx);font-size:.46rem" placeholder="0,00"></td></tr>
+                <tr><td style="padding:3px 4px;font-weight:600">Caneta Azul</td><td style="padding:3px 4px;text-align:center;background:rgba(34,197,94,.06)"><span style="font-size:.48rem;color:var(--gr);font-weight:700">R$ 1,20 ✓</span></td><td style="padding:3px 4px;text-align:center"><span style="font-size:.48rem">R$ 1,50</span></td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="tut-info">
+          <div class="tut-num">03</div>
+          <h4>Preencha os Preços</h4>
+          <p>Uma tabela automática aparece com todos os itens e fornecedores selecionados. Digite o preço unitário de cada fornecedor para cada item.</p>
+          <p>Deixe em branco os itens que o fornecedor não tem disponível.</p>
+          <div class="tut-tip">💡 O app destaca automaticamente o menor preço de cada item em verde enquanto você digita.</div>
+        </div>
+      </div>
+
+      <div class="tut-step" id="ts3">
+        <div class="tut-screen">
+          <div class="mk">
+            <div class="mk-h"><div class="mk-logo">🛒 CotaFácil</div></div>
+            <div class="mk-b">
+              <div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:6px 8px;margin-bottom:6px;display:flex;align-items:center;gap:6px"><span style="font-size:1rem">🏆</span><div><div style="font-size:.56rem;font-weight:800;color:var(--gr)">Melhor: Distribuidora ABC Ltda</div><div style="font-size:.48rem;color:var(--mu)">Menor valor total da cotação</div></div><div style="margin-left:auto;font-size:.7rem;font-weight:800;color:var(--gr)">R$ 1.240</div></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                <div style="background:var(--s1);border:1px solid var(--b1);border-radius:4px;padding:4px;text-align:center"><div style="font-size:.5rem;font-weight:800;color:var(--gr)">R$ 1.240</div><div style="font-size:.42rem;color:var(--mu)">ABC Ltda</div></div>
+                <div style="background:var(--s1);border:1px solid var(--b1);border-radius:4px;padding:4px;text-align:center"><div style="font-size:.5rem;font-weight:800;color:var(--ye)">R$ 1.380</div><div style="font-size:.42rem;color:var(--mu)">XYZ Corp</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tut-info">
+          <div class="tut-num">04</div>
+          <h4>Veja o Resultado e Exporte</h4>
+          <p>Clique em <strong>🏆 Calcular Melhor Preço</strong> — o app aponta o fornecedor mais barato no total e mostra a economia comparada.</p>
+          <p>Exporte o resultado em <strong>PDF</strong> para apresentar ou em <strong>Excel</strong> para análise. Salve no histórico para consultar depois.</p>
+          <div class="tut-tip">💡 O resultado pode ser salvo no Histórico para comparar cotações de períodos diferentes.</div>
+        </div>
+      </div>
+
+      <div class="tut-btns">
+        <button class="btn bgh" id="btn-prev" onclick="stepNav(-1)" style="display:none;font-size:.7rem">← Anterior</button>
+        <button class="btn bpr" id="btn-next" onclick="stepNav(1)" style="font-size:.7rem">Próximo →</button>
+      </div>
+    </div>
+
+    <div style="background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:15px;text-align:center">
+      <div style="font-size:1.2rem;margin-bottom:5px">💬</div>
+      <div style="font-size:.8rem;font-weight:700;margin-bottom:3px">Precisa de ajuda?</div>
+      <div style="font-size:.72rem;color:var(--mu);margin-bottom:11px">Fale com o desenvolvedor pelo WhatsApp</div>
+      <a href="https://wa.me/5591999879932" target="_blank" class="btn bpr" style="text-decoration:none;margin:0 auto">💬 João Gomes · (91) 99987-9932</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div><strong>CotaFácil</strong> &nbsp;·&nbsp; v1.0 &nbsp;·&nbsp; Cotação de Fornecedores</div>
+  <div>Desenvolvido por <strong>João Gomes</strong> &nbsp;·&nbsp; <a href="https://wa.me/5591999879932" target="_blank">📱 (91) 99987-9932</a></div>
+</footer>
+
+<script>
+var emp={nome:'',cnpj:'',setor:'',logoURL:''};
+var fornecedores=[],itens=[],historico=[];
+var curStep=0,totalSteps=4;
+var precos={};// precos[itemIdx][fornIdx] = valor
+
+// WELCOME
+function chkW(){var v=document.getElementById('w-emp').value.trim();document.getElementById('w-btn').disabled=v.length<2;}
+function prevLogo(inp){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){document.getElementById('limg').src=e.target.result;document.getElementById('lfn').textContent=f.name;document.getElementById('lprev').style.display='flex';emp.logoURL=e.target.result;};r.readAsDataURL(f);}
+function remLogo(){document.getElementById('lprev').style.display='none';document.getElementById('w-logo').value='';emp.logoURL='';}
+function startApp(){
+  emp.nome=document.getElementById('w-emp').value.trim();
+  emp.cnpj=document.getElementById('w-cnpj').value.trim();
+  emp.setor=document.getElementById('w-set').value.trim();
+  var ov=document.getElementById('welcome');ov.style.transition='opacity .3s';ov.style.opacity='0';setTimeout(function(){ov.style.display='none';},320);
+  document.getElementById('emp-h').textContent='🏢 '+emp.nome;
+  if(emp.logoURL){var img=document.createElement('img');img.src=emp.logoURL;img.style.height='16px';img.style.objectFit='contain';document.getElementById('emp-badge').insertBefore(img,document.getElementById('emp-h'));}
+  document.getElementById('c-data').value=new Date().toISOString().slice(0,10);
+}
+
+// MASKS
+function maskCNPJ(el){var v=el.value.replace(/\D/g,'').slice(0,14);if(v.length>12)v=v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/,'$1.$2.$3/$4-$5');else if(v.length>8)v=v.replace(/(\d{2})(\d{3})(\d{3})(\d{0,4})/,'$1.$2.$3/$4');else if(v.length>5)v=v.replace(/(\d{2})(\d{3})(\d{0,3})/,'$1.$2.$3');else if(v.length>2)v=v.replace(/(\d{2})(\d{0,3})/,'$1.$2');el.value=v;}
+function maskTel(el){var v=el.value.replace(/\D/g,'').slice(0,11);if(v.length>10)v=v.replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3');else if(v.length>6)v=v.replace(/(\d{2})(\d{4,5})(\d{0,4})/,'($1) $2-$3');else if(v.length>2)v=v.replace(/(\d{2})(\d{0,5})/,'($1) $2');el.value=v;}
+
+// TABS
+function goTab(n,b){document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('on')});document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on')});document.getElementById('sec-'+n).classList.add('on');b.classList.add('on');}
+function goTabBtn(n){var idx={cota:0,forn:1,hist:2,tut:3};goTab(n,document.querySelectorAll('.tab')[idx[n]]);}
+
+// TOAST
+function toast(m){var t=document.getElementById('tst');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on');},2600);}
+
+// FORNECEDORES
+function addForn(){
+  var nome=document.getElementById('f-nome').value.trim();
+  if(!nome){toast('⚠️ Informe o nome do fornecedor');return;}
+  fornecedores.push({
+    id:Date.now(),
+    nome:nome,
+    cnpj:document.getElementById('f-cnpj').value.trim(),
+    tel:document.getElementById('f-tel').value.trim(),
+    email:document.getElementById('f-email').value.trim(),
+    prazo:document.getElementById('f-prazo').value.trim(),
+    pag:document.getElementById('f-pag').value.trim(),
+    nota:parseInt(document.getElementById('f-nota').value),
+    obs:document.getElementById('f-obs').value.trim()
+  });
+  ['f-nome','f-cnpj','f-tel','f-email','f-prazo','f-pag','f-obs'].forEach(function(id){document.getElementById(id).value='';});
+  renderForn();renderFornSel();
+  toast('✅ Fornecedor cadastrado!');
+}
+function delForn(id){fornecedores=fornecedores.filter(function(f){return f.id!==id;});renderForn();renderFornSel();toast('🗑 Fornecedor removido');}
+function renderForn(){
+  document.getElementById('forn-count').textContent=fornecedores.length;
+  var el=document.getElementById('forn-list');
+  if(!fornecedores.length){el.innerHTML='<div class="empty-st"><div class="ei">🏢</div>Nenhum fornecedor cadastrado ainda</div>';return;}
+  el.innerHTML=fornecedores.map(function(f){
+    var stars='⭐'.repeat(f.nota);
+    return '<div style="background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:11px 13px;margin-bottom:7px;display:flex;align-items:flex-start;gap:10px">'+
+      '<div style="flex:1"><div style="font-size:.8rem;font-weight:700;margin-bottom:3px">'+esc(f.nome)+'</div>'+
+      '<div style="font-size:.66rem;color:var(--mu);line-height:1.6">'+
+      (f.cnpj?'CNPJ: '+esc(f.cnpj)+'<br>':'')+
+      (f.tel?'📱 '+esc(f.tel)+' ':'')+
+      (f.email?'✉️ '+esc(f.email)+'<br>':'')+
+      (f.prazo?'🚚 Prazo: '+esc(f.prazo)+' ':'')+
+      (f.pag?'💳 Pgto: '+esc(f.pag):'')+
+      '</div><div class="forn-nota">'+stars+' ('+f.nota+'/5)</div>'+
+      (f.obs?'<div style="font-size:.62rem;color:var(--mu2);margin-top:4px">'+esc(f.obs)+'</div>':'')+
+      '</div><button class="btn bre" style="padding:4px 8px;font-size:.66rem" onclick="delForn('+f.id+')">✕</button></div>';
+  }).join('');
+}
+function renderFornSel(){
+  var el=document.getElementById('forn-sel-grid');
+  if(!fornecedores.length){el.innerHTML='<div class="empty-st"><div class="ei">🏢</div>Nenhum fornecedor cadastrado.<br>Vá em <strong>Fornecedores</strong> para adicionar.</div>';return;}
+  el.innerHTML=fornecedores.map(function(f){
+    var stars='⭐'.repeat(f.nota);
+    return '<div class="forn-card" id="fsel-'+f.id+'" onclick="toggleFornSel('+f.id+')">'+
+      '<div class="forn-name">'+esc(f.nome)+'</div>'+
+      '<div class="forn-info">'+(f.prazo?'🚚 '+esc(f.prazo):'')+(f.pag?' · 💳 '+esc(f.pag):'')+'</div>'+
+      '<div class="forn-nota">'+stars+'</div></div>';
+  }).join('');
+}
+var selForn=new Set();
+function toggleFornSel(id){
+  var el=document.getElementById('fsel-'+id);
+  if(selForn.has(id)){selForn.delete(id);el.classList.remove('sel');}
+  else{selForn.add(id);el.classList.add('sel');}
+  document.getElementById('forn-sel-count').textContent=selForn.size;
+  buildPrecosTable();
+}
+
+// ITENS
+function addItem(){
+  var nome=document.getElementById('i-nome').value.trim();
+  var qtd=parseFloat(document.getElementById('i-qtd').value)||1;
+  var un=document.getElementById('i-un').value.trim()||'un';
+  if(!nome){toast('⚠️ Informe o nome do item');return;}
+  itens.push({id:Date.now(),nome:nome,qtd:qtd,un:un});
+  document.getElementById('i-nome').value='';document.getElementById('i-qtd').value='';document.getElementById('i-un').value='';
+  renderItens();buildPrecosTable();
+  toast('✅ Item adicionado!');
+}
+function delItem(id){itens=itens.filter(function(i){return i.id!==id;});renderItens();buildPrecosTable();toast('🗑 Item removido');}
+function renderItens(){
+  document.getElementById('item-count').textContent=itens.length;
+  var el=document.getElementById('items-list');
+  if(!itens.length){el.innerHTML='<div class="empty-st"><div class="ei">📦</div>Nenhum item adicionado ainda</div>';return;}
+  el.innerHTML=itens.map(function(it){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--s2);border:1px solid var(--b1);border-radius:7px;margin-bottom:4px;font-size:.78rem">'+
+      '<span style="flex:1;font-weight:500">'+esc(it.nome)+'</span>'+
+      '<span style="color:var(--mu);font-size:.72rem">'+it.qtd+' '+esc(it.un)+'</span>'+
+      '<button class="btn bre" style="padding:3px 7px;font-size:.66rem" onclick="delItem('+it.id+')">✕</button></div>';
+  }).join('');
+}
+
+// PREÇOS TABLE
+function buildPrecosTable(){
+  var fornSel=fornecedores.filter(function(f){return selForn.has(f.id);});
+  var pc=document.getElementById('precos-card');
+  if(!itens.length||!fornSel.length){pc.style.display='none';return;}
+  pc.style.display='block';
+  var th='<thead><tr><th>Item</th><th>Qtd</th>'+fornSel.map(function(f){return '<th>'+esc(f.nome)+'</th>';}).join('')+'</tr></thead>';
+  var tb='<tbody>'+itens.map(function(it,ii){
+    return '<tr><td class="td-item">'+esc(it.nome)+'</td><td class="td-un">'+it.qtd+' '+esc(it.un)+'</td>'+
+      fornSel.map(function(f,fi){
+        var key='p_'+it.id+'_'+f.id;
+        var val=precos[key]||'';
+        return '<td><input type="number" step="0.01" min="0" placeholder="0,00" value="'+val+'" style="width:90px;padding:5px 7px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;color:var(--tx);font-family:JetBrains Mono,monospace;font-size:.74rem;text-align:right" onchange="savePreco(\''+key+'\',this.value)" oninput="savePreco(\''+key+'\',this.value);highlightBest()"></td>';
+      }).join('')+'</tr>';
+  }).join('')+'</tbody>';
+  document.getElementById('precos-table').innerHTML=th+tb;
+}
+function savePreco(key,val){precos[key]=parseFloat(val)||0;}
+function highlightBest(){
+  var fornSel=fornecedores.filter(function(f){return selForn.has(f.id);});
+  itens.forEach(function(it,ii){
+    var vals=fornSel.map(function(f){return precos['p_'+it.id+'_'+f.id]||0;});
+    var min=Math.min.apply(null,vals.filter(function(v){return v>0;}));
+    var cells=document.querySelectorAll('#precos-table tbody tr:nth-child('+(ii+1)+') td');
+    fornSel.forEach(function(f,fi){
+      var cell=cells[fi+2];
+      if(!cell)return;
+      var v=precos['p_'+it.id+'_'+f.id]||0;
+      if(v>0&&v===min){cell.style.background='rgba(34,197,94,.07)';}
+      else{cell.style.background='';}
+    });
+  });
+}
+
+// CALCULAR
+function calcular(){
+  var fornSel=fornecedores.filter(function(f){return selForn.has(f.id);});
+  if(!fornSel.length){toast('⚠️ Selecione pelo menos 1 fornecedor');return;}
+  if(!itens.length){toast('⚠️ Adicione pelo menos 1 item');return;}
+  // totais por fornecedor
+  var totais=fornSel.map(function(f){
+    var total=itens.reduce(function(s,it){var v=precos['p_'+it.id+'_'+f.id]||0;return s+(v*it.qtd);},0);
+    return{f:f,total:total};
+  });
+  totais.sort(function(a,b){return a.total-b.total;});
+  var winner=totais[0];
+  var economia=totais.length>1?totais[1].total-totais[0].total:0;
+  // winner box
+  document.getElementById('result-winner').innerHTML=
+    '<div class="rw-icon">🏆</div>'+
+    '<div><div class="rw-title">Melhor Fornecedor: '+esc(winner.f.nome)+'</div>'+
+    '<div class="rw-sub">Menor valor total da cotação'+(economia>0?' · Economia de '+fmt(economia)+' em relação ao 2º':'')+'</div>'+
+    (winner.f.prazo?'<div style="font-size:.68rem;color:var(--mu);margin-top:3px">🚚 '+esc(winner.f.prazo)+' &nbsp;·&nbsp; 💳 '+esc(winner.f.pag)+'</div>':'')+
+    '</div>'+
+    '<div class="rw-val">'+fmt(winner.total)+'</div>';
+  // sum cards
+  document.getElementById('result-sum').innerHTML=totais.slice(0,4).map(function(t,i){
+    var classes=['or','ye','re','re'];
+    return '<div class="sum-card '+classes[i]+'"><div class="sn" style="font-size:1rem">'+fmt(t.total)+'</div><div class="sl">'+(i===0?'🏆 ':i===1?'🥈 ':i===2?'🥉 ':'')+(i+1)+'º '+esc(t.f.nome)+'</div></div>';
+  }).join('');
+  // result table
+  var th='<thead><tr><th>Item</th><th>Qtd</th>'+fornSel.map(function(f){return '<th>'+esc(f.nome)+'</th>';}).join('')+'</tr></thead>';
+  var tb='<tbody>'+itens.map(function(it){
+    var vals=fornSel.map(function(f){return precos['p_'+it.id+'_'+f.id]||0;});
+    var min=Math.min.apply(null,vals.filter(function(v){return v>0;}));
+    return '<tr><td class="td-item">'+esc(it.nome)+'</td><td class="td-un">'+it.qtd+' '+esc(it.un)+'</td>'+
+      fornSel.map(function(f){var v=precos['p_'+it.id+'_'+f.id]||0;var isBest=v>0&&v===min;return '<td class="'+(isBest?'td-melhor':'')+'"><span class="td-val">'+( v>0?fmt(v):'—')+'</span>'+(isBest?'<span class="melhor-badge">✓ melhor</span>':'')+'</td>';}).join('')+
+      '</tr>';
+  }).join('');
+  var totRow='<tr style="font-weight:700;border-top:2px solid var(--b1)"><td colspan="2" style="padding:7px 9px">TOTAL GERAL</td>'+
+    fornSel.map(function(f,fi){var t=totais.find(function(x){return x.f.id===f.id;});var isBest=fi===0||t.f.id===winner.f.id;return '<td class="'+(t.f.id===winner.f.id?'td-melhor':'')+'"><span class="td-val" style="font-size:.82rem">'+fmt(t.total)+'</span>'+(t.f.id===winner.f.id?'<span class="melhor-badge">🏆</span>':'')+'</td>';}).join('')+'</tr>';
+  document.getElementById('result-table').innerHTML=th+'<tbody>'+tb+totRow+'</tbody>';
+  document.getElementById('resultado-wrap').style.display='block';
+  document.getElementById('resultado-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+  toast('🏆 Melhor preço: '+esc(winner.f.nome)+' — '+fmt(winner.total));
+}
+
+// SALVAR HISTÓRICO
+function salvarCota(){
+  var titulo=document.getElementById('c-titulo').value.trim()||'Cotação '+hoje();
+  var fornSel=fornecedores.filter(function(f){return selForn.has(f.id);});
+  if(!itens.length||!fornSel.length){toast('⚠️ Adicione itens e selecione fornecedores antes de salvar');return;}
+  historico.unshift({id:Date.now(),titulo:titulo,data:hoje(),itens:itens.length,forn:fornSel.length,precos:JSON.parse(JSON.stringify(precos))});
+  renderHist();toast('💾 Cotação salva no histórico!');
+}
+function renderHist(){
+  var el=document.getElementById('hist-list');
+  if(!historico.length){el.innerHTML='<div class="empty-st"><div class="ei">📊</div>Nenhuma cotação salva ainda.</div>';return;}
+  el.innerHTML=historico.map(function(h){
+    return '<div style="background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:11px 13px;margin-bottom:7px;display:flex;align-items:center;gap:10px">'+
+      '<div style="flex:1"><div style="font-size:.8rem;font-weight:700">'+esc(h.titulo)+'</div>'+
+      '<div style="font-size:.65rem;color:var(--mu);margin-top:3px">📅 '+h.data+' &nbsp;·&nbsp; 📦 '+h.itens+' itens &nbsp;·&nbsp; 🏢 '+h.forn+' fornecedores</div></div>'+
+      '<button class="btn bre" style="padding:4px 8px;font-size:.66rem" onclick="delHist('+h.id+')">✕</button></div>';
+  }).join('');
+}
+function delHist(id){historico=historico.filter(function(h){return h.id!==id;});renderHist();toast('🗑 Removido do histórico');}
+
+// EXPORTS
+function cabPDF(){
+  var logo=emp.logoURL?'<img src="'+emp.logoURL+'" style="height:38px;object-fit:contain">':'<div style="font-size:9px;color:#94a3b8">SEM LOGO</div>';
+  return '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:2px solid #f97316;margin-bottom:14px">'+logo+'<div style="text-align:right"><div style="font-size:.88rem;font-weight:800">'+esc(emp.nome||'EMPRESA')+'</div><div style="font-size:.62rem;color:#64748b">CNPJ: '+esc(emp.cnpj||'—')+'</div>'+(emp.setor?'<div style="font-size:.62rem;color:#64748b">Setor: '+esc(emp.setor)+'</div>':'')+'</div></div>';
+}
+function rodaPDF(){return '<div style="margin-top:14px;padding-top:8px;border-top:1px solid #e2e8f0;font-size:.6rem;color:#94a3b8;text-align:center">'+esc(emp.nome||'EMPRESA')+' &nbsp;·&nbsp; CotaFácil v1.0 &nbsp;·&nbsp; João Gomes · (91) 99987-9932 &nbsp;·&nbsp; Gerado em '+hoje()+'</div>';}
+function expCotaPDF(){
+  var fornSel=fornecedores.filter(function(f){return selForn.has(f.id);});
+  if(!itens.length||!fornSel.length){toast('⚠️ Adicione itens e selecione fornecedores');return;}
+  var titulo=document.getElementById('c-titulo').value.trim()||'Cotação de Preços';
+  var thCols=fornSel.map(function(f){return '<th style="padding:6px 8px;background:#f97316;color:#fff;border:1px solid #ea6c0a;font-size:10px">'+esc(f.nome)+'</th>';}).join('');
+  var rows=itens.map(function(it){
+    var vals=fornSel.map(function(f){return precos['p_'+it.id+'_'+f.id]||0;});
+    var min=Math.min.apply(null,vals.filter(function(v){return v>0;}));
+    return '<tr><td style="padding:6px 8px;border:1px solid #e5e7eb;font-size:11px;font-weight:500">'+esc(it.nome)+'</td><td style="padding:6px 8px;border:1px solid #e5e7eb;font-size:11px;text-align:center">'+it.qtd+' '+esc(it.un)+'</td>'+
+      fornSel.map(function(f){var v=precos['p_'+it.id+'_'+f.id]||0;var best=v>0&&v===min;return '<td style="padding:6px 8px;border:1px solid #e5e7eb;font-size:11px;text-align:right;background:'+(best?'#f0fdf4':'#fff')+';color:'+(best?'#16a34a':'#111')+';font-weight:'+(best?'700':'400')+'">'+( v>0?fmt(v):'—')+'</td>';}).join('')+'</tr>';
+  }).join('');
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(titulo)+'</title><style>body{font-family:Arial,sans-serif;margin:24px;color:#111}h2{font-size:15px;color:#f97316;margin-bottom:3px}table{width:100%;border-collapse:collapse}th{background:#f97316;color:#fff;padding:6px 8px;font-size:10px;text-align:left;border:1px solid #ea6c0a}@media print{body{margin:6px}}</style></head><body>'+cabPDF()+'<h2>🛒 '+esc(titulo)+'</h2><p style="font-size:10px;color:#64748b;margin-bottom:12px">Data: '+hoje()+' &nbsp;·&nbsp; Validade: '+( document.getElementById('c-valid').value||7)+' dias</p><table><thead><tr><th>Item</th><th>Qtd/Un</th>'+thCols+'</tr></thead><tbody>'+rows+'</tbody></table>'+rodaPDF()+'</body></html>';
+  var w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(function(){w.print();},600);
+  toast('📄 PDF aberto!');
+}
+function expCotaXLS(){
+  var fornSel=fornecedores.filter(function(f){return selForn.has(f.id);});
+  if(!itens.length||!fornSel.length){toast('⚠️ Adicione itens e selecione fornecedores');return;}
+  var titulo=document.getElementById('c-titulo').value.trim()||'Cotação';
+  var header=['Item','Qtd','Unidade'].concat(fornSel.map(function(f){return f.nome;}));
+  var rows=itens.map(function(it){return [it.nome,it.qtd,it.un].concat(fornSel.map(function(f){return precos['p_'+it.id+'_'+f.id]||'';}));});
+  var totRow=['TOTAL','',''].concat(fornSel.map(function(f){return itens.reduce(function(s,it){return s+(precos['p_'+it.id+'_'+f.id]||0)*it.qtd;},0);}));
+  var data=[[titulo],[],header,...rows,[],totRow];
+  var wb=XLSX.utils.book_new();var ws=XLSX.utils.aoa_to_sheet(data);ws['!cols']=[{wch:30},{wch:8},{wch:8}].concat(fornSel.map(function(){return{wch:14};}));XLSX.utils.book_append_sheet(wb,ws,'Cotação');
+  var wf=XLSX.utils.aoa_to_sheet([['Nome','CNPJ','Telefone','E-mail','Prazo','Pagamento','Nota'],...fornecedores.map(function(f){return[f.nome,f.cnpj,f.tel,f.email,f.prazo,f.pag,f.nota+'/5'];})]);wf['!cols']=[{wch:28},{wch:18},{wch:16},{wch:24},{wch:14},{wch:16},{wch:8}];XLSX.utils.book_append_sheet(wb,wf,'Fornecedores');
+  XLSX.writeFile(wb,'CotaFacil-'+new Date().toISOString().slice(0,10)+'.xlsx');toast('📊 Excel exportado!');
+}
+
+// TUTORIAL
+function showStep(n,btn){document.querySelectorAll('.tut-step').forEach(function(s){s.classList.remove('on');});document.querySelectorAll('.tn').forEach(function(b){b.classList.remove('on');});document.getElementById('ts'+n).classList.add('on');if(btn)btn.classList.add('on');else document.querySelectorAll('.tn')[n].classList.add('on');curStep=n;document.getElementById('btn-prev').style.display=n===0?'none':'inline-flex';document.getElementById('btn-next').style.display=n===totalSteps-1?'none':'inline-flex';}
+function stepNav(dir){var next=curStep+dir;if(next<0||next>=totalSteps)return;showStep(next,null);}
+
+// UTILS
+function fmt(v){return 'R$ '+parseFloat(v||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
+function hoje(){var d=new Date();return d.toISOString().slice(0,10).split('-').reverse().join('/');}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ENTER
+document.getElementById('i-nome').addEventListener('keydown',function(e){if(e.key==='Enter')addItem();});
+document.getElementById('f-nome').addEventListener('keydown',function(e){if(e.key==='Enter')addForn();});
+document.getElementById('w-emp').addEventListener('keydown',function(e){if(e.key==='Enter')startApp();});
+</script>
+</body>
+</html>
