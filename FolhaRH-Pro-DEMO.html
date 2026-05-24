@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FolhaRH Pro — Sistema de Folha de Pagamento</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07090F;--surface:#0E1118;--card:#13161F;--border:#1C2235;--blue:#3B82F6;--green:#10B981;--amber:#F59E0B;--red:#EF4444;--purple:#8B5CF6;--cyan:#06B6D4;--orange:#F97316;--text:#E2E8F4;--muted:#5A6480;--subtle:#8490A8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',system-ui,sans-serif;min-height:100vh;font-size:13px}
+input,select,button,textarea{font-family:inherit}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300;gap:8px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.logo-ic{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:14px}
+.logo-nm{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+.logo-nm span{color:var(--blue)}
+.topbar-right{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.sel-mes{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:5px 10px;color:var(--text);font-size:11px;font-weight:700;outline:none;cursor:pointer}
+.sel-mes:focus{border-color:var(--blue)}
+.btn{border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid;transition:all .15s;white-space:nowrap}
+.btn-green{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4);color:var(--green)}
+.btn-blue{background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.4);color:var(--blue)}
+.btn-amber{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:var(--amber)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--subtle);color:var(--text)}
+.btn-grad{background:linear-gradient(135deg,var(--blue),var(--purple));border:none;color:#fff}
+.main-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:2px;overflow-x:auto}
+.nav-btn{padding:10px 14px;font-size:11px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.nav-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
+.main{padding:16px 20px}
+.pg-title{font-family:'DM Sans',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.3px;margin-bottom:2px}
+.pg-sub{color:var(--muted);font-size:11px;margin-bottom:14px}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:860px){.panels{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.panel-hd{border-bottom:1px solid var(--border);padding:14px 16px 11px}
+.co-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.co-ic{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.co-nm{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:800;letter-spacing:.3px;text-transform:uppercase}
+.co-cnpj{color:var(--muted);font-size:10px;margin-top:1px}
+.co-tags{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.tag{border-radius:4px;padding:2px 7px;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;border:1px solid}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tb{border-radius:5px;padding:4px 9px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid;transition:all .15s;white-space:nowrap}
+.panel-body{padding:14px 16px;flex:1;overflow-y:auto;max-height:calc(100vh - 220px)}
+.kg{display:grid;gap:7px;margin-bottom:12px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:1fr 1fr 1fr 1fr}
+.kc{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 12px;border-top:3px solid;transition:transform .15s}
+.kc:hover{transform:translateY(-2px)}
+.kl{color:var(--muted);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
+.kv{font-size:15px;font-weight:800;letter-spacing:-.3px}
+.ks{color:var(--subtle);font-size:10px;margin-top:2px}
+.sec{color:var(--muted);font-size:9px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;margin:12px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.sec:first-child{margin-top:0}
+.fr{background:var(--surface);border:1px solid var(--border);border-left:3px solid;border-radius:8px;padding:9px 11px;margin-bottom:6px}
+.fl{color:var(--muted);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+.fw{position:relative}
+.fp{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:11px;pointer-events:none}
+.fi{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 8px 6px 26px;color:var(--text);font-size:12px;outline:none;transition:border-color .15s}
+.fi:focus{border-color:var(--blue)}
+.fi.np{padding-left:8px}
+.tbox{border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;margin:4px 0 10px;border:1px solid}
+.hb{margin-bottom:7px}
+.hbt{display:flex;justify-content:space-between;margin-bottom:2px}
+.hbl{color:var(--text);font-size:11px}
+.hbv{font-size:11px;font-weight:700}
+.hbtr{height:4px;background:var(--border);border-radius:99px;overflow:hidden}
+.hbf{height:100%;border-radius:99px;transition:width .8s cubic-bezier(.34,1.56,.64,1)}
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th{color:var(--muted);font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+.tbl td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.015)}
+.tr{text-align:right;font-weight:700;white-space:nowrap}
+.bdg{display:inline-block;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;text-transform:uppercase}
+.upz{border:2px dashed var(--border);border-radius:8px;padding:11px;cursor:pointer;background:var(--surface);text-align:center;transition:all .2s;margin-bottom:8px}
+.upz:hover{border-color:var(--blue);background:rgba(59,130,246,.04)}
+.upz.done{border-color:var(--green)}
+.cbox{border-radius:10px;padding:12px 14px;border:1px solid;margin-top:12px}
+.cbr{display:flex;justify-content:space-between;margin-bottom:5px}
+.cbt{display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border);margin-top:2px}
+.dw{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+.li{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.ld{width:7px;height:7px;border-radius:99px;flex-shrink:0}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:6px}
+.bb{background:var(--surface);border:1px solid var(--border);border-left:3px solid;border-radius:9px;padding:12px 14px;margin-bottom:8px}
+.hist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:14px}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:11px 13px;cursor:pointer;transition:all .15s;position:relative}
+.mc:hover{border-color:var(--blue);transform:translateY(-2px)}
+.mc.active{border-color:var(--blue);background:rgba(59,130,246,.07)}
+.mc-nm{font-family:'Syne',sans-serif;font-size:12px;font-weight:800;margin-bottom:3px}
+.mc-val{font-size:14px;font-weight:800;color:var(--blue)}
+.mc-sub{color:var(--muted);font-size:10px;margin-top:2px}
+.mc-del{position:absolute;top:7px;right:7px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:11px;display:none;padding:2px 4px}
+.mc:hover .mc-del{display:block}
+.bar-chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;overflow-x:auto}
+.bar-chart-title{color:var(--muted);font-size:9px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;margin-bottom:8px}
+.barch{display:flex;align-items:flex-end;gap:5px;height:90px;padding-bottom:18px;min-width:280px}
+.bc{display:flex;flex-direction:column;align-items:center;flex:1;gap:2px;min-width:24px}
+.bf{width:100%;border-radius:3px 3px 0 0;min-height:2px;cursor:default;position:relative;transition:height .5s ease}
+.bf:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:10px;white-space:nowrap;color:var(--text);pointer-events:none;z-index:10}
+.bm{color:var(--muted);font-size:9px;text-align:center;white-space:nowrap}
+.mf{display:grid;gap:6px;align-items:end;margin-bottom:10px}
+.div{height:1px;background:var(--border);margin:12px 0}
+.api-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:7px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.api-inp{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--text);font-size:11px;outline:none;width:320px;font-family:inherit}
+.api-inp:focus{border-color:var(--blue)}
+.imp-btn{background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:6px;padding:5px 13px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.imp-btn:hover{opacity:.9}
+.imp-btn:disabled{opacity:.45;cursor:not-allowed}
+.panel{position:relative}
+.load-ov{position:absolute;inset:0;background:rgba(7,9,15,.88);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50;gap:10px}
+.spin{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;border-radius:8px;padding:9px 16px;font-size:12px;font-weight:700;z-index:999;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}.topbar,.main-nav,.tabs,.topbar-right,.btn-grad,.btn-ghost,.btn-amber,.upz{display:none!important}.panel-body{max-height:none!important;overflow:visible!important}.panels{grid-template-columns:1fr 1fr!important}}
+
+/* ─ WELCOME ─ */
+.wov{position:fixed;inset:0;background:linear-gradient(135deg,#07090F,#0c1422,#07090F);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.wbox{background:#0E1118;border:1px solid #1C2235;border-radius:20px;padding:34px 30px;max-width:580px;width:100%;box-shadow:0 0 80px rgba(59,130,246,.1)}
+.wic{width:54px;height:54px;border-radius:13px;background:linear-gradient(135deg,#3B82F6,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px;box-shadow:0 0 28px rgba(59,130,246,.3)}
+.wbox h2{font-size:1.3rem;font-weight:800;text-align:center;margin-bottom:3px;color:#E2E8F4;letter-spacing:-.4px}
+.wbox h2 em{color:#3B82F6;font-style:normal}
+.wsub{font-size:.75rem;color:#5A6480;text-align:center;margin-bottom:22px;line-height:1.55}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
+.wf{display:flex;flex-direction:column;gap:3px}.wf.full{grid-column:1/-1}
+.wf label{font-size:.58rem;color:#5A6480;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.wf input,.wf select{padding:8px 10px;background:#07090F;border:1.5px solid #1C2235;border-radius:7px;color:#E2E8F4;font-family:inherit;font-size:.8rem;transition:border-color .14s;-webkit-appearance:none;outline:none}
+.wf input:focus,.wf select:focus{border-color:#3B82F6}
+.wf input::placeholder{color:#2d3748}
+.wslbl{font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#3d4f6e;margin:10px 0 6px;padding-bottom:4px;border-bottom:1px solid #1C2235;grid-column:1/-1}
+.wlup{display:flex;flex-direction:column;align-items:center;padding:10px;background:#07090F;border:1.5px dashed #1C2235;border-radius:7px;cursor:pointer;transition:all .14s;text-align:center;grid-column:1/-1}
+.wlup:hover{border-color:#3B82F6;background:rgba(59,130,246,.04)}
+.wlup input{display:none}
+.wlprev{display:none;align-items:center;gap:8px;padding:7px 10px;background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.22);border-radius:6px;font-size:.7rem;color:#10B981;grid-column:1/-1}
+.wlprev img{height:24px;object-fit:contain}
+.wlprev button{margin-left:auto;background:none;border:none;color:#10B981;cursor:pointer}
+.wbtn{width:100%;padding:11px;background:linear-gradient(135deg,#3B82F6,#8B5CF6);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:.86rem;font-weight:800;cursor:pointer;margin-top:8px;transition:all .14s}
+.wbtn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(59,130,246,.28)}
+.wbtn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.wfoot{margin-top:13px;text-align:center;font-size:.58rem;color:#2d3748;line-height:1.6}
+.wfoot strong{color:#5A6480}.wfoot a{color:#3B82F6;text-decoration:none}
+/* ─ TUTORIAL ─ */
+.tov{position:fixed;inset:0;background:rgba(7,9,15,.95);z-index:8888;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.tov.on{display:flex}
+.tbox{background:#0E1118;border:1px solid #1C2235;border-radius:16px;padding:26px;max-width:640px;width:100%;max-height:88vh;overflow-y:auto}
+.tbox h3{font-size:.95rem;font-weight:800;margin-bottom:3px}
+.tbox>.tsub{font-size:.72rem;color:#5A6480;margin-bottom:16px;line-height:1.5}
+.tstep{background:#13161F;border:1px solid #1C2235;border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;margin-bottom:8px}
+.tsnum{width:26px;height:26px;background:linear-gradient(135deg,#3B82F6,#8B5CF6);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;color:#fff;flex-shrink:0}
+.tsbody h4{font-size:.78rem;font-weight:800;color:#E2E8F4;margin-bottom:3px}
+.tsbody p{font-size:.7rem;color:#5A6480;line-height:1.5;margin:0}
+.tsbody code{background:#07090F;border:1px solid #1C2235;border-radius:3px;padding:1px 5px;font-size:.65rem;color:#3B82F6}
+.ttip{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:8px 11px;font-size:.7rem;color:#F59E0B;line-height:1.5;margin:10px 0 14px}
+.tapi{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);border-radius:7px;padding:9px 12px;font-size:.7rem;color:#8490A8;line-height:1.6;margin-bottom:14px}
+.tapi strong{color:#3B82F6}
+.tclose{width:100%;padding:9px;background:linear-gradient(135deg,#3B82F6,#8B5CF6);color:#fff;border:none;border-radius:7px;font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer}
+/* ─ FOOTER ─ */
+.dev-foot{background:#0E1118;border-top:1px solid #1C2235;padding:7px 20px;display:flex;align-items:center;justify-content:space-between;font-size:.58rem;color:#3d4f6e;flex-wrap:wrap;gap:4px}
+.dev-foot strong{color:#5A6480}.dev-foot a{color:#3B82F6;text-decoration:none;font-weight:600}
+.dev-foot button{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);color:#3B82F6;border-radius:5px;padding:3px 8px;font-size:.57rem;font-weight:700;cursor:pointer;font-family:inherit}
+/* ─ PRINT LOGO ─ */
+.print-logo-bar{display:none;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--border);margin-bottom:10px}
+.print-logo-bar img{height:32px;object-fit:contain}
+.print-logo-bar .pln{font-size:12px;font-weight:800}
+@media print{.print-logo-bar{display:flex!important}.api-bar,.dev-foot,.btn-ghost,.btn-amber{display:none!important}}
+</style>
+<script>
+(function(){
+  var cfg = JSON.parse(localStorage.getItem('folharh_cfg')||'null');
+  if(cfg && cfg.n1 && cfg.n1.length > 1) return;
+  localStorage.setItem('folharh_cfg', JSON.stringify({
+    n1:'Transportes Belém LTDA', c1:'12.345.678/0001-90', cor1:'#3B82F6',
+    n2:'Belém Serviços LTDA',    c2:'98.765.432/0001-10', cor2:'#10B981',
+    mes:'Maio', ano:'2026', logo:''
+  }));
+  // Dados de exemplo para o histórico
+  localStorage.setItem('folharh_pro_v1', JSON.stringify({
+    'Maio/2026':{
+      empresas:[
+        {id:1,resumo:{func:48,bruto:142500,desc:18200,liq:124300},
+         encargos:{inssPatronal:14250,terceiros:4275,rat:1425,fgtsGFIP:11400,fgtsGRRF:0,irrf:8920},
+         beneficios:{ifood:12400,caju:7200,unimed:18600,prosa:3800},
+         movimentos:{admissoes:[{nome:'Carlos Souza',cargo:'Motorista',data:'01/05/2026'}],demissoes:[]},
+         pjs:[{nome:'Consultoria TI',valor:3500},{nome:'Assessoria Jurídica',valor:2800}],
+         bh:{saldo:120,compensado:40,passivo:1850}},
+        {id:2,resumo:{func:22,bruto:68400,desc:8900,liq:59500},
+         encargos:{inssPatronal:6840,terceiros:2052,rat:684,fgtsGFIP:5472,fgtsGRRF:0,irrf:3920},
+         beneficios:{ifood:5800,caju:3200,unimed:8400,prosa:1600},
+         movimentos:{admissoes:[],demissoes:[{nome:'Ana Lima',cargo:'Auxiliar',data:'15/05/2026',tipo:'Sem Justa Causa'}]},
+         pjs:[{nome:'Marketing Digital',valor:1800}],
+         bh:{saldo:55,compensado:20,passivo:820}}
+      ]
+    }
+  }));
+})();
+</script>
+</head>
+<body>
+<div style="position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#F59E0B,#EF4444);color:#000;text-align:center;font-size:.7rem;font-weight:800;padding:5px;z-index:99999;letter-spacing:.5px">
+⚡ VERSÃO DEMO — Dados fictícios para demonstração &nbsp;·&nbsp; Adquira pelo WhatsApp: (91) 99987-9932
+</div>
+<div style="height:25px"></div>
+
+<!-- ══ WELCOME ══ -->
+<div class="wov" id="wov">
+  <div class="wbox">
+    <div class="wic">⚡</div>
+    <h2>FolhaRH <em>Pro</em></h2>
+    <p class="wsub">Sistema de Gestão e Apresentação de Folha de Pagamento<br>Configure sua empresa para começar</p>
+    <div class="wgrid">
+      <div class="wslbl">🏢 Empresa 1</div>
+      <div class="wf full"><label>Nome *</label><input id="wn1" type="text" placeholder="Ex: Transportes João LTDA" oninput="chkW()"></div>
+      <div class="wf"><label>CNPJ</label><input id="wc1" type="text" placeholder="00.000.000/0001-00" oninput="mCNPJ(this)"></div>
+      <div class="wf"><label>Cor</label><select id="wcor1"><option value="#3B82F6">🔵 Azul</option><option value="#10B981">🟢 Verde</option><option value="#8B5CF6">🟣 Roxo</option><option value="#F97316">🟠 Laranja</option><option value="#06B6D4">🩵 Ciano</option></select></div>
+      <div class="wslbl">🏢 Empresa 2 <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></div>
+      <div class="wf full"><label>Nome</label><input id="wn2" type="text" placeholder="Ex: Filial Norte LTDA"></div>
+      <div class="wf"><label>CNPJ</label><input id="wc2" type="text" placeholder="00.000.000/0002-00" oninput="mCNPJ(this)"></div>
+      <div class="wf"><label>Cor</label><select id="wcor2"><option value="#10B981">🟢 Verde</option><option value="#3B82F6">🔵 Azul</option><option value="#8B5CF6">🟣 Roxo</option><option value="#F97316">🟠 Laranja</option><option value="#06B6D4">🩵 Ciano</option></select></div>
+      <div class="wslbl">🖼️ Logo da Empresa <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional — aparece no PDF)</span></div>
+      <label class="wlup" for="wlogo">
+        <input type="file" id="wlogo" accept="image/*" onchange="pLogo(this)">
+        <div style="font-size:1.2rem;margin-bottom:3px">🖼️</div>
+        <div style="font-size:.72rem;font-weight:600;color:#E2E8F4">Clique para adicionar sua logo</div>
+        <div style="font-size:.6rem;color:#5A6480">PNG ou JPG</div>
+      </label>
+      <div class="wlprev" id="wlprev"><img id="wlimg" src="" alt="logo"><span id="wlfn"></span><button onclick="rLogo()">✕</button></div>
+    </div>
+    <button class="wbtn" id="wbtn" onclick="startApp()" disabled>Entrar no Sistema →</button>
+    <div class="wfoot">
+      <strong>FolhaRH Pro v1.0</strong> — Sistema de Folha de Pagamento<br>
+      Desenvolvido por <strong>João Gomes</strong> · <a href="https://wa.me/5591999879932" target="_blank">📱 (91) 99987-9932</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TUTORIAL ══ -->
+<div class="tov" id="tov">
+  <div class="tbox">
+    <h3>📖 Como usar o FolhaRH Pro</h3>
+    <p class="tsub">Sistema completo de gestão de folha de pagamento com importação via IA e relatório para diretoria</p>
+
+    <div class="tstep"><div class="tsnum">1</div><div class="tsbody"><h4>Selecione o mês de competência</h4><p>No menu superior, escolha o mês. Para um novo mês, selecione <code>+ Novo mês...</code>. O sistema guarda histórico de 24 meses com gráficos de evolução.</p></div></div>
+    <div class="tstep"><div class="tsnum">2</div><div class="tsbody"><h4>Importe o PDF da folha com IA (recomendado)</h4><p>Clique em <code>📄 Importar PDF da Folha</code> em cada empresa. A IA lê o PDF e preenche automaticamente todos os campos: bruto, descontos, INSS, FGTS e IRRF. Funciona com Domínio, Senior, ADP e outros sistemas.</p></div></div>
+    <div class="tstep"><div class="tsnum">3</div><div class="tsbody"><h4>Ou preencha manualmente — aba Resumo</h4><p>Na aba <code>resumo</code>, preencha os totalizadores da folha. Nas abas seguintes: <code>encargos</code> (INSS/FGTS/IRRF), <code>benefícios</code>, <code>movimentação</code> e <code>pjs</code>.</p></div></div>
+    <div class="tstep"><div class="tsnum">4</div><div class="tsbody"><h4>Importe benefícios via CSV</h4><p>Na aba <code>benefícios</code>, importe arquivos CSV para iFood, Caju, Unimed e outros planos. Formato: <code>Nome do Colaborador, Valor</code> — ex: <code>João da Silva, 850,00</code></p></div></div>
+    <div class="tstep"><div class="tsnum">5</div><div class="tsbody"><h4>Salve e gere o PDF para a diretoria</h4><p>Clique em <code>💾 Salvar</code> para guardar o mês. Clique em <code>📄 PDF</code> para gerar o relatório executivo completo com custo total, encargos e benefícios — pronto para apresentar.</p></div></div>
+    <div class="tstep"><div class="tsnum">6</div><div class="tsbody"><h4>Comparativo e Histórico</h4><p>A aba <code>⚖ Comparativo</code> mostra os dois CNPJs lado a lado. A aba <code>📅 Histórico</code> mostra a evolução mensal com gráficos. Use <code>⬆ Backup</code> para exportar todos os dados.</p></div></div>
+
+    <div class="tapi">
+      <strong>🔑 Sobre a Chave API (para importar PDFs com IA):</strong><br>
+      1. Acesse <strong>console.anthropic.com</strong> → crie uma conta gratuita<br>
+      2. Vá em <strong>Settings → API Keys → Create Key</strong><br>
+      3. Copie a chave (começa com <strong>sk-ant-...</strong>) e cole na barra acima<br>
+      4. Custo estimado: <strong>R$ 0,10 a R$ 0,30 por importação de PDF</strong><br>
+      Sem a chave, o sistema funciona normalmente com preenchimento manual.
+    </div>
+
+    <div class="ttip">💡 Seus dados ficam salvos no navegador (localStorage). Faça backup regularmente com o botão ⬆ Backup para não perder o histórico.</div>
+    <button class="tclose" onclick="document.getElementById('tov').classList.remove('on')">✓ Entendido — Fechar Tutorial</button>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-ic">⚡</div>
+    <span class="logo-nm">FolhaRH<span> Pro</span></span>
+  </div>
+  <div class="topbar-right">
+    <select class="sel-mes" id="selMes" onchange="onMesChange()"></select>
+    <button class="btn btn-green" onclick="salvarMes()">💾 Salvar</button>
+    <button class="btn btn-blue" onclick="window.print()">📄 PDF</button>
+    <button class="btn btn-amber" onclick="exportarBackup()">⬆ Backup</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('fR').click()">⬇ Restaurar</button>
+    <input type="file" id="fR" accept=".json" style="display:none" onchange="restaurarBackup(event)">
+    <button class="btn btn-ghost" onclick="document.getElementById('tov').classList.add('on')">📖 Tutorial</button>
+  </div>
+</div>
+<div class="main-nav">
+  <button class="nav-btn active" onclick="showView('paineis',this)">📊 Painéis</button>
+  <button class="nav-btn" onclick="showView('historico',this)">📅 Histórico</button>
+  <button class="nav-btn" onclick="showView('comparativo',this)">⚖ Comparativo</button>
+</div>
+<div class="api-bar">
+  <span style="color:var(--muted);font-size:11px;font-weight:700;white-space:nowrap">🔑 Chave API:</span>
+  <input class="api-inp" id="apiKey" type="password" placeholder="sk-ant-api03-... (necessária para importar PDF)" oninput="saveKey(this.value)">
+  <span id="apiSt" style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;background:rgba(239,68,68,.15);color:#EF4444">Não configurada</span>
+  <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--blue);font-size:10px;text-decoration:none;white-space:nowrap">Como obter a chave →</a>
+</div>
+<div class="main">
+  <div id="view-paineis">
+    <div class="pg-title">Folha de Pagamento</div>
+    <p class="pg-sub" id="pgSub">Selecione um mês para começar</p>
+    <div class="panels"><div id="panel1"></div><div id="panel2"></div></div>
+  </div>
+  <div id="view-historico" style="display:none">
+    <div class="pg-title">Histórico Anual</div>
+    <p class="pg-sub">Clique num mês para abrir · Passe o mouse nas barras para ver valores</p>
+    <div id="histContent"></div>
+  </div>
+  <div id="view-comparativo" style="display:none">
+    <div class="pg-title">Comparativo entre CNPJs</div>
+    <p class="pg-sub">Visão consolidada do grupo empresarial · Mês atual</p>
+    <div id="compContent" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="dev-foot"><div><strong>FolhaRH Pro v1.0</strong> &nbsp;·&nbsp; Sistema de Folha de Pagamento para Diretoria</div><button onclick="document.getElementById('tov').classList.add('on')">📖 Tutorial</button><div>Desenvolvido por <strong>João Gomes</strong> &nbsp;·&nbsp; <a href="https://wa.me/5591999879932" target="_blank">📱 (91) 99987-9932</a></div></div>
+
+<script>
+// ── CHAVE API ──────────────────────────────────────────────
+function saveKey(v){
+  if(v) localStorage.setItem('folharh_pro_key', v);
+  else localStorage.removeItem('folharh_pro_key');
+  checkKey();
+}
+function loadKey(){
+  const k=localStorage.getItem('folharh_pro_key')||'';
+  if(k){ document.getElementById('apiKey').value=k; checkKey(); }
+}
+function checkKey(){
+  const k=document.getElementById('apiKey').value.trim();
+  const st=document.getElementById('apiSt');
+  if(k && k.startsWith('sk-ant')){
+    st.style.background='rgba(16,185,129,.15)'; st.style.color='#10B981'; st.textContent='✓ Configurada';
+  } else {
+    st.style.background='rgba(239,68,68,.15)'; st.style.color='#EF4444'; st.textContent='Não configurada';
+  }
+}
+
+// ── IMPORTAR PDF COM IA ──────────────────────────────────────
+async function importarPDF(empId, file){
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if(!apiKey){ toast('Configure a Chave API primeiro','#EF4444'); return; }
+  if(!file) return;
+
+  // Show loading overlay
+  const panel = document.getElementById(`panel${empId}`);
+  const ov = document.createElement('div');
+  ov.className = 'load-ov';
+  ov.innerHTML = '<div class="spin"></div><div style="color:var(--text);font-size:12px;font-weight:600">Lendo PDF com IA...</div><div style="color:var(--muted);font-size:10px">Isso leva alguns segundos</div>';
+  panel.appendChild(ov);
+
+  try {
+    const base64 = await fileToBase64(file);
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
+            { type: 'text', text: `Você é um especialista em folha de pagamento brasileira. Analise este PDF de folha de pagamento e extraia os totais dos resumos/totalizadores.
+
+Retorne APENAS um JSON válido, sem markdown, sem explicação:
+{
+  "empresa": "nome da empresa",
+  "cnpj": "xx.xxx.xxx/xxxx-xx",
+  "competencia": "Mês/Ano",
+  "totalFuncionarios": 0,
+  "totalBruto": 0,
+  "totalDescontos": 0,
+  "totalLiquido": 0,
+  "inssSegurados": 0,
+  "inssEmpresa": 0,
+  "inssTerceiros": 0,
+  "inssRAT": 0,
+  "fgtsGFIP": 0,
+  "fgtsGRRF": 0,
+  "irrfTotal": 0,
+  "horasNormais": 0,
+  "horasExtras": 0,
+  "bolsaEstagio": 0,
+  "comissoes": 0,
+  "gratificacao": 0,
+  "periculosidade": 0,
+  "proLabore": 0
+}
+
+Instruções:
+- Busque nos resumos/totais/totalizadores da folha, não nos registros individuais
+- INSS Empresa = parte patronal (20% ou similar)
+- INSS Terceiros = SESC, SENAC, SEBRAE, INCRA, etc
+- RAT/FAP = seguro acidente trabalho
+- FGTS GFIP = recolhimento mensal normal
+- FGTS GRRF = rescisões
+- IRRF = imposto de renda retido total
+- Use apenas números sem formatação (ex: 443683.30 não R$ 443.683,30)
+- Se não encontrar um campo, use 0` }
+          ]
+        }]
+      })
+    });
+
+    if(!response.ok){
+      const err = await response.json();
+      throw new Error(err.error?.message || `Erro ${response.status}`);
+    }
+
+    const data = await response.json();
+    const text = data.content?.map(c => c.text||'').join('') || '{}';
+    const clean = text.replace(/```json|```/g,'').trim();
+    const result = JSON.parse(clean);
+
+    // Preenche os dados
+    const emp = dados.find(e => e.id === empId);
+    const campos = ['totalFuncionarios','totalBruto','totalDescontos','totalLiquido',
+      'inssSegurados','inssEmpresa','inssTerceiros','inssRAT',
+      'fgtsGFIP','fgtsGRRF','irrfTotal',
+      'horasNormais','horasExtras','bolsaEstagio','comissoes',
+      'gratificacao','periculosidade','proLabore'];
+    campos.forEach(k => { if(result[k] !== undefined) emp.folha[k] = parseFloat(result[k])||0; });
+
+    panel.removeChild(ov);
+    pTabs[empId] = 'resumo';
+    renderPanel(empId);
+    toast(`✓ PDF importado! ${result.empresa||''} · ${result.competencia||''}`, '#10B981');
+
+  } catch(err) {
+    panel.removeChild(ov);
+    toast(`Erro: ${err.message}`, '#EF4444');
+    console.error(err);
+  }
+}
+
+function fileToBase64(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>res(e.target.result.split(',')[1]);
+    r.onerror=()=>rej(new Error('Erro ao ler arquivo'));
+    r.readAsDataURL(file);
+  });
+}
+
+const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const CORES=['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#F97316','#EC4899','#14B8A6','#84CC16'];
+// EMP_BASE — preenchido pelo welcome screen
+const EMP_BASE=[
+  {id:1,nome:'EMPRESA 1',cnpj:'',color:'#3B82F6',accent:'#06B6D4'},
+  {id:2,nome:'EMPRESA 2',cnpj:'',color:'#10B981',accent:'#F59E0B'}
+];
+// Carrega config salva
+(function(){
+  try{
+    const cfg=JSON.parse(localStorage.getItem('folharh_cfg')||'null');
+    if(cfg){
+      EMP_BASE[0].nome=cfg.n1||'EMPRESA 1';EMP_BASE[0].cnpj=cfg.c1||'';EMP_BASE[0].color=cfg.cor1||'#3B82F6';
+      EMP_BASE[1].nome=cfg.n2||'EMPRESA 2';EMP_BASE[1].cnpj=cfg.c2||'';EMP_BASE[1].color=cfg.cor2||'#10B981';
+      window._logoURL=cfg.logo||'';
+    }
+  }catch(e){}
+})();
+const BENS=[
+  {key:'ifood',icon:'🍔',nome:'iFood (Alimentação)',cor:'#F97316'},
+  {key:'caju',icon:'🎁',nome:'Caju (Bonificação)',cor:'#10B981'},
+  {key:'unimed',icon:'🏥',nome:'Unimed (Plano de Saúde)',cor:'#3B82F6'},
+  {key:'prosa',icon:'🩺',nome:'Prosa (Plano de Saúde)',cor:'#8B5CF6'},
+];
+
+let hist={}, mesSel='', pTabs={1:'resumo',2:'resumo'}, planilhas={1:[],2:[]}, dados=novo();
+
+function novo(){
+  return EMP_BASE.map(e=>({
+    id:e.id,
+    folha:{totalFuncionarios:0,totalBruto:0,totalDescontos:0,totalLiquido:0,inssSegurados:0,inssEmpresa:0,inssTerceiros:0,inssRAT:0,fgtsGFIP:0,fgtsGRRF:0,irrfTotal:0,horasNormais:0,horasExtras:0,bolsaEstagio:0,comissoes:0,gratificacao:0,periculosidade:0,proLabore:0,
+      guiaINSS:0,guiaFGTS:0,guiaIRRF:0},
+    ben:{ifood:[],caju:[],unimed:[],prosa:[]},
+    bh:{totalHoras:0,totalCompensado:0,totalHorasValor:0,totalCompensadoValor:0},
+    adm:[],dem:[],pjs:[],setores:[]
+  }));
+}
+
+function fix(e){
+  if(!e.ben) e.ben={ifood:[],caju:[],unimed:[],prosa:[]};
+  BENS.forEach(b=>{if(!e.ben[b.key])e.ben[b.key]=[];});
+  if(!e.bh) e.bh={totalHoras:0,totalCompensado:0,totalHorasValor:0,totalCompensadoValor:0};
+  if(!e.adm) e.adm=[];
+  if(!e.dem) e.dem=[];
+  if(!e.pjs) e.pjs=[];
+}
+
+const fmt=v=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+const fmtN=v=>new Intl.NumberFormat('pt-BR').format(Math.round(v||0));
+const pct=(a,b)=>b?((a/b)*100).toFixed(1):'0.0';
+const fmtD=s=>{if(!s)return '—';const[y,m,d]=s.split('-');return `${d}/${m}/${y}`;};
+const fmtH=v=>{const neg=v<0,h=Math.floor(Math.abs(v)),m=Math.round((Math.abs(v)-h)*60);return `${neg?'-':''}${String(h).padStart(2,'0')}h${String(m).padStart(2,'0')}m`;};
+
+function buildSelect(){
+  const sel=document.getElementById('selMes'),now=new Date();
+  sel.innerHTML='<option value="">+ Novo mês...</option>';
+  for(let i=0;i<24;i++){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const lbl=`${MESES[d.getMonth()]}/${d.getFullYear()}`;
+    const o=document.createElement('option');
+    o.value=key; o.textContent=hist[key]?`✓ ${lbl}`:lbl;
+    if(key===mesSel) o.selected=true;
+    sel.appendChild(o);
+  }
+}
+
+function onMesChange(){
+  const val=document.getElementById('selMes').value; if(!val) return;
+  mesSel=val;
+  const h=hist[val];
+  if(h){dados=JSON.parse(JSON.stringify(h.empresas));planilhas[1]=h.p1||[];planilhas[2]=h.p2||[];dados.forEach(fix);}
+  else dados=novo();
+  const[y,m]=val.split('-');
+  document.getElementById('pgSub').textContent=`Competência: ${MESES[parseInt(m)-1]}/${y} · Empresa 1 + Empresa 2`;
+  renderAll();
+}
+
+function salvarMes(){
+  if(!mesSel){toast('Selecione um mês','#EF4444');return;}
+  dados.forEach(e=>{e.setores=calcSetores(e,planilhas[e.id]);});
+  hist[mesSel]={mes:mesSel,empresas:JSON.parse(JSON.stringify(dados)),p1:planilhas[1],p2:planilhas[2]};
+  localStorage.setItem('folharh_pro_v1',JSON.stringify(hist));
+  buildSelect(); toast('✓ Mês salvo!','#10B981');
+}
+
+function carregarLocal(){try{const r=localStorage.getItem('folharh_pro_v1');if(r)hist=JSON.parse(r);}catch{}}
+
+function exportarBackup(){
+  const blob=new Blob([JSON.stringify({hist,planilhas},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`folharh_${new Date().toISOString().slice(0,10)}.json`;a.click();
+  toast('✓ Backup exportado','#10B981');
+}
+
+function restaurarBackup(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(d.hist){hist=d.hist;localStorage.setItem('folharh_pro_v1',JSON.stringify(hist));}
+      if(d.planilhas)planilhas=d.planilhas;
+      buildSelect();renderAll();toast('✓ Backup restaurado','#10B981');
+    }catch{toast('Arquivo inválido','#EF4444');}
+  };
+  r.readAsText(file);e.target.value='';
+}
+
+function parseOrg(txt){
+  const lines=txt.trim().split('\n').filter(l=>l.trim());
+  const sep=lines[0].includes(';')?';':',';
+  const st=/nome|name/i.test(lines[0])?1:0,rows=[];
+  for(let i=st;i<lines.length;i++){const c=lines[i].split(sep).map(x=>x.trim().replace(/^"|"$/g,''));if(c[0])rows.push({nome:c[0],setor:c[1]||'',gestor:c[2]||''});}
+  return rows;
+}
+
+function parseBen(txt){
+  const lines=txt.trim().split('\n').filter(l=>l.trim());
+  const sep=lines[0].includes(';')?';':',';
+  const st=/nome|name/i.test(lines[0])?1:0,rows=[];
+  for(let i=st;i<lines.length;i++){const c=lines[i].split(sep).map(x=>x.trim().replace(/^"|"$/g,''));if(c[0]){const raw=(c[1]||'0').replace(/\./g,'').replace(',','.');rows.push({nome:c[0],valor:parseFloat(raw)||0});}}
+  return rows;
+}
+
+function handleOrg(id,file){if(!file)return;const r=new FileReader();r.onload=e=>{planilhas[id]=parseOrg(e.target.result);toast(`✓ ${planilhas[id].length} colaboradores`,'#10B981');renderPanel(id);};r.readAsText(file);}
+
+function handleBen(id,tipo,file){
+  if(!file)return;const r=new FileReader();
+  r.onload=e=>{const emp=dados.find(x=>x.id===id);emp.ben[tipo]=parseBen(e.target.result);const tot=emp.ben[tipo].reduce((s,x)=>s+x.valor,0);toast(`✓ ${emp.ben[tipo].length} registros · ${fmt(tot)}`,'#10B981');renderPanel(id);};
+  r.readAsText(file);
+}
+
+function sumBen(emp){return BENS.reduce((s,b)=>s+(emp.ben[b.key]||[]).reduce((a,r)=>a+r.valor,0),0);}
+function sumBenTipo(emp,k){return(emp.ben[k]||[]).reduce((s,r)=>s+r.valor,0);}
+function custoEmp(emp){const f=emp.folha;return f.totalBruto+f.inssEmpresa+f.inssTerceiros+f.inssRAT+f.fgtsGFIP+f.fgtsGRRF+(emp.pjs||[]).reduce((s,p)=>s+p.valor,0)+sumBen(emp);}
+
+function calcSetores(emp,pl){
+  if(!pl||!pl.length)return[];
+  const map={};pl.forEach(p=>{const s=p.setor||'Sem setor';if(!map[s])map[s]={nome:s,gestor:p.gestor||'',qtd:0};map[s].qtd++;});
+  const total=pl.length||1,f=emp.folha;
+  const pat=f.inssEmpresa+f.inssTerceiros+f.inssRAT,fgts=f.fgtsGFIP+f.fgtsGRRF;
+  const encPF=(pat+fgts)/(f.totalFuncionarios||total||1),brutoPF=f.totalBruto/(f.totalFuncionarios||total||1);
+  return Object.values(map).map(s=>({...s,custoSal:s.qtd*brutoPF,custoEnc:s.qtd*encPF,custoTotal:s.qtd*(brutoPF+encPF),pct:((s.qtd/total)*100).toFixed(1)})).sort((a,b)=>b.custoTotal-a.custoTotal);
+}
+
+function updF(id,key,val){dados.find(e=>e.id===id).folha[key]=parseFloat(val)||0;}
+function updBH(id,key,val){dados.find(e=>e.id===id).bh[key]=parseFloat(val)||0;}
+function g(id){const el=document.getElementById(id);return el?el.value:'';}
+
+function addAdm(id){const e=dados.find(x=>x.id===id),nm=g(`an_${id}`);if(!nm)return;e.adm.push({nome:nm,cargo:g(`ac_${id}`),setor:g(`as_${id}`),salario:parseFloat(g(`av_${id}`))||0,data:g(`ad_${id}`)});['an','ac','as','av','ad'].forEach(k=>{const el=document.getElementById(`${k}_${id}`);if(el)el.value='';});renderPanel(id);}
+function remAdm(id,i){dados.find(e=>e.id===id).adm.splice(i,1);renderPanel(id);}
+function addDem(id){const e=dados.find(x=>x.id===id),nm=g(`dn_${id}`);if(!nm)return;e.dem.push({nome:nm,cargo:g(`dc_${id}`),setor:g(`ds_${id}`),salario:parseFloat(g(`dv_${id}`))||0,data:g(`dd_${id}`),tipo:g(`dt_${id}`)||'Sem Justa Causa'});['dn','dc','ds','dv','dd'].forEach(k=>{const el=document.getElementById(`${k}_${id}`);if(el)el.value='';});renderPanel(id);}
+function remDem(id,i){dados.find(e=>e.id===id).dem.splice(i,1);renderPanel(id);}
+function addPJ(id){const e=dados.find(x=>x.id===id),nm=g(`pn_${id}`);if(!nm)return;e.pjs.push({nome:nm,valor:parseFloat(g(`pv_${id}`))||0,setor:g(`ps_${id}`),inicio:g(`pi_${id}`)});['pn','pv','ps','pi'].forEach(k=>{const el=document.getElementById(`${k}_${id}`);if(el)el.value='';});renderPanel(id);}
+function remPJ(id,i){dados.find(e=>e.id===id).pjs.splice(i,1);renderPanel(id);}
+function remBen(id,tipo,i){dados.find(e=>e.id===id).ben[tipo].splice(i,1);renderPanel(id);}
+function limparBen(id,tipo){dados.find(e=>e.id===id).ben[tipo]=[];renderPanel(id);}
+
+function donut(segs,size){
+  size=size||115;const r=40,cx=size/2,cy=size/2,circ=2*Math.PI*r;
+  const tot=segs.reduce((s,d)=>s+d.v,0);
+  if(!tot)return `<svg width="${size}" height="${size}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border)" stroke-width="9"/></svg>`;
+  let off=0,p=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border)" stroke-width="9"/>`;
+  segs.forEach(s=>{const dash=(s.v/tot)*circ,gap=circ-dash,rot=(off/tot)*360-90;p+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.c}" stroke-width="9" stroke-dasharray="${dash} ${gap}" style="transform-origin:${cx}px ${cy}px;transform:rotate(${rot}deg)"/>`;off+=s.v;});
+  p+=`<text x="${cx}" y="${cy-3}" text-anchor="middle" fill="var(--subtle)" font-size="7.5" font-family="DM Sans" font-weight="700">TOTAL</text><text x="${cx}" y="${cy+8}" text-anchor="middle" fill="var(--text)" font-size="7.5" font-family="DM Sans" font-weight="800">${fmtN(tot)}</text>`;
+  return `<svg width="${size}" height="${size}">${p}</svg>`;
+}
+
+function hbar(l,v,max,c){const w=max?Math.min(100,(v/max)*100):0;return `<div class="hb"><div class="hbt"><span class="hbl">${l}</span><span class="hbv" style="color:${c}">${fmt(v)}</span></div><div class="hbtr"><div class="hbf" style="width:${w}%;background:${c}"></div></div></div>`;}
+function kc(l,v,s,c){return `<div class="kc" style="border-top-color:${c}"><div class="kl">${l}</div><div class="kv" style="color:${c}">${v}</div>${s?`<div class="ks">${s}</div>`:''}</div>`;}
+function guiaRow(id,empId,keyCalc,keyGuia,lbl,cor){
+  const emp=dados.find(e=>e.id===empId);
+  const vCalc=emp?(emp.folha[keyCalc]||0):0;
+  const vGuia=emp?(emp.folha[keyGuia]||0):0;
+  const diff=vGuia-vCalc;
+  const diffColor=Math.abs(diff)<0.01?'#10B981':diff>0?'#EF4444':'#F59E0B';
+  const diffText=Math.abs(diff)<0.01?'✓ Igual':(diff>0?`▲ +${fmt(diff)}`:`▼ ${fmt(diff)}`);
+  return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:8px;border-left:3px solid ${cor}">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:7px">
+      <div>
+        <div style="color:var(--muted);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">📋 ${lbl} — Folha</div>
+        <div style="position:relative"><span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:11px;pointer-events:none">R$</span>
+        <input class="fi" type="number" id="${id}_c" value="${vCalc||''}" placeholder="0,00" oninput="updF(${empId},'${keyCalc}',this.value);refreshGuia('${id}',${empId},'${keyCalc}','${keyGuia}')"></div>
+      </div>
+      <div>
+        <div style="color:var(--muted);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">🧾 ${lbl} — Guia Real</div>
+        <div style="position:relative"><span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:11px;pointer-events:none">R$</span>
+        <input class="fi" type="number" id="${id}_g" value="${vGuia||''}" placeholder="0,00" oninput="updF(${empId},'${keyGuia}',this.value);refreshGuia('${id}',${empId},'${keyCalc}','${keyGuia}')"></div>
+      </div>
+    </div>
+    <div id="${id}_diff" style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:var(--card);border-radius:6px">
+      <span style="color:var(--muted);font-size:10px">Diferença (Guia − Folha)</span>
+      <span style="color:${diffColor};font-size:11px;font-weight:700">${diffText}</span>
+    </div>
+  </div>`;
+}
+
+function refreshGuia(id,empId,keyCalc,keyGuia){
+  const emp=dados.find(e=>e.id===empId);
+  const vCalc=emp.folha[keyCalc]||0, vGuia=emp.folha[keyGuia]||0;
+  const diff=vGuia-vCalc;
+  const diffColor=Math.abs(diff)<0.01?'#10B981':diff>0?'#EF4444':'#F59E0B';
+  const diffText=Math.abs(diff)<0.01?'✓ Igual':(diff>0?`▲ +${fmt(diff)}`:`▼ ${fmt(diff)}`);
+  const el=document.getElementById(`${id}_diff`);
+  if(el) el.innerHTML=`<span style="color:var(--muted);font-size:10px">Diferença (Guia − Folha)</span><span style="color:${diffColor};font-size:11px;font-weight:700">${diffText}</span>`;
+}
+
+function frow(id,empId,key,l,icon,c){const emp=dados.find(e=>e.id===empId),val=emp?(emp.folha[key]||''):'';return `<div class="fr" style="border-left-color:${c}"><div class="fl">${icon} ${l}</div><div class="fw"><span class="fp">R$</span><input class="fi" type="number" id="${id}" value="${val}" placeholder="0,00" oninput="updF(${empId},'${key}',this.value)"></div></div>`;}
+function tbox(l,v,c){return `<div class="tbox" style="background:${c}14;border-color:${c}33"><span style="font-size:12px;font-weight:700">${l}</span><span style="font-size:13px;font-weight:800;color:${c}">${fmt(v)}</span></div>`;}
+function finp(id,ph,type){type=type||'text';return `<input class="fi np" id="${id}" type="${type}" placeholder="${ph}">`;}
+
+function tabResumo(emp,eb){
+  const f=emp.folha,c=eb.color,pat=f.inssEmpresa+f.inssTerceiros+f.inssRAT,fgts=f.fgtsGFIP+f.fgtsGRRF,pj=(emp.pjs||[]).reduce((s,p)=>s+p.valor,0),ben=sumBen(emp),custo=f.totalBruto+pat+fgts+pj+ben,bh=emp.bh,saldoH=bh.totalHoras-bh.totalCompensado,saldoV=bh.totalHorasValor-bh.totalCompensadoValor,corS=saldoH>0?'#F59E0B':saldoH<0?'#EF4444':'#10B981';
+  const segs=[{v:f.totalBruto,c,n:'Salários'},{v:pat,c:'#F59E0B',n:'INSS Emp.'},{v:fgts,c:'#8B5CF6',n:'FGTS'},{v:f.irrfTotal,c:'#EF4444',n:'IRRF'},{v:pj,c:'#06B6D4',n:'PJs'},{v:ben,c:'#F97316',n:'Benefícios'}].filter(d=>d.v>0);
+  const comp=[['H. Normais',f.horasNormais,c],['H. Extras',f.horasExtras,eb.accent],['Estágio',f.bolsaEstagio,'#F59E0B'],['Comissões',f.comissoes,'#8B5CF6'],['Gratificações',f.gratificacao,'#EF4444'],['Periculosidade',f.periculosidade,'#06B6D4'],['Pró-labore',f.proLabore,'#10B981']].filter(d=>d[1]>0);
+  const leg=segs.map(d=>`<div class="li"><div style="display:flex;align-items:center;gap:5px"><div class="ld" style="background:${d.c}"></div><span style="color:var(--muted);font-size:10px">${d.n}</span></div><span style="color:var(--text);font-size:10px;font-weight:700">${pct(d.v,custo)}%</span></div>`).join('');
+  return `
+  <div class="kg g3">${kc('Custo Total',fmt(custo),'Folha+Enc.+Ben.+PJs',c)}${kc('Total Bruto',fmt(f.totalBruto),(f.totalFuncionarios||0)+' funcionários','#10B981')}${kc('Total Líquido',fmt(f.totalLiquido),pct(f.totalLiquido,f.totalBruto)+'% bruto','#F59E0B')}</div>
+  <div class="kg g4">${kc('INSS Patronal',fmt(pat),'','#EF4444')}${kc('FGTS',fmt(fgts),'','#8B5CF6')}${kc('Benefícios',fmt(ben),BENS.map(b=>b.icon).join(' '),'#F97316')}${kc('PJs',fmt(pj),(emp.pjs||[]).length+' contratos','#06B6D4')}</div>
+  <div class="dw"><div>${donut(segs,115)}</div><div style="flex:1;padding-top:4px"><div class="sec" style="margin-top:0">Composição do Custo</div>${leg}</div></div>
+  ${comp.length?`<div class="sec">Composição da Folha</div>${comp.map(([l,v,c2])=>hbar(l,v,Math.max(f.horasNormais,1),c2)).join('')}`:''}
+  ${emp.adm.length||emp.dem.length||bh.totalHoras>0?`<div class="kg g3" style="margin-top:10px">${kc('Admissões',emp.adm.length,'no mês','#10B981')}${kc('Demissões',emp.dem.length,'no mês','#EF4444')}${kc('Saldo Banco Horas',fmtH(saldoH),fmt(saldoV),corS)}</div>`:''}`;
+}
+
+function tabEncargos(emp,eb){
+  const f=emp.folha,id=eb.id,c=eb.color;
+  const pat=f.inssEmpresa+f.inssTerceiros+f.inssRAT;
+  const fgts=f.fgtsGFIP+f.fgtsGRRF;
+  const pj=(emp.pjs||[]).reduce((s,p)=>s+p.valor,0);
+  const ben=sumBen(emp);
+  const custo=f.totalBruto+pat+fgts+pj+ben;
+  // Guias reais (usa guia se preenchida, senão usa calculado)
+  const guiaINSS=f.guiaINSS||pat;
+  const guiaFGTS=f.guiaFGTS||fgts;
+  const guiaIRRF=f.guiaIRRF||f.irrfTotal;
+  const custoGuias=f.totalBruto+(f.guiaINSS||pat)+(f.guiaFGTS||fgts)+pj+ben;
+  const diffTotal=custoGuias-custo;
+
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+  <div>
+    <div class="sec" style="margin-top:0">Totais da Folha (PDF)</div>
+    ${frow(`fa${id}`,id,'totalFuncionarios','Nº Funcionários','👥',c)}
+    ${frow(`fb${id}`,id,'totalBruto','Total Bruto','💰','#F59E0B')}
+    ${frow(`fc${id}`,id,'totalDescontos','Total Descontos','➖','#EF4444')}
+    ${frow(`fd${id}`,id,'totalLiquido','Total Líquido','💳','#10B981')}
+    <div class="sec">Composição da Folha</div>
+    ${frow(`fe${id}`,id,'horasNormais','Horas Normais','🕐',c)}
+    ${frow(`ff${id}`,id,'horasExtras','Horas Extras','⏱',eb.accent)}
+    ${frow(`fg${id}`,id,'bolsaEstagio','Bolsa Estágio','🎓','#F59E0B')}
+    ${frow(`fh${id}`,id,'comissoes','Comissões + DSR','📈','#8B5CF6')}
+    ${frow(`fi${id}`,id,'gratificacao','Gratificações','🏆','#10B981')}
+    ${frow(`fj${id}`,id,'periculosidade','Periculosidade','⚠️','#EF4444')}
+    ${frow(`fk${id}`,id,'proLabore','Pró-labore','👔','#06B6D4')}
+    ${frow(`fo${id}`,id,'inssSegurados','INSS Segurados (desc. funcionários)','👤','#F59E0B')}
+  </div>
+  <div>
+    <div class="sec" style="margin-top:0;color:var(--red)">🏛️ INSS Patronal — Folha vs Guia GPS</div>
+    ${guiaRow(`gi${id}`,id,'inssEmpresa','inssEmpresa','Parte Empresa','#EF4444')}
+    ${guiaRow(`gt${id}`,id,'inssTerceiros','inssTerceiros','Terceiros (SESC/SENAC...)','#F59E0B')}
+    ${guiaRow(`gr${id}`,id,'inssRAT','inssRAT','RAT + FAP','#8B5CF6')}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div class="tbox" style="background:#EF444414;border-color:#EF444433;margin:0"><span style="font-size:10px;font-weight:700">INSS Folha</span><span style="font-size:12px;font-weight:800;color:#EF4444">${fmt(pat)}</span></div>
+      <div class="tbox" style="background:#EF444414;border-color:#EF444433;margin:0"><span style="font-size:10px;font-weight:700">INSS Guia</span><span style="font-size:12px;font-weight:800;color:#EF4444">${fmt(guiaINSS)}</span></div>
+    </div>
+
+    <div class="sec" style="color:var(--purple)">🏦 FGTS — Folha vs Guia GRF</div>
+    ${guiaRow(`gf${id}`,id,'fgtsGFIP','fgtsGFIP','FGTS GFIP (Mensal)','#8B5CF6')}
+    ${guiaRow(`gg${id}`,id,'fgtsGRRF','fgtsGRRF','FGTS GRRF (Rescisões)','#06B6D4')}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div class="tbox" style="background:#8B5CF614;border-color:#8B5CF633;margin:0"><span style="font-size:10px;font-weight:700">FGTS Folha</span><span style="font-size:12px;font-weight:800;color:#8B5CF6">${fmt(fgts)}</span></div>
+      <div class="tbox" style="background:#8B5CF614;border-color:#8B5CF633;margin:0"><span style="font-size:10px;font-weight:700">FGTS Guia</span><span style="font-size:12px;font-weight:800;color:#8B5CF6">${fmt(guiaFGTS)}</span></div>
+    </div>
+
+    <div class="sec" style="color:var(--blue)">💼 IRRF — Folha vs DARF</div>
+    ${guiaRow(`girrf${id}`,id,'irrfTotal','irrfTotal','IRRF Retido','#3B82F6')}
+    <div style="color:var(--muted);font-size:10px;margin-bottom:12px">ℹ️ Se a contabilidade lançar IRRF avulso, informe o valor da guia DARF.</div>
+
+    <div class="cbox" style="background:${c}12;border-color:${c}40">
+      <div class="sec" style="margin-top:0">Custo Total da Empresa</div>
+      ${[['Folha Bruta',f.totalBruto,c],['INSS Patronal (guia)',guiaINSS,'#EF4444'],['FGTS (guia)',guiaFGTS,'#8B5CF6'],['PJs',pj,'#06B6D4'],['Benefícios',ben,'#F97316']].map(([l,v,c2])=>`<div class="cbr"><span style="color:var(--subtle);font-size:11px">${l}</span><span style="color:${c2};font-size:11px;font-weight:700">${fmt(v)}</span></div>`).join('')}
+      <div class="cbt"><span style="color:var(--text);font-size:13px;font-weight:800">TOTAL REAL (Guias)</span><span style="color:${c};font-size:13px;font-weight:800">${fmt(custoGuias)}</span></div>
+      ${Math.abs(diffTotal)>0.01?`<div style="text-align:right;margin-top:4px;font-size:10px;color:${diffTotal>0?'#EF4444':'#F59E0B'};font-weight:700">${diffTotal>0?'▲':'▼'} Diferença vs folha: ${fmt(Math.abs(diffTotal))}</div>`:'<div style="text-align:right;margin-top:4px;font-size:10px;color:#10B981;font-weight:700">✓ Folha e guias conferem</div>'}
+    </div>
+  </div></div>`;
+}
+
+function tabMov(emp,eb){
+  const id=eb.id,c=eb.color;
+  const aT=emp.adm.reduce((s,a)=>s+a.salario,0),dT=emp.dem.reduce((s,d)=>s+d.salario,0);
+  const aRows=emp.adm.length?`<table class="tbl"><thead><tr><th>Nome</th><th>Cargo</th><th>Setor</th><th class="tr">Salário</th><th>Data</th><th></th></tr></thead><tbody>${emp.adm.map((a,i)=>`<tr><td style="font-weight:600">${a.nome}</td><td style="color:var(--subtle)">${a.cargo||'—'}</td><td>${a.setor?`<span class="bdg" style="background:${c}18;color:${c}">${a.setor}</span>`:'—'}</td><td class="tr" style="color:${c}">${a.salario?fmt(a.salario):'—'}</td><td style="color:var(--muted)">${fmtD(a.data)}</td><td><button onclick="remAdm(${id},${i})" style="background:transparent;border:none;color:var(--muted);cursor:pointer">✕</button></td></tr>`).join('')}</tbody></table><div style="text-align:right;margin-top:5px;font-size:11px;color:${c};font-weight:700">Massa salarial admitidos: ${fmt(aT)}</div>`:`<div style="color:var(--muted);font-size:11px;padding:8px 0">Nenhuma admissão registrada.</div>`;
+  const dRows=emp.dem.length?`<table class="tbl"><thead><tr><th>Nome</th><th>Cargo</th><th>Setor</th><th class="tr">Salário</th><th>Data</th><th>Tipo</th><th></th></tr></thead><tbody>${emp.dem.map((d,i)=>`<tr><td style="font-weight:600">${d.nome}</td><td style="color:var(--subtle)">${d.cargo||'—'}</td><td>${d.setor?`<span class="bdg" style="background:#EF444418;color:#EF4444">${d.setor}</span>`:'—'}</td><td class="tr" style="color:#EF4444">${d.salario?fmt(d.salario):'—'}</td><td style="color:var(--muted)">${fmtD(d.data)}</td><td><span class="bdg" style="background:#EF444415;color:#EF4444">${d.tipo}</span></td><td><button onclick="remDem(${id},${i})" style="background:transparent;border:none;color:var(--muted);cursor:pointer">✕</button></td></tr>`).join('')}</tbody></table><div style="text-align:right;margin-top:5px;font-size:11px;color:#EF4444;font-weight:700">Massa salarial desligados: ${fmt(dT)}</div>`:`<div style="color:var(--muted);font-size:11px;padding:8px 0">Nenhuma demissão registrada.</div>`;
+  return `<div class="sec" style="margin-top:0;color:var(--green)">✅ Admissões — ${emp.adm.length}</div>
+  <div class="mf" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr auto">
+  <div><div class="fl">Nome</div>${finp(`an_${id}`,'Nome completo')}</div>
+  <div><div class="fl">Cargo</div>${finp(`ac_${id}`,'Cargo')}</div>
+  <div><div class="fl">Setor</div>${finp(`as_${id}`,'Setor')}</div>
+  <div><div class="fl">Salário</div><input class="fi np" id="av_${id}" type="number" placeholder="0,00"></div>
+  <div><div class="fl">Data</div><input class="fi np" id="ad_${id}" type="date"></div>
+  <div style="padding-top:14px"><button class="btn btn-green" onclick="addAdm(${id})">+ Add</button></div>
+  </div>${aRows}
+  <div class="div"></div>
+  <div class="sec" style="color:var(--red)">🚪 Demissões — ${emp.dem.length}</div>
+  <div class="mf" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto">
+  <div><div class="fl">Nome</div>${finp(`dn_${id}`,'Nome completo')}</div>
+  <div><div class="fl">Cargo</div>${finp(`dc_${id}`,'Cargo')}</div>
+  <div><div class="fl">Setor</div>${finp(`ds_${id}`,'Setor')}</div>
+  <div><div class="fl">Salário</div><input class="fi np" id="dv_${id}" type="number" placeholder="0,00"></div>
+  <div><div class="fl">Data</div><input class="fi np" id="dd_${id}" type="date"></div>
+  <div><div class="fl">Tipo</div><select class="fi np" id="dt_${id}"><option>Sem Justa Causa</option><option>Com Justa Causa</option><option>Pedido de Demissão</option><option>Acordo</option><option>Fim de Contrato</option></select></div>
+  <div style="padding-top:14px"><button class="btn" style="background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3);color:var(--red)" onclick="addDem(${id})">+ Add</button></div>
+  </div>${dRows}`;
+}
+
+function tabSetores(emp,eb){
+  const id=eb.id,c=eb.color,pl=planilhas[id],setores=calcSetores(emp,pl);
+  const upz=`<div class="upz ${pl.length?'done':''}" onclick="document.getElementById('csvO${id}').click()">
+  <input type="file" id="csvO${id}" accept=".csv,.txt" style="display:none" onchange="handleOrg(${id},this.files[0])">
+  <div style="font-size:20px;margin-bottom:3px">${pl.length?'✅':'📊'}</div>
+  <div style="font-weight:700;color:${pl.length?'var(--green)':'var(--text)'}">
+  ${pl.length?`${pl.length} colaboradores importados`:'Importar Planilha de Organograma (CSV)'}</div>
+  <div style="color:var(--muted);font-size:10px;margin-top:2px">Colunas: Nome | Organograma | Gestor</div></div>`;
+  if(!pl.length) return upz+`<div style="text-align:center;padding:28px 0;color:var(--muted)"><div style="font-size:34px;opacity:.3;margin-bottom:8px">🗂</div><div style="font-weight:600">Importe a planilha para calcular custo por setor</div></div>`;
+  if(!setores.length) return upz+`<div style="text-align:center;padding:20px 0;color:var(--muted)">Preencha os dados na aba Encargos primeiro</div>`;
+  const maxC=setores[0].custoTotal||1;
+  return `${upz}<div class="sec" style="margin-top:0">${setores.length} departamentos · ${pl.length} colaboradores</div>
+  ${setores.map((s,i)=>`<div class="sc"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><div><div style="font-family:'Syne',sans-serif;font-weight:800;font-size:12px">${s.nome}</div>${s.gestor?`<div style="color:var(--muted);font-size:10px">Gestor: <span style="color:${CORES[i%CORES.length]}">${s.gestor}</span></div>`:''}</div><div style="text-align:right"><div style="font-size:13px;font-weight:800;color:${CORES[i%CORES.length]}">${fmt(s.custoTotal)}</div><div style="color:var(--muted);font-size:9px">${s.qtd} pessoa${s.qtd!==1?'s':''} · ${s.pct}%</div></div></div><div class="hbtr" style="margin-bottom:4px"><div class="hbf" style="width:${(s.custoTotal/maxC)*100}%;background:${CORES[i%CORES.length]}"></div></div><div style="display:flex;gap:10px"><span style="color:var(--muted);font-size:10px">Salários: <b style="color:var(--text)">${fmt(s.custoSal)}</b></span><span style="color:var(--muted);font-size:10px">Encargos: <b style="color:var(--text)">${fmt(s.custoEnc)}</b></span></div></div>`).join('')}`;
+}
+
+function tabPJs(emp,eb){
+  const id=eb.id,c=eb.color,tot=(emp.pjs||[]).reduce((s,p)=>s+p.valor,0);
+  const rows=(emp.pjs||[]).length?`<table class="tbl"><thead><tr><th>Nome / Razão Social</th><th>Setor</th><th class="tr">Valor Mensal</th><th>Início</th><th></th></tr></thead><tbody>${(emp.pjs||[]).map((p,i)=>`<tr><td style="font-weight:600">${p.nome}</td><td>${p.setor?`<span class="bdg" style="background:${c}18;color:${c}">${p.setor}</span>`:'—'}</td><td class="tr" style="color:${c}">${fmt(p.valor)}</td><td style="color:var(--muted)">${fmtD(p.inicio)}</td><td><button onclick="remPJ(${id},${i})" style="background:transparent;border:none;color:var(--muted);cursor:pointer">✕</button></td></tr>`).join('')}</tbody></table>${tbox(`Total PJs — ${(emp.pjs||[]).length} contrato${(emp.pjs||[]).length!==1?'s':''}`,tot,c)}`:`<div style="text-align:center;padding:22px 0;color:var(--muted)"><div style="font-size:30px;opacity:.3;margin-bottom:7px">🤝</div><div>Nenhum PJ cadastrado</div></div>`;
+  return `<div class="sec" style="margin-top:0">Adicionar Prestador de Serviços (PJ)</div>
+  <div class="mf" style="grid-template-columns:2fr 1fr 1fr 1fr auto">
+  <div><div class="fl">Nome / Razão Social</div>${finp(`pn_${id}`,'Nome completo')}</div>
+  <div><div class="fl">Valor Mensal</div><input class="fi np" id="pv_${id}" type="number" placeholder="0,00"></div>
+  <div><div class="fl">Setor</div>${finp(`ps_${id}`,'Setor')}</div>
+  <div><div class="fl">Início</div><input class="fi np" id="pi_${id}" type="date"></div>
+  <div style="padding-top:14px"><button class="btn btn-blue" onclick="addPJ(${id})">+ Add</button></div>
+  </div>${rows}`;
+}
+
+function tabBeneficios(emp,eb){
+  const id=eb.id,totG=sumBen(emp);
+  const blocos=BENS.map(b=>{
+    const lista=emp.ben[b.key]||[],tot=lista.reduce((s,r)=>s+r.valor,0);
+    const rows=lista.length?`<table class="tbl" style="margin-top:7px"><thead><tr><th>Nome</th><th class="tr">Valor</th><th></th></tr></thead><tbody>${lista.map((r,i)=>`<tr><td>${r.nome}</td><td class="tr" style="color:${b.cor};font-weight:700">${fmt(r.valor)}</td><td><button onclick="remBen(${id},'${b.key}',${i})" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:11px">✕</button></td></tr>`).join('')}</tbody></table>`:`<div style="color:var(--muted);font-size:10px;margin-top:6px">Nenhum registro. Importe o CSV com colunas: Nome, Valor</div>`;
+    return `<div class="bb" style="border-left-color:${b.cor}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div><div style="font-weight:800;font-size:12px">${b.icon} ${b.nome}</div><div style="color:var(--muted);font-size:10px">Custo 100% empresa · CSV: Nome, Valor</div></div><div style="text-align:right"><div style="font-size:14px;font-weight:800;color:${b.cor}">${fmt(tot)}</div><div style="color:var(--muted);font-size:10px">${lista.length} pessoa${lista.length!==1?'s':''}</div></div></div>
+    <div style="display:flex;gap:7px;align-items:center">
+    <label style="display:inline-flex;align-items:center;gap:5px;background:${b.cor}18;border:1px solid ${b.cor}40;border-radius:6px;padding:5px 10px;font-size:10px;font-weight:700;color:${b.cor};cursor:pointer">📂 ${lista.length?'Reimportar':'Importar CSV'}<input type="file" accept=".csv,.txt" style="display:none" onchange="handleBen(${id},'${b.key}',this.files[0]);this.value=''"></label>
+    ${lista.length?`<button onclick="limparBen(${id},'${b.key}')" class="btn btn-ghost" style="font-size:10px;padding:4px 8px">Limpar</button>`:''}
+    </div>${rows}</div>`;
+  }).join('');
+  return `<div class="kg g4">${BENS.map(b=>kc(`${b.icon} ${b.nome.split('(')[0].trim()}`,fmt(sumBenTipo(emp,b.key)),(emp.ben[b.key]||[]).length+' pessoas',b.cor)).join('')}</div>${tbox('💰 Total Benefícios — Custo da Empresa',totG,'#F97316')}<div class="sec">Importar por Benefício</div>${blocos}`;
+}
+
+function tabBancoHoras(emp,eb){
+  const id=eb.id,c=eb.color,bh=emp.bh,sH=bh.totalHoras-bh.totalCompensado,sV=bh.totalHorasValor-bh.totalCompensadoValor,pC=bh.totalHoras?((bh.totalCompensado/bh.totalHoras)*100).toFixed(1):0,corS=sH>0?'#F59E0B':sH<0?'#EF4444':'#10B981';
+  const maxV=Math.max(bh.totalHorasValor,bh.totalCompensadoValor,Math.abs(sV),1);
+  const barData=[{l:'Total no Banco',v:bh.totalHorasValor,c:eb.color},{l:'Compensado',v:bh.totalCompensadoValor,c:'#10B981'},{l:'Saldo a Pagar',v:Math.abs(sV),c:corS}];
+  const svgH=80,svgBars=barData.map((b,i)=>{const bH=maxV?Math.max(4,(b.v/maxV)*svgH):4,x=15+i*55;return `<g><rect x="${x}" y="${svgH-bH+5}" width="36" height="${bH}" rx="3" fill="${b.c}" opacity=".85"/><text x="${x+18}" y="${svgH+18}" text-anchor="middle" fill="var(--muted)" font-size="7" font-family="DM Sans">${b.l}</text><text x="${x+18}" y="${svgH-bH+1}" text-anchor="middle" fill="${b.c}" font-size="7" font-family="DM Sans" font-weight="700">${fmt(b.v).replace('R$','')}</text></g>`;}).join('');
+  return `<div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);border-radius:9px;padding:9px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px"><span style="font-size:15px">🔒</span><span style="color:var(--amber);font-size:11px;font-weight:600">Seção exclusiva para a diretoria</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+  <div>
+  <div class="sec" style="margin-top:0;color:var(--amber)">⏱ Controle de Horas</div>
+  <div class="fr" style="border-left-color:${c}"><div class="fl">🕐 Total de Horas Acumuladas no Banco</div><div class="fw"><span class="fp" style="font-size:10px">h</span><input class="fi" type="number" id="bth_${id}" value="${bh.totalHoras||''}" placeholder="0" oninput="updBH(${id},'totalHoras',this.value)"></div></div>
+  <div class="fr" style="border-left-color:#10B981"><div class="fl">✅ Horas Compensadas no Mês</div><div class="fw"><span class="fp" style="font-size:10px">h</span><input class="fi" type="number" id="btc_${id}" value="${bh.totalCompensado||''}" placeholder="0" oninput="updBH(${id},'totalCompensado',this.value)"></div></div>
+  <div class="tbox" style="background:${corS}14;border-color:${corS}33"><span style="font-size:11px;font-weight:700">⚖ Saldo de Horas em Aberto</span><span style="font-size:13px;font-weight:800;color:${corS}">${fmtH(sH)}</span></div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--muted);font-size:10px">% Compensado no mês</span><span style="color:${c};font-size:11px;font-weight:700">${pC}%</span></div><div class="hbtr"><div class="hbf" style="width:${pC}%;background:${c}"></div></div></div>
+  <div class="sec" style="color:var(--amber)">💰 Valores Financeiros</div>
+  <div class="fr" style="border-left-color:${c}"><div class="fl">💵 Valor Total das Horas no Banco (R$)</div><div class="fw"><span class="fp">R$</span><input class="fi" type="number" id="btv_${id}" value="${bh.totalHorasValor||''}" placeholder="0,00" oninput="updBH(${id},'totalHorasValor',this.value)"></div></div>
+  <div class="fr" style="border-left-color:#10B981"><div class="fl">✅ Valor das Horas Compensadas (R$)</div><div class="fw"><span class="fp">R$</span><input class="fi" type="number" id="bcv_${id}" value="${bh.totalCompensadoValor||''}" placeholder="0,00" oninput="updBH(${id},'totalCompensadoValor',this.value)"></div></div>
+  <div class="tbox" style="background:${corS}14;border-color:${corS}33"><span style="font-size:11px;font-weight:700">💳 Passivo Financeiro — Saldo a Pagar</span><span style="font-size:14px;font-weight:800;color:${corS}">${fmt(sV)}</span></div>
+  </div>
+  <div>
+  <div class="sec" style="margin-top:0">📊 Visão Gráfica — Diretoria</div>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:9px;padding:12px 14px;margin-bottom:10px">
+  <div style="color:var(--muted);font-size:9px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;margin-bottom:8px">Composição do Banco de Horas (R$)</div>
+  <svg width="100%" height="105" viewBox="0 0 180 105" preserveAspectRatio="xMidYMid meet">${svgBars}</svg></div>
+  <div class="kg g3">${kc('Total Acumulado',fmtH(bh.totalHoras),'horas no banco',c)}${kc('Compensado',fmtH(bh.totalCompensado),pC+'% do total','#10B981')}${kc('Saldo',fmtH(sH),fmt(sV),corS)}</div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 13px">
+  <div style="color:var(--muted);font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--border)">Resumo Financeiro para Diretoria</div>
+  ${[['💵 Valor total acumulado no banco',bh.totalHorasValor,c],['✅ Valor já compensado no mês',bh.totalCompensadoValor,'#10B981'],['💳 Passivo restante a compensar/pagar',sV,corS]].map(([l,v,c2])=>`<div style="display:flex;justify-content:space-between;margin-bottom:7px;padding-bottom:7px;border-bottom:1px solid var(--border)"><span style="color:var(--subtle);font-size:11px">${l}</span><span style="color:${c2};font-size:12px;font-weight:800">${fmt(v)}</span></div>`).join('')}
+  <div style="color:var(--muted);font-size:10px;text-align:center;margin-top:4px">${sV>0?`⚠️ Passivo de ${fmt(sV)} a ser compensado ou pago`:sV<0?`⚠️ Saldo negativo — verifique os dados`:'✅ Banco de horas zerado'}</div></div>
+  </div></div>`;
+}
+
+function renderPanel(empId){
+  const eb=EMP_BASE.find(e=>e.id===empId),emp=dados.find(e=>e.id===empId);
+  if(!emp||!eb) return;
+  const c=eb.color,tab=pTabs[empId],f=emp.folha,bh=emp.bh,sH=bh.totalHoras-bh.totalCompensado;
+  const custo=custoEmp(emp);
+  const tags=[
+    mesSel?`<span class="tag" style="color:${c};border-color:${c}40;background:${c}10">${MESES[parseInt(mesSel.split('-')[1])-1]}</span>`:'',
+    f.totalFuncionarios?`<span class="tag" style="color:#10B981;border-color:#10B98140;background:#10B98110">${f.totalFuncionarios} func.</span>`:'',
+    emp.adm.length?`<span class="tag" style="color:#10B981;border-color:#10B98140;background:#10B98110">+${emp.adm.length} adm</span>`:'',
+    emp.dem.length?`<span class="tag" style="color:#EF4444;border-color:#EF444440;background:#EF444410">${emp.dem.length} dem</span>`:'',
+    bh.totalHoras>0&&sH>0?`<span class="tag" style="color:#F59E0B;border-color:#F59E0B40;background:#F59E0B10">${fmtH(sH)} banco</span>`:'',
+  ].join('');
+  const TABS=['resumo','encargos','movimentação','setores','pjs','benefícios','banco de horas'];
+  const tabsHtml=TABS.map(t=>`<button class="tb" onclick="setTab(${empId},'${t}')" style="background:${tab===t?c+'18':'transparent'};border-color:${tab===t?c:'var(--border)'};color:${tab===t?c:'var(--muted)'}">${t}</button>`).join('');
+  const importBtn=`<label class="imp-btn" style="background:linear-gradient(135deg,${c},${eb.accent});cursor:pointer" title="Importar PDF da folha — a IA preenche todos os campos automaticamente">
+    📄 Importar PDF da Folha
+    <input type="file" accept=".pdf" style="display:none" onchange="importarPDF(${empId},this.files[0]);this.value=''">
+  </label>`;
+  let body='';
+  if(tab==='resumo') body=tabResumo(emp,eb);
+  else if(tab==='encargos') body=tabEncargos(emp,eb);
+  else if(tab==='movimentação') body=tabMov(emp,eb);
+  else if(tab==='setores') body=tabSetores(emp,eb);
+  else if(tab==='pjs') body=tabPJs(emp,eb);
+  else if(tab==='benefícios') body=tabBeneficios(emp,eb);
+  else if(tab==='banco de horas') body=tabBancoHoras(emp,eb);
+  const _pLogoHtml=window._logoURL?`<div class='print-logo-bar'><img src='${window._logoURL}' alt='logo'><div class='pln'>${eb.nome}</div></div>`:'';
+  document.getElementById(`panel${empId}`).innerHTML=`<div class="panel" style="border-top:4px solid ${c}"><div class="panel-hd" style="background:linear-gradient(135deg,${c}0D,transparent)"><div class="co-row"><div class="co-ic" style="background:${c}20">🏢</div><div><div class="co-nm">${eb.nome}</div><div class="co-cnpj">${eb.cnpj}</div></div><div class="co-tags">${tags}</div></div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px">${importBtn}<div class="tabs" style="flex:1">${tabsHtml}</div></div></div><div class="panel-body">${_pLogoHtml}${body}</div></div>`;
+}
+
+function renderAll(){renderPanel(1);renderPanel(2);}
+function setTab(empId,tab){pTabs[empId]=tab;renderPanel(empId);}
+
+function renderHistorico(){
+  const keys=Object.keys(hist).sort(),el=document.getElementById('histContent');
+  if(!keys.length){el.innerHTML=`<div style="text-align:center;padding:48px 0;color:var(--muted)"><div style="font-size:40px;opacity:.3;margin-bottom:10px">📅</div><div style="font-weight:600;margin-bottom:4px">Nenhum mês salvo ainda</div><div style="font-size:11px">Preencha os dados e clique em Salvar para começar o histórico</div></div>`;return;}
+  const anos=[...new Set(keys.map(k=>k.split('-')[0]))];
+  let html='';
+  anos.forEach(ano=>{
+    const mA=keys.filter(k=>k.startsWith(ano));
+    const maxV=Math.max(...mA.map(k=>hist[k].empresas.reduce((s,e)=>s+custoHistE(e),0)),1);
+    const barsHtml=EMP_BASE.map(eb=>{
+      const bars=mA.map(k=>{const h=hist[k],emp=h.empresas.find(e=>e.id===eb.id);if(!emp)return `<div class="bc"><div class="bf" style="height:2px;background:var(--border)" data-tip="Sem dados"></div><div class="bm">${MESES[parseInt(k.split('-')[1])-1].slice(0,3)}</div></div>`;const tot=custoHistE(emp),bH=Math.max(3,(tot/maxV)*80);return `<div class="bc"><div class="bf" style="height:${bH}px;background:${eb.color}" data-tip="${MESES[parseInt(k.split('-')[1])-1]}: ${fmt(tot)}"></div><div class="bm">${MESES[parseInt(k.split('-')[1])-1].slice(0,3)}</div></div>`;}).join('');
+      return `<div class="bar-chart-wrap" style="margin-bottom:7px"><div class="bar-chart-title">${eb.nome} — ${ano}</div><div class="barch">${bars}</div></div>`;
+    }).join('');
+    const cardsHtml=mA.map(k=>{const h=hist[k],[y,m]=k.split('-'),tot=h.empresas.reduce((s,e)=>s+custoHistE(e),0),funcs=h.empresas.reduce((s,e)=>s+(e.folha.totalFuncionarios||0),0),adms=h.empresas.reduce((s,e)=>s+(e.adm||[]).length,0),dems=h.empresas.reduce((s,e)=>s+(e.dem||[]).length,0);return `<div class="mc ${k===mesSel?'active':''}" onclick="abrirMes('${k}')"><button class="mc-del" onclick="event.stopPropagation();deletarMes('${k}')">✕</button><div class="mc-nm">${MESES[parseInt(m)-1]}</div><div class="mc-val">${fmt(tot)}</div><div class="mc-sub">${funcs} func. · +${adms} · ${dems} dem</div></div>`;}).join('');
+    const tblRows=mA.map(k=>{const h=hist[k],[y,m]=k.split('-'),tot=h.empresas.reduce((s,e)=>s+custoHistE(e),0),bruto=h.empresas.reduce((s,e)=>s+e.folha.totalBruto,0),ben=h.empresas.reduce((s,e)=>s+sumBen(e),0),funcs=h.empresas.reduce((s,e)=>s+(e.folha.totalFuncionarios||0),0),adms=h.empresas.reduce((s,e)=>s+(e.adm||[]).length,0),dems=h.empresas.reduce((s,e)=>s+(e.dem||[]).length,0);return `<tr><td style="font-weight:700">${MESES[parseInt(m)-1]} ${y}</td><td class="tr" style="color:var(--blue)">${fmt(tot)}</td><td class="tr">${fmt(bruto)}</td><td class="tr" style="color:var(--amber)">${fmt(tot-bruto)}</td><td class="tr" style="color:var(--orange)">${fmt(ben)}</td><td class="tr">${funcs}</td><td class="tr" style="color:var(--green)">+${adms}</td><td class="tr" style="color:var(--red)">${dems}</td><td><button class="btn btn-ghost" style="padding:3px 6px;font-size:9px" onclick="pdfMes('${k}')">📄 PDF</button></td></tr>`;}).join('');
+    html+=`<div style="margin-bottom:20px"><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;margin-bottom:9px">${ano}</div>${barsHtml}<div class="hist-grid">${cardsHtml}</div><div style="background:var(--card);border:1px solid var(--border);border-radius:11px;padding:13px;overflow-x:auto"><div class="sec" style="margin-top:0">Resumo ${ano}</div><table class="tbl"><thead><tr><th>Mês</th><th class="tr">Custo Total</th><th class="tr">Bruto</th><th class="tr">Encargos</th><th class="tr">Benefícios</th><th class="tr">Func.</th><th class="tr">Adm.</th><th class="tr">Dem.</th><th></th></tr></thead><tbody>${tblRows}</tbody></table></div></div>`;
+  });
+  el.innerHTML=html;
+}
+
+function custoHistE(emp){const f=emp.folha;return f.totalBruto+f.inssEmpresa+f.inssTerceiros+f.inssRAT+f.fgtsGFIP+f.fgtsGRRF+(emp.pjs||[]).reduce((s,p)=>s+p.valor,0)+sumBen(emp);}
+
+function abrirMes(k){mesSel=k;document.getElementById('selMes').value=k;onMesChange();showView('paineis',document.querySelector('.nav-btn'));}
+function deletarMes(k){if(!confirm(`Excluir ${k}?`))return;delete hist[k];localStorage.setItem('folharh_pro_v1',JSON.stringify(hist));buildSelect();renderHistorico();toast('Mês excluído','#EF4444');}
+function pdfMes(k){const pM=mesSel,pD=JSON.parse(JSON.stringify(dados));mesSel=k;if(hist[k])dados=JSON.parse(JSON.stringify(hist[k].empresas));showView('paineis',null);renderAll();setTimeout(()=>{window.print();mesSel=pM;dados=pD;renderAll();showView('historico',null);},350);}
+
+function renderComparativo(){
+  const[e1,e2]=dados,[b1,b2]=EMP_BASE,c1=custoEmp(e1),c2=custoEmp(e2),grp=c1+c2,bh1=e1.bh,bh2=e2.bh;
+  const rows=[
+    ['💰 Custo Total Empresa',fmt(c1),fmt(c2)],
+    ['📊 Total Bruto Folha',fmt(e1.folha.totalBruto),fmt(e2.folha.totalBruto)],
+    ['💳 Total Líquido',fmt(e1.folha.totalLiquido),fmt(e2.folha.totalLiquido)],
+    ['👥 Funcionários',e1.folha.totalFuncionarios||'—',e2.folha.totalFuncionarios||'—'],
+    ['✅ Admissões',(e1.adm||[]).length,(e2.adm||[]).length],
+    ['🚪 Demissões',(e1.dem||[]).length,(e2.dem||[]).length],
+    ['🤝 PJs',`${(e1.pjs||[]).length} (${fmt((e1.pjs||[]).reduce((s,p)=>s+p.valor,0))})`,`${(e2.pjs||[]).length} (${fmt((e2.pjs||[]).reduce((s,p)=>s+p.valor,0))})`],
+    ['🏛️ INSS Patronal',fmt(e1.folha.inssEmpresa+e1.folha.inssTerceiros+e1.folha.inssRAT),fmt(e2.folha.inssEmpresa+e2.folha.inssTerceiros+e2.folha.inssRAT)],
+    ['🏦 FGTS Total',fmt(e1.folha.fgtsGFIP+e1.folha.fgtsGRRF),fmt(e2.folha.fgtsGFIP+e2.folha.fgtsGRRF)],
+    ['💼 IRRF Retido',fmt(e1.folha.irrfTotal),fmt(e2.folha.irrfTotal)],
+    ['🍔 iFood',fmt(sumBenTipo(e1,'ifood')),fmt(sumBenTipo(e2,'ifood'))],
+    ['🎁 Caju',fmt(sumBenTipo(e1,'caju')),fmt(sumBenTipo(e2,'caju'))],
+    ['🏥 Unimed',fmt(sumBenTipo(e1,'unimed')),fmt(sumBenTipo(e2,'unimed'))],
+    ['🩺 Prosa',fmt(sumBenTipo(e1,'prosa')),fmt(sumBenTipo(e2,'prosa'))],
+    ['🎯 Total Benefícios',fmt(sumBen(e1)),fmt(sumBen(e2))],
+    ['⏱ Saldo Banco Horas',fmtH(bh1.totalHoras-bh1.totalCompensado),fmtH(bh2.totalHoras-bh2.totalCompensado)],
+    ['💳 Passivo Banco Horas (R$)',fmt(bh1.totalHorasValor-bh1.totalCompensadoValor),fmt(bh2.totalHorasValor-bh2.totalCompensadoValor)],
+    ['📈 % Encargos s/ Bruto',pct(e1.folha.inssEmpresa+e1.folha.inssTerceiros+e1.folha.inssRAT+e1.folha.fgtsGFIP+e1.folha.fgtsGRRF,e1.folha.totalBruto||1)+'%',pct(e2.folha.inssEmpresa+e2.folha.inssTerceiros+e2.folha.inssRAT+e2.folha.fgtsGFIP+e2.folha.fgtsGRRF,e2.folha.totalBruto||1)+'%'],
+    ['📦 Participação no Grupo',pct(c1,grp||1)+'%',pct(c2,grp||1)+'%'],
+  ];
+  document.getElementById('compContent').innerHTML=`<div class="kg g2" style="margin-bottom:12px">${kc(b1.nome,fmt(c1),pct(c1,grp||1)+'% do grupo',b1.color)}${kc(b2.nome,fmt(c2),pct(c2,grp||1)+'% do grupo',b2.color)}</div><div class="tbox" style="background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.25);margin-bottom:14px"><span style="font-size:13px;font-weight:700">💼 Custo Total do Grupo</span><span style="font-size:14px;font-weight:800;color:var(--blue)">${fmt(grp)}</span></div><table class="tbl"><thead><tr><th>Indicador</th><th style="text-align:right;color:${b1.color}">${b1.nome}</th><th style="text-align:right;color:${b2.color}">${b2.nome}</th></tr></thead><tbody>${rows.map(([l,v1,v2])=>`<tr><td style="font-weight:600">${l}</td><td style="text-align:right;color:${b1.color};font-weight:700">${v1}</td><td style="text-align:right;color:${b2.color};font-weight:700">${v2}</td></tr>`).join('')}</tbody></table>`;
+}
+
+function showView(view,btn){
+  ['paineis','historico','comparativo'].forEach(v=>document.getElementById(`view-${v}`).style.display=v===view?'':'none');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(view==='historico')renderHistorico();
+  if(view==='comparativo')renderComparativo();
+}
+
+function toast(msg,cor){cor=cor||'#10B981';const t=document.getElementById('toast');t.textContent=msg;t.style.background=cor;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+
+
+// ── WELCOME JS ────────────────────────────────────────────
+var _wLogo='';
+function chkW(){document.getElementById('wbtn').disabled=document.getElementById('wn1').value.trim().length<2;}
+function mCNPJ(el){var v=el.value.replace(/\D/g,'').slice(0,14);if(v.length>12)v=v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/,'$1.$2.$3/$4-$5');else if(v.length>8)v=v.replace(/(\d{2})(\d{3})(\d{3})(\d{0,4})/,'$1.$2.$3/$4');else if(v.length>5)v=v.replace(/(\d{2})(\d{3})(\d{0,3})/,'$1.$2.$3');else if(v.length>2)v=v.replace(/(\d{2})(\d{0,3})/,'$1.$2');el.value=v;}
+function pLogo(inp){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){document.getElementById('wlimg').src=e.target.result;document.getElementById('wlfn').textContent=f.name;document.getElementById('wlprev').style.display='flex';_wLogo=e.target.result;};r.readAsDataURL(f);}
+function rLogo(){document.getElementById('wlprev').style.display='none';document.getElementById('wlogo').value='';_wLogo='';}
+function startApp(){
+  var n1=document.getElementById('wn1').value.trim();
+  var c1=document.getElementById('wc1').value.trim();
+  var cor1=document.getElementById('wcor1').value;
+  var n2=document.getElementById('wn2').value.trim()||'';
+  var c2=document.getElementById('wc2').value.trim();
+  var cor2=document.getElementById('wcor2').value;
+  // Atualiza EMP_BASE
+  EMP_BASE[0].nome=n1;EMP_BASE[0].cnpj=c1;EMP_BASE[0].color=cor1;
+  EMP_BASE[1].nome=n2||n1+' (2)';EMP_BASE[1].cnpj=c2;EMP_BASE[1].color=cor2;
+  window._logoURL=_wLogo;
+  // Salva config
+  localStorage.setItem('folharh_cfg',JSON.stringify({n1,c1,cor1,n2,c2,cor2,logo:_wLogo}));
+  // Fecha welcome
+  var ov=document.getElementById('wov');ov.style.transition='opacity .3s';ov.style.opacity='0';setTimeout(function(){ov.style.display='none';},320);
+  renderAll();
+}
+function _loadCfg(){
+  try{
+    var cfg=JSON.parse(localStorage.getItem('folharh_cfg')||'null');
+    if(!cfg)return false;
+    EMP_BASE[0].nome=cfg.n1||'EMPRESA 1';EMP_BASE[0].cnpj=cfg.c1||'';EMP_BASE[0].color=cfg.cor1||'#3B82F6';
+    EMP_BASE[1].nome=cfg.n2||'EMPRESA 2';EMP_BASE[1].cnpj=cfg.c2||'';EMP_BASE[1].color=cfg.cor2||'#10B981';
+    window._logoURL=cfg.logo||'';_wLogo=cfg.logo||'';
+    document.getElementById('wov').style.display='none';
+    return true;
+  }catch(e){return false;}
+}
+
+_loadCfg();
+carregarLocal();buildSelect();loadKey();
+const now=new Date(),keyA=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+document.getElementById('selMes').value=keyA;mesSel=keyA;
+if(hist[keyA]){dados=JSON.parse(JSON.stringify(hist[keyA].empresas));planilhas[1]=hist[keyA].p1||[];planilhas[2]=hist[keyA].p2||[];dados.forEach(fix);}
+const[y0,m0]=keyA.split('-');
+document.getElementById('pgSub').textContent=`Competência: ${MESES[parseInt(m0)-1]}/${y0} · Empresa 1 + Empresa 2`;
+renderAll();
+</script>
+</body>
+</html>
+
