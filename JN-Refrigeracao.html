@@ -29,8 +29,8 @@ button{cursor:pointer}
 .top .lg{width:44px;height:44px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none}
 .top .lg img{width:100%;height:100%;object-fit:contain;background:transparent}
 .top .lg svg{width:28px;height:28px}
-.brand{font-family:var(--display);font-weight:800;font-size:19px;line-height:1.1;color:var(--brand);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.top small{display:block;font-family:var(--body);font-size:12px;opacity:.8;text-transform:none;letter-spacing:0;font-weight:500;margin-top:3px}
+.brand{font-family:var(--display);font-weight:800;font-size:19px;line-height:1.1;color:var(--brand);flex:1;min-width:0;overflow:hidden;}
+.top small{display:block;font-family:var(--body);font-size:12px;white-space:normal;line-height:1.25;opacity:.8;text-transform:none;letter-spacing:0;font-weight:500;margin-top:3px}
 main{flex:1;padding:14px max(16px,env(safe-area-inset-right,0px)) 110px max(16px,env(safe-area-inset-left,0px))}
 .view{display:flex;flex-direction:column;gap:12px}
 h2{font-family:var(--display);font-weight:800;font-size:26px;line-height:1;margin:2px 0 0;text-wrap:balance}
@@ -234,7 +234,7 @@ function resumoAps(c,ids){const aps=c.aparelhos.filter(a=>!ids||ids.includes(a.i
 const maps=c=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent([c.end,c.bairro,D.cfg.cidade].filter(Boolean).join(", "));
 
 /* ---------- estado e desenho ---------- */
-let st={view:"inicio",dia:hoje(),q:""};
+let st={view:"inicio",dia:hoje(),q:"",hojeRef:hoje()};
 const ICON={inicio:'<path d="M3 11 12 3l9 8M5 9.5V21h5v-6h4v6h5V9.5"/>',hoje:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',alertas:'<path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6zM10 19a2 2 0 0 0 4 0"/>',
  clientes:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5 6.5-5s5.7 1.5 6.5 5M16 4.5a3.5 3.5 0 0 1 0 7M18 15c2 .6 3.2 2.2 3.6 5"/>',os:'<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h5"/>',mais:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/>'};
 const IC={
@@ -257,7 +257,9 @@ function render(){
  $("#nav").innerHTML=[["inicio","Início"],["hoje","Agenda"],["clientes","Clientes"],["mais","Ajustes"]].map(([k,l])=>
   `<button data-act="tab" data-v="${k}" aria-current="${k===tab?"page":"false"}"><svg viewBox="0 0 24 24">${ICON[k]}</svg>${l}</button>`).join("");
 }
-function renderTop(){const n=alertas().venc.length;$("#top").innerHTML=`<button class="lg" style="border:0;padding:0" data-act="tab" data-v="inicio" aria-label="Início">${(D.cfg.icone||D.cfg.logo)?`<img src="${D.cfg.icone||D.cfg.logo}" alt="">`:SNOW}</button><div class="brand">${esc(D.cfg.empresa)}<small>${diaNome(hoje())}${D.cfg.tecnico?" · "+esc(D.cfg.tecnico):""}</small></div><button class="ib" data-act="buscar" aria-label="Buscar cliente"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button><button class="ib" data-act="tab" data-v="alertas" aria-label="Alertas"><svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6zM10 19a2 2 0 0 0 4 0"/></svg>${n?'<i class="dot"></i>':""}</button>`}
+function dataHora(){const d=new Date();let s=d.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});s=s.charAt(0).toUpperCase()+s.slice(1);return s+" · "+pad(d.getHours())+":"+pad(d.getMinutes())}
+setInterval(()=>{const r=document.getElementById("relogio");if(r)r.textContent=dataHora();if(st.dia&&st.hojeRef!==hoje()){st.hojeRef=hoje();render()}},15000);
+function renderTop(){const n=alertas().venc.length;$("#top").innerHTML=`<button class="lg" style="border:0;padding:0" data-act="tab" data-v="inicio" aria-label="Início">${(D.cfg.icone||D.cfg.logo)?`<img src="${D.cfg.icone||D.cfg.logo}" alt="">`:SNOW}</button><div class="brand">${esc(D.cfg.empresa)}<small id="relogio">${dataHora()}</small></div><button class="ib" data-act="buscar" aria-label="Buscar cliente"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button><button class="ib" data-act="tab" data-v="alertas" aria-label="Alertas"><svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6zM10 19a2 2 0 0 0 4 0"/></svg>${n?'<i class="dot"></i>':""}</button>`}
 const demoBanner=()=>D.cfg.demo?`<div class="banner"><span>Você está vendo clientes de exemplo.</span><button class="btn" data-act="zerar">Começar do zero</button></div>`:"";
 
 function vInicio(){const d=hoje(),{venc}=alertas(),lst=D.servicos.filter(s=>s.data===d),feitos=D.servicos.filter(s=>s.status==="feito");
