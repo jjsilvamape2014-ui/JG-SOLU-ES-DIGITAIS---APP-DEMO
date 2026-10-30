@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Estúdio de Anúncios · Linha Fácil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700;1,800&display=swap">
+<style>
+:root{--bg:#050b18;--panel:#0c1830;--panel2:#0f1f3a;--line:rgba(120,165,235,.18);--ink:#eef3fb;--muted:#8ea3c4;--o:#ff8a00;--c:#2ec5ff;--ok:#2fd08a;--bad:#ff6b6b;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+header{position:sticky;top:0;z-index:5;background:rgba(5,11,24,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px max(14px,env(safe-area-inset-right)) 10px max(14px,env(safe-area-inset-left));display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.logo{font-weight:800;font-size:18px;letter-spacing:-.02em}
+.logo b{background:linear-gradient(90deg,#ffb000,#3cc3ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+header select{max-width:220px}
+.sp{flex:1}
+.wrap{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:18px;padding:16px max(14px,env(safe-area-inset-right)) 40px max(14px,env(safe-area-inset-left));max-width:1200px;margin:0 auto}
+@media (max-width:820px){.wrap{grid-template-columns:1fr}}
+.stage{position:sticky;top:64px;align-self:start;display:flex;flex-direction:column;gap:10px}
+@media (max-width:820px){.stage{position:static}}
+canvas{width:100%;max-width:380px;aspect-ratio:9/16;border-radius:18px;border:1px solid var(--line);background:#030915;display:block;margin:0 auto}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.b{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:9px 13px;font-weight:600}
+.b:hover{border-color:rgba(120,170,255,.45)}
+.b.pri{background:linear-gradient(90deg,#ff8a00,#ffb300 45%,#2ec5ff);color:#04101f;border:0;font-weight:800}
+.b.sm{padding:6px 10px;font-size:13px}
+.b:disabled{opacity:.5;cursor:default}
+.status{font-size:13px;color:var(--muted);min-height:18px}
+.status.err{color:var(--bad)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.card h3{margin:0;font-size:15px;display:flex;align-items:center;gap:8px}
+.card h3 .n{font-size:12px;color:var(--muted);font-weight:600;border:1px solid var(--line);border-radius:99px;padding:2px 8px}
+label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted);font-weight:600}
+input,textarea,select{background:#081226;border:1px solid var(--line);border-radius:9px;padding:8px 10px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:62px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:480px){.g2{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.45}
+.hint code{background:#081226;padding:1px 5px;border-radius:5px}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{min-width:0}
+details summary{cursor:pointer;font-weight:700}
+.pill{font-size:11.5px;border-radius:99px;padding:2px 8px;font-weight:700}
+.p-ok{background:rgba(47,208,138,.15);color:var(--ok)}.p-no{background:rgba(255,255,255,.06);color:var(--muted)}
+progress{width:100%;height:8px}
+:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Estúdio de Anúncios · Linha <b>Fácil</b></div>
+  <div class="sp"></div>
+  <select id="proj" aria-label="Projeto"></select>
+  <button class="b sm" id="novo">Novo a partir de modelo</button>
+  <button class="b sm" id="dup">Duplicar</button>
+  <button class="b sm" id="del">Excluir</button>
+</header>
+
+<div class="wrap">
+  <div class="stage">
+    <canvas id="cv" width="1080" height="1920"></canvas>
+    <div class="btns">
+      <button class="b" id="play">▶ Prévia</button>
+      <button class="b" id="voz">🎙 Gerar narração</button>
+      <button class="b pri" id="exp">⬇ Exportar vídeo</button>
+    </div>
+    <progress id="prog" value="0" max="1" hidden></progress>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div class="col">
+    <div class="card">
+      <h3>Configurações</h3>
+      <div class="g2">
+        <label>WhatsApp no final do vídeo<input id="s-wa" placeholder="(91) 99987-9932"></label>
+        <label>Linha abaixo da marca<input id="s-tag" placeholder="Apps e automação com IA para negócios"></label>
+      </div>
+      <details>
+        <summary>Narração (Speko)</summary>
+        <div class="col" style="margin-top:10px">
+          <label>Chave da API Speko<input id="s-key" type="password" autocomplete="off" placeholder="sk_live_..."></label>
+          <div class="g2">
+            <label>Endereço da API<input id="s-base" placeholder="https://api.speko.dev"></label>
+            <label>Voz<input id="s-voice" placeholder="pt-BR-Caio:MAI-Voice-2.1"></label>
+          </div>
+          <p class="hint">A chave fica salva só neste navegador. Cada narração gerada é guardada aqui também, então exportar de novo o mesmo texto não gasta crédito. Se o navegador bloquear a chamada (erro de CORS), coloque no endereço o seu servidor intermediário (arquivo <code>speko-proxy.js</code>, no Railway).</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h3>Abertura</h3>
+      <label>Etiqueta de público (aparece só na 1ª cena)<input id="p-chip" placeholder="Para gestores de frota"></label>
+      <p class="hint">Nos títulos e frases, coloque a palavra de destaque entre asteriscos: <code>Seu diesel está *sumindo*?</code></p>
+    </div>
+
+    <div id="scenes" class="col"></div>
+    <button class="b" id="add">+ Adicionar cena</button>
+
+    <div class="card">
+      <h3>Final (contato)</h3>
+      <div class="g2">
+        <label>Texto pequeno da oferta<input id="p-offs" placeholder="App de frota a partir de"></label>
+        <label>Oferta em destaque<input id="p-off" placeholder="R$ 97*/mês*"></label>
+      </div>
+      <label>Narração do final<textarea id="p-ctan"></textarea></label>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== MODELOS ===================== */
+const TIPOS={lista:"Lista com valores",numero:"Número grande + lista",checklist:"Checklist",whatsapp:"Mensagem no WhatsApp",grafico:"Gráfico",frases:"Três frases de impacto"};
+const MODELOS={
+ frota:{nome:"Frota",chip:"Para gestores de frota",offs:"App de frota a partir de",off:"R$ 97*/mês*",ctan:"A partir de noventa e sete reais por mês. Chama a gente no WhatsApp.",cenas:[
+  {tipo:"numero",titulo:"Seu diesel está *sumindo*?",topo:"Gasto com diesel · outubro",numero:"R$ 36.635",itens:"Acima do normal | + R$ 1.870 | !\nVeículos na frota | 6",legenda:"qual caminhão está bebendo mais diesel?",narracao:"Você sabe qual caminhão da sua frota está bebendo mais diesel?"},
+  {tipo:"lista",titulo:"Tudo numa *tela só*",topo:"Consumo por veículo",itens:"QEX-4B21 Betoneira | 2,31 km/l | !\nQDP-7H90 Basculante | 2,58 km/l\nOTR-2C55 Truck | 3,12 km/l\nPTX-9F44 Toco baú | 4,10 km/l",legenda:"o consumo de cada veículo, numa tela só",narracao:"Com o app da Linha Fácil, você vê o consumo de cada veículo numa tela só."},
+  {tipo:"lista",titulo:"Alerta na *hora certa*",topo:"Alertas de hoje",itens:"Consumo alto · QEX-4B21 | 22% | !\nAbastecimento duplicado | 2× | !\nCNH vencendo | 12 dias\nRevisão chegando | 1.270 km",legenda:"o app avisa antes de virar prejuízo",narracao:"Consumo alto, abastecimento duplicado, CNH vencendo: o app te avisa antes de virar prejuízo."},
+  {tipo:"grafico",titulo:"Quando *começou*",topo:"km/l por abastecimento",direcao:"cai",rotulo:"Consumo começou a cair aqui",legenda:"e mostra quando o consumo começou a cair",narracao:"E mostra exatamente quando o consumo começou a cair."},
+  {tipo:"frases",titulo:"Menos *diesel*\nMenos *fraude*\nMais *controle*",legenda:"menos desperdício, mais controle da frota",narracao:"Menos diesel desperdiçado, menos fraude, e mais controle da sua frota."}]},
+ ar:{nome:"Ar-condicionado",chip:"Para técnicos de ar-condicionado",offs:"App para técnicos a partir de",off:"R$ 49*/mês*",ctan:"A partir de quarenta e nove reais por mês. Chama a gente no WhatsApp.",cenas:[
+  {tipo:"lista",titulo:"Cliente *esquecido*?",topo:"Última limpeza",itens:"Rosa Ferreira | 9 meses | !\nPadaria Pão Quente | 8 meses | !\nCarlos Mendes | 8 meses | !",legenda:"quantos clientes você esqueceu de chamar?",narracao:"Técnico de ar-condicionado: quantos clientes você esqueceu de chamar pra limpeza?"},
+  {tipo:"lista",titulo:"Sua *agenda* do dia",topo:"Quinta · 30 out",itens:"08:00 Ana Souza | feito\n10:30 Mercadinho | próximo | !\n14:00 Clínica Vida | agendado\n16:30 Pedro Lima | agendado",legenda:"sua agenda do dia, na ordem da rota",narracao:"Com o app da Linha Fácil, sua agenda do dia fica no celular, na ordem da rota."},
+  {tipo:"whatsapp",titulo:"Um *toque*",topo:"Rosa Ferreira · 9 meses",botao:"Avisar no WhatsApp",mensagem:"Olá, Rosa! A última limpeza do seu ar-condicionado foi em janeiro, já faz 9 meses. Posso agendar a limpeza esta semana?",legenda:"a mensagem sai pronta no WhatsApp",narracao:"Com um toque, a mensagem sai pronta no WhatsApp do cliente."},
+  {tipo:"checklist",titulo:"OS e *recibo*",topo:"OS 0148 · Ana Souza",itens:"Limpeza dos filtros\nHigienização da evaporadora\nLimpeza da condensadora\nTeste do dreno",total:"R$ 150",legenda:"ordem de serviço e recibo no local",narracao:"Ordem de serviço e recibo feitos no local, em um minuto."},
+  {tipo:"frases",titulo:"Mais *serviço*\nMenos *esquecimento*\nCliente de *volta*",legenda:"cliente voltando todo semestre",narracao:"Mais serviço, menos esquecimento, e cliente voltando todo semestre."}]},
+ manicure:{nome:"Manicure",chip:"Para manicures e nail designers",offs:"App de agenda a partir de",off:"R$ 49*/mês*",ctan:"A partir de quarenta e nove reais por mês. Chama a gente no WhatsApp.",cenas:[
+  {tipo:"lista",titulo:"Horário *vazio* de novo?",topo:"Agenda de hoje",itens:"09:00 Carla | confirmada\n11:00 — | cadeira vazia | !\n14:00 Luana | confirmada\n16:00 — | cadeira vazia | !",legenda:"cliente que marca e não aparece custa caro",narracao:"Cliente que marca e não aparece deixa sua agenda com buraco e sem dinheiro."},
+  {tipo:"whatsapp",titulo:"Lembrete *automático*",topo:"Luana · amanhã 14h",botao:"Enviar lembrete",mensagem:"Oi, Luana! Passando para lembrar do seu horário amanhã às 14h. Posso confirmar?",legenda:"o lembrete sai sozinho no WhatsApp",narracao:"Com o app da Linha Fácil, o lembrete sai sozinho no WhatsApp da cliente."},
+  {tipo:"numero",titulo:"Quanto você *fatura*",topo:"Previsto para hoje",numero:"R$ 380",itens:"Atendimentos | 6\nSinais pagos no Pix | 4",legenda:"você vê o dia e quanto vai faturar",narracao:"E você vê o seu dia e quanto vai faturar, tudo numa tela."},
+  {tipo:"frases",titulo:"Mais *clientes*\nMenos *faltas*\nAgenda *cheia*",legenda:"agenda cheia, sem correria",narracao:"Mais clientes, menos faltas, e a agenda cheia."}]}
+};
+
+/* ===================== ESTADO ===================== */
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let cfg=Object.assign({wa:"(91) 99987-9932",tag:"Apps e automação com IA para negócios",key:"",base:"https://api.speko.dev",voice:"pt-BR-Caio:MAI-Voice-2.1"},LS.get("lf_cfg",{}));
+let projetos=LS.get("lf_proj",null);
+if(!projetos||!projetos.length){projetos=Object.values(MODELOS).map(m=>clone(m))}
+let atual=0;
+function clone(o){return JSON.parse(JSON.stringify(o))}
+function salvar(){LS.set("lf_proj",projetos);LS.set("lf_cfg",cfg)}
+const P=()=>projetos[atual];
+const $=s=>document.querySelector(s);
+const st=(m,err)=>{const e=$("#st");e.textContent=m||"";e.classList.toggle("err",!!err)};
+
+/* ===================== ÁUDIO (Speko + cache) ===================== */
+let actx=null;const AC=()=>actx||(actx=new (window.AudioContext||window.webkitAudioContext)());
+const buffers=new Map();
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open("lf_audio",1);r.onupgradeneeded=()=>r.result.createObjectStore("a");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function cacheGet(k){try{const db=await idb();return await new Promise(r=>{const q=db.transaction("a").objectStore("a").get(k);q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null)})}catch(e){return null}}
+async function cachePut(k,v){try{const db=await idb();db.transaction("a","readwrite").objectStore("a").put(v,k)}catch(e){}}
+const vkey=t=>cfg.voice+"|"+t.trim();
+async function narrar(texto){
+ const k=vkey(texto);if(buffers.has(k))return buffers.get(k);
+ let ab=await cacheGet(k);
+ if(!ab){
+  if(!cfg.key)throw new Error("Coloque a chave da API Speko em Configurações › Narração.");
+  const body={text:texto,intent:{language:"pt-BR"}};
+  if(cfg.voice){body.voice=cfg.voice;if(cfg.voice.startsWith("pt-BR-"))body.constraints={allowedProviders:{tts:["azure"]}}}
+  let r;
+  try{r=await fetch(cfg.base.replace(/\/$/,"")+"/v1/synthesize",{method:"POST",headers:{"Authorization":"Bearer "+cfg.key,"Content-Type":"application/json"},body:JSON.stringify(body)})}
+  catch(e){throw new Error("O navegador não conseguiu falar com a API (provável bloqueio de CORS). Use o servidor intermediário speko-proxy.js.")}
+  if(!r.ok){let t="";try{t=await r.text()}catch(e){}throw new Error("Speko respondeu "+r.status+": "+t.slice(0,160))}
+  const ct=r.headers.get("content-type")||"";ab=await r.arrayBuffer();
+  if(ct.includes("json")){const j=JSON.parse(new TextDecoder().decode(ab));if(j.audio_base64){ab=Uint8Array.from(atob(j.audio_base64),c=>c.charCodeAt(0)).buffer}else throw new Error("Resposta sem áudio.")}
+  await cachePut(k,ab.slice(0));
+ }
+ const buf=await AC().decodeAudioData(ab.slice(0));
+ const tr=trimSilence(buf);buffers.set(k,tr);return tr;
+}
+function trimSilence(b){const d=b.getChannelData(0),th=0.006;let s=0,e=d.length-1;while(s<e&&Math.abs(d[s])<th)s++;while(e>s&&Math.abs(d[e])<th)e--;
+ s=Math.max(0,s-Math.floor(b.sampleRate*.03));e=Math.min(d.length-1,e+Math.floor(b.sampleRate*.08));
+ const out=AC().createBuffer(b.numberOfChannels,e-s+1,b.sampleRate);for(let c=0;c<b.numberOfChannels;c++)out.copyToChannel(b.getChannelData(c).subarray(s,e+1),c);return out}
+async function gerarTodas(){
+ const textos=[...P().cenas.map(c=>c.narracao),P().ctan].filter(t=>t&&t.trim());
+ let i=0;for(const t of textos){st(`Gerando narração ${++i} de ${textos.length}…`);await narrar(t)}
+ st("Narração pronta. Agora é só dar prévia ou exportar.");
+}
+
+/* ===================== LINHA DO TEMPO ===================== */
+function linha(){
+ const p=P();const cenas=[...p.cenas.map(c=>Object.assign({},c)),{tipo:"cta",narracao:p.ctan,legenda:"chama a gente no WhatsApp"}];
+ let t=0;
+ cenas.forEach((c,k)=>{const b=c.narracao&&buffers.get(vkey(c.narracao));c.buf=b||null;
+  const fala=b?b.duration:Math.max(2.4,(c.narracao||"").split(/\s+/).length/2.7);
+  c.s=t;c.fala=t+.25;c.e=t+.25+fala+(k===cenas.length-1?2.2:.55);t=c.e});
+ return {cenas,total:t};
+}
+
+/* ===================== DESENHO ===================== */
+const cv=$("#cv"),g=cv.getContext("2d"),W=1080,H=1920;
+const E=x=>1-Math.pow(1-Math.min(1,Math.max(0,x)),3),C=x=>Math.min(1,Math.max(0,x));
+const F=(w,s,it)=>`${it?"italic ":""}${w} ${s}px Inter, system-ui, sans-serif`;
+const LOGO=new Path2D("M20 60 L36 40 L50 61 C58 50 66 47 74 52 C79 55 84 55 88 50");
+function rr(x,y,w,h,r){g.beginPath();g.roundRect?g.roundRect(x,y,w,h,r):(g.moveTo(x+r,y),g.arcTo(x+w,y,x+w,y+h,r),g.arcTo(x+w,y+h,x,y+h,r),g.arcTo(x,y+h,x,y,r),g.arcTo(x,y,x+w,y,r),g.closePath())}
+function gradH(x0,x1){const gr=g.createLinearGradient(x0,0,x1,0);gr.addColorStop(0,"#ff8a00");gr.addColorStop(.45,"#ffb300");gr.addColorStop(.75,"#3cc3ff");gr.addColorStop(1,"#2ee6ff");return gr}
+function logo(x,y,s){g.save();g.translate(x,y);g.scale(s/100,s/100);const gr=g.createLinearGradient(20,0,88,0);gr.addColorStop(0,"#ff7a00");gr.addColorStop(.55,"#ffb000");gr.addColorStop(.75,"#29b6ff");gr.addColorStop(1,"#2ee6ff");g.strokeStyle=gr;g.lineWidth=10;g.lineCap="round";g.lineJoin="round";g.stroke(LOGO);g.restore()}
+function mini(x,y){g.save();rr(x,y,70,70,20);g.fillStyle="#0a1830";g.fill();g.lineWidth=2;g.strokeStyle="rgba(255,170,40,.6)";g.shadowColor="rgba(255,140,0,.35)";g.shadowBlur=24;g.stroke();g.restore();logo(x+12,y+12,46)}
+function bg(){g.fillStyle="#030915";g.fillRect(0,0,W,H);
+ let r=g.createRadialGradient(1030,0,0,1030,0,900);r.addColorStop(0,"rgba(40,110,200,.38)");r.addColorStop(1,"rgba(40,110,200,0)");g.fillStyle=r;g.fillRect(0,0,W,H);
+ r=g.createRadialGradient(0,1920,0,0,1920,800);r.addColorStop(0,"rgba(255,130,20,.2)");r.addColorStop(1,"rgba(255,130,20,0)");g.fillStyle=r;g.fillRect(0,0,W,H);
+ g.strokeStyle="rgba(120,160,255,.045)";g.lineWidth=1;g.beginPath();for(let x=0;x<=W;x+=72){g.moveTo(x+.5,0);g.lineTo(x+.5,H)}for(let y=0;y<=H;y+=72){g.moveTo(0,y+.5);g.lineTo(W,y+.5)}g.stroke()}
+/* texto com *destaque* em gradiente, quebrando linhas */
+function tokens(s){const out=[];s.split(/(\*[^*]+\*)/).forEach(p=>{if(!p)return;const hl=p.startsWith("*")&&p.endsWith("*");(hl?p.slice(1,-1):p).split(/(\s+)/).forEach(w=>{if(w)out.push({w,hl})})});return out}
+function richLines(s,size,weight,maxW){const lines=[];s.split("\n").forEach(par=>{let cur=[],cw=0;tokens(par).forEach(t=>{g.font=F(weight,size,t.hl);const ww=g.measureText(t.w).width;if(cw+ww>maxW&&cur.length&&!/^\s+$/.test(t.w)){lines.push(cur);cur=[];cw=0;if(/^\s+$/.test(t.w))return}cur.push({...t,ww});cw+=ww});if(cur.length)lines.push(cur)});
+ return lines.map(l=>{while(l.length&&/^\s+$/.test(l[l.length-1].w))l.pop();return l})}
+function drawRich(s,cx,y,size,weight,maxW,lh,color){const ls=richLines(s,size,weight,maxW);g.textBaseline="alphabetic";
+ ls.forEach((l,i)=>{const tw=l.reduce((a,t)=>a+t.ww,0);let x=cx-tw/2;l.forEach(t=>{g.font=F(weight,size,t.hl);g.fillStyle=t.hl?gradH(x,x+t.ww):(color||"#eef3fb");g.fillText(t.w,x,y+i*lh);x+=t.ww})});return ls.length}
+function wrap(text,size,weight,maxW){g.font=F(weight,size);const words=String(text).split(/\s+/),out=[];let cur="";words.forEach(w=>{const t=cur?cur+" "+w:w;if(g.measureText(t).width>maxW&&cur){out.push(cur);cur=w}else cur=t});if(cur)out.push(cur);return out}
+function txt(s,x,y,size,weight,color,align){g.font=F(weight,size);g.fillStyle=color||"#eef3fb";g.textAlign=align||"left";g.fillText(s,x,y);g.textAlign="left"}
+function fit(s,size,weight,maxW){g.font=F(weight,size);if(g.measureText(s).width<=maxW)return s;while(s.length>1&&g.measureText(s+"…").width>maxW)s=s.slice(0,-1);return s+"…"}
+function appear(l,d){return E((l-d)/.5)}
+function withA(a,dy,fn){if(a<=0)return;g.save();g.globalAlpha*=a;g.translate(0,(1-a)*30+(dy||0));fn();g.restore()}
+function parseItens(s){return (s||"").split("\n").map(x=>x.trim()).filter(Boolean).map(x=>{const p=x.split("|").map(y=>y.trim());return{t:p[0],v:p[1]||"",hot:p.includes("!")}})}
+function card(x,y,w,h){g.save();g.shadowColor="rgba(0,0,0,.45)";g.shadowBlur=60;g.shadowOffsetY=24;rr(x,y,w,h,36);const gr=g.createLinearGradient(0,y,0,y+h);gr.addColorStop(0,"#0f1f3a");gr.addColorStop(1,"#0a1528");g.fillStyle=gr;g.fill();g.restore();rr(x,y,w,h,36);g.lineWidth=1.5;g.strokeStyle="rgba(110,160,255,.18)";g.stroke()}
+function rowBox(x,y,w,h,mode){rr(x,y,w,h,24);g.fillStyle="rgba(255,255,255,.035)";g.fill();g.lineWidth=mode?2.5:1.5;g.strokeStyle=mode==="hot"?"rgba(255,140,30,.85)":mode==="on"?"rgba(60,195,255,.8)":"rgba(140,175,235,.14)";if(mode){g.save();g.shadowColor=mode==="hot"?"rgba(255,140,30,.35)":"rgba(60,195,255,.3)";g.shadowBlur=30;g.stroke();g.restore()}else g.stroke()}
+function animNum(s,p){const m=s.match(/\d[\d.]*(,\d+)?/);if(!m)return s;const raw=m[0];const dec=(raw.split(",")[1]||"").length;const n=parseFloat(raw.replace(/\./g,"").replace(",","."));const v=(n*p).toLocaleString("pt-BR",{minimumFractionDigits:dec,maximumFractionDigits:dec});return s.replace(raw,v)}
+
+function cena(c,l,idx){
+ const X=90,CW=900,IN=36;
+ if(idx===0&&P().chip){g.font=F(600,30);const tw=g.measureText("• "+P().chip).width+52;withA(appear(l,0),0,()=>{rr(W/2-tw/2,196,tw,56,28);g.fillStyle="rgba(40,90,170,.35)";g.fill();g.strokeStyle="rgba(120,170,255,.3)";g.lineWidth=1.5;g.stroke();txt("• "+P().chip,W/2,234,30,600,"#cfe0ff","center")})}
+ if(c.tipo!=="frases"&&c.tipo!=="cta")withA(1,0,()=>drawRich(c.titulo||"",W/2,370,94,700,940,100));
+ // conteúdo
+ if(c.tipo==="lista"||c.tipo==="numero"||c.tipo==="checklist"||c.tipo==="whatsapp"||c.tipo==="grafico"){
+  const it=parseItens(c.itens);let h=IN*2+70+18;let parts=[];
+  if(c.tipo==="numero"){parts.push({k:"num",h:130})}
+  if(c.tipo==="lista"||c.tipo==="numero")it.forEach(()=>parts.push({k:"row",h:96}));
+  if(c.tipo==="checklist"){it.forEach(()=>parts.push({k:"chk",h:70}));parts.push({k:"tot",h:96})}
+  let msgLines=[];if(c.tipo==="whatsapp"){msgLines=wrap(c.mensagem||"",36,500,700);parts.push({k:"btn",h:84},{k:"msg",h:msgLines.length*48+64})}
+  if(c.tipo==="grafico")parts.push({k:"chart",h:380},{k:"lab",h:96});
+  h+=parts.reduce((a,p)=>a+p.h+18,0)-18;
+  const top=Math.max(560,560+(820-h)/2);
+  withA(appear(l,.1),0,()=>{card(X,top,CW,h);txt(fit(c.topo||"",30,500,CW-IN*2-90),X+IN,top+IN+46,30,500,"#9fb3d3");mini(X+CW-IN-70,top+IN)});
+  let y=top+IN+70+18,ri=0;
+  parts.forEach((p,pi)=>{const d=.3+pi*.28,a=appear(l,d);
+   withA(a,0,()=>{
+    if(p.k==="num"){g.font=F(800,120);g.fillStyle="#fff";g.fillText(animNum(c.numero||"",E((l-.4)/1.3)),X+IN,y+108)}
+    if(p.k==="row"){const r=it[ri++];const mode=r.hot&&l>d+1.2?"hot":"";rowBox(X+IN,y,CW-IN*2,p.h,mode);
+     g.font=F(700,34);const vw=r.v?g.measureText(r.v).width:0;
+     txt(fit(r.t,34,600,CW-IN*2-60-vw-30),X+IN+28,y+60,34,600);if(r.v)txt(r.v,X+CW-IN-28,y+60,34,700,r.hot?"#ffb04a":"#eef3fb","right")}
+    if(p.k==="chk"){const r=it[ri++];const on=l>d+.5;rr(X+IN,y+12,46,46,12);if(on){const gr=g.createLinearGradient(X+IN,0,X+IN+46,0);gr.addColorStop(0,"#1e90ff");gr.addColorStop(1,"#2ee6ff");g.fillStyle=gr;g.fill();txt("✓",X+IN+23,y+48,32,800,"#03111f","center")}else{g.strokeStyle="rgba(140,175,235,.4)";g.lineWidth=2;g.stroke()}
+     txt(fit(r.t,34,600,CW-IN*2-80),X+IN+70,y+48,34,600)}
+    if(p.k==="tot"){rowBox(X+IN,y,CW-IN*2,p.h,"on");txt("Total",X+IN+28,y+60,34,600);txt(c.total||"",X+CW-IN-28,y+66,54,800,"#fff","right")}
+    if(p.k==="btn"){const on=l>d+.6;g.font=F(700,36);const bw=g.measureText(c.botao||"").width+90;rr(W/2-bw/2,y,bw,84,42);g.fillStyle=on?"#23c063":"#1fa855";g.fill();if(on){g.save();g.shadowColor="rgba(47,208,138,.6)";g.shadowBlur=30;g.strokeStyle="rgba(255,255,255,.6)";g.lineWidth=2;g.stroke();g.restore()}txt(c.botao||"",W/2,y+55,36,700,"#fff","center")}
+    if(p.k==="msg"){const bw=Math.min(CW-IN*2,Math.max(...msgLines.map(s=>{g.font=F(500,36);return g.measureText(s).width}))+68);const bx=X+CW-IN-bw;
+     rr(bx,y,bw,p.h,30);g.fillStyle="#1f3b2c";g.fill();g.strokeStyle="rgba(80,220,140,.35)";g.lineWidth=1.5;g.stroke();
+     const full=msgLines.join("\n");const n=Math.floor(full.length*C((l-d-.2)/2.2));let shown=full.slice(0,n).split("\n");shown.forEach((s,i)=>txt(s,bx+34,y+58+i*48,36,500,"#e9fff2"))}
+    if(p.k==="chart"){const x0=X+IN+10,x1=X+CW-IN-10,y0=y+20,y1=y+p.h-20;const avgY=y0+(y1-y0)*.3;
+     g.setLineDash([12,12]);g.strokeStyle="#5f7598";g.lineWidth=3;g.beginPath();g.moveTo(x0,avgY);g.lineTo(x1,avgY);g.stroke();g.setLineDash([]);txt("média",x0,avgY-14,26,500,"#8ea3c4");
+     const cai=(c.direcao||"cai")!=="sobe";const pts=[0,.04,-.05,.07,0,.32,.55,.65,.68].map(v=>cai?v:-v*.9);
+     const pp=pts.map((v,i)=>[x0+i*(x1-x0)/(pts.length-1),avgY+v*(y1-avgY)*(cai?1:1.2)]);const prog=E((l-d-.2)/1.6);const upto=prog*(pp.length-1);
+     const gr=g.createLinearGradient(x0,0,x1,0);gr.addColorStop(0,"#2ee6ff");gr.addColorStop(.6,"#ffb000");gr.addColorStop(1,"#ff7a00");g.strokeStyle=gr;g.lineWidth=10;g.lineCap="round";g.lineJoin="round";g.beginPath();
+     for(let i=0;i<=Math.floor(upto);i++){i?g.lineTo(...pp[i]):g.moveTo(...pp[i])}const fi=Math.floor(upto);if(fi<pp.length-1){const f=upto-fi;g.lineTo(pp[fi][0]+(pp[fi+1][0]-pp[fi][0])*f,pp[fi][1]+(pp[fi+1][1]-pp[fi][1])*f)}g.stroke();
+     if(upto>=5){g.beginPath();g.arc(pp[5][0],pp[5][1],16,0,7);g.fillStyle="#ff8a00";g.fill()}}
+    if(p.k==="lab"){rowBox(X+IN,y,CW-IN*2,p.h,"hot");txt(fit(c.rotulo||"",34,600,CW-IN*2-60),X+IN+28,y+60,34,600)}
+   });
+   y+=p.h+18});
+ }
+ if(c.tipo==="frases"){withA(appear(l,0),0,()=>mini(W/2-35,600));const ls=(c.titulo||"").split("\n").filter(Boolean);ls.forEach((s,i)=>withA(appear(l,.2+i*.7),0,()=>drawRich(s,W/2,800+i*116,ls.some(z=>z.length>18)?84:100,700,980,110)))}
+ if(c.tipo==="cta"){const cy=380;
+  withA(appear(l,0),0,()=>{g.save();g.translate(W/2,cy);g.rotate(l*.5);let ring;try{ring=g.createConicGradient(0,0,0);[["#ff7a00",0],["#ffb000",.25],["#2ee6ff",.5],["#1e90ff",.75],["#ff7a00",1]].forEach(([c2,o])=>ring.addColorStop(o,c2))}catch(e){ring=gradH(-165,165)}
+   g.shadowColor="rgba(255,140,0,.4)";g.shadowBlur=60;g.beginPath();g.arc(0,0,165,0,7);g.fillStyle=ring;g.fill();g.restore();
+   const rg=g.createRadialGradient(W/2,cy-30,10,W/2,cy,153);rg.addColorStop(0,"#0f2140");rg.addColorStop(1,"#040b18");g.beginPath();g.arc(W/2,cy,153,0,7);g.fillStyle=rg;g.fill();logo(W/2-112,cy-112,224)});
+  withA(appear(l,.3),0,()=>drawRich("Linha *Fácil*",W/2,680,112,700,1000,110));
+  withA(appear(l,.5),0,()=>txt(cfg.tag||"",W/2,750,36,500,"#c4d3ea","center"));
+  withA(appear(l,.9),0,()=>{txt(P().offs||"",W/2,850,34,500,"#9fb3d3","center");drawRich(P().off||"",W/2,940,76,700,1000,80)});
+  withA(appear(l,1.3),0,()=>{const tt="Chamar no WhatsApp →";g.font=F(800,42);const bw=g.measureText(tt).width+120;rr(W/2-bw/2,1010,bw,104,52);g.save();g.shadowColor="rgba(255,150,0,.4)";g.shadowBlur=50;g.fillStyle=gradH(W/2-bw/2,W/2+bw/2);g.fill();g.restore();txt(tt,W/2,1077,42,800,"#04101f","center")});
+  withA(appear(l,1.5),0,()=>txt("WhatsApp "+(cfg.wa||""),W/2,1190,40,700,"#5cc9ff","center"));
+ }
+ // legenda
+ if(c.legenda){const ls=wrap(c.legenda,46,700,940);ls.forEach((s,i)=>txt(s,W/2,1500+i*58,46,700,"#fff","center"))}
+}
+function frame(t,T){bg();T.cenas.forEach((c,k)=>{const last=k===T.cenas.length-1,first=k===0;let a=first?1:E((t-c.s)/.45);if(!last)a*=C((c.e+.35-t)/.35);if(t<c.s&&!first)a=0;if(t>c.e+.35&&!last)a=0;if(a<=0)return;
+ g.save();g.globalAlpha=a;g.translate(0,(1-E((t-c.s)/.6))*(first?0:30));cena(c,t-c.s,k);g.restore()})}
+
+/* ===================== PRÉVIA E EXPORTAÇÃO ===================== */
+let running=null;
+function tocar(T,dest){const ctx=AC();const t0=ctx.currentTime+.15;const srcs=[];T.cenas.forEach(c=>{if(c.buf){const s=ctx.createBufferSource();s.buffer=c.buf;s.connect(dest||ctx.destination);s.start(t0+c.fala);srcs.push(s)}});return{t0,srcs}}
+function parar(){if(running){running.stop();running=null}$("#play").textContent="▶ Prévia"}
+async function previa(){if(running)return parar();await AC().resume();const T=linha();const {t0,srcs}=tocar(T);let raf;
+ const loop=()=>{const t=AC().currentTime-t0;frame(Math.max(0,t),T);if(t<T.total)raf=requestAnimationFrame(loop);else parar()};loop();
+ running={stop(){cancelAnimationFrame(raf);srcs.forEach(s=>{try{s.stop()}catch(e){}})}};$("#play").textContent="■ Parar";
+ if(!T.cenas.some(c=>c.buf))st("Prévia sem voz. Toque em Gerar narração para ouvir.")}
+async function exportar(){
+ if(!cv.captureStream||!window.MediaRecorder)return st("Este navegador não grava vídeo. Use o Chrome no computador ou no Android.",true);
+ parar();try{st("Preparando narração…");await gerarTodas()}catch(e){st(e.message+" O vídeo sai sem voz.",true)}
+ await AC().resume();const T=linha();const dest=AC().createMediaStreamDestination();
+ const vs=cv.captureStream(0),vt=vs.getVideoTracks()[0];const stream=new MediaStream([vt,...dest.stream.getAudioTracks()]);
+ const tipos=["video/mp4;codecs=avc1.42E01E,mp4a.40.2","video/mp4;codecs=avc1,opus","video/mp4;codecs=avc1","video/mp4","video/webm;codecs=vp9,opus","video/webm"];const mime=tipos.find(m=>MediaRecorder.isTypeSupported(m))||"";
+ const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8e6});const chunks=[];rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
+ const done=new Promise(r=>rec.onstop=r);rec.start(250);const {t0}=tocar(T,dest);const pr=$("#prog");pr.hidden=false;["#play","#voz","#exp"].forEach(s=>$(s).disabled=true);
+ st("Gravando o vídeo em tempo real. Não troque de aba.");
+ await new Promise(res=>{const loop=()=>{const t=AC().currentTime-t0;frame(Math.max(0,t),T);vt.requestFrame&&vt.requestFrame();pr.value=C(t/T.total);if(t<T.total+.3)requestAnimationFrame(loop);else res()};loop()});
+ rec.stop();await done;pr.hidden=true;["#play","#voz","#exp"].forEach(s=>$(s).disabled=false);
+ const ext=mime.includes("mp4")?"mp4":"webm";const blob=new Blob(chunks,{type:mime||"video/webm"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+ a.download=(P().nome||"anuncio").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g,"-")+"."+ext;document.body.appendChild(a);a.click();a.remove();
+ st(ext==="mp4"?"Vídeo exportado em MP4.":"Vídeo exportado em WEBM. Para postar, converta para MP4 ou use o Chrome mais recente, que já grava em MP4.")}
+
+/* ===================== EDITOR ===================== */
+function esc(s){return String(s??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}
+function campoCena(c,i){const f=(k,lab,tag)=>tag==="ta"?`<label>${lab}<textarea data-i="${i}" data-k="${k}">${esc(c[k])}</textarea></label>`:`<label>${lab}<input data-i="${i}" data-k="${k}" value="${esc(c[k])}"></label>`;
+ let extra="";
+ if(c.tipo==="lista")extra=f("topo","Topo do cartão")+f("itens","Linhas (texto | valor | ! para destacar)","ta");
+ if(c.tipo==="numero")extra=f("topo","Topo do cartão")+f("numero","Número grande")+f("itens","Linhas (texto | valor | !)","ta");
+ if(c.tipo==="checklist")extra=f("topo","Topo do cartão")+f("itens","Itens (um por linha)","ta")+f("total","Total");
+ if(c.tipo==="whatsapp")extra=f("topo","Topo do cartão")+f("botao","Texto do botão")+f("mensagem","Mensagem","ta");
+ if(c.tipo==="grafico")extra=f("topo","Topo do cartão")+`<label>Direção<select data-i="${i}" data-k="direcao"><option value="cai"${c.direcao!=="sobe"?" selected":""}>Cai</option><option value="sobe"${c.direcao==="sobe"?" selected":""}>Sobe</option></select></label>`+f("rotulo","Destaque abaixo do gráfico");
+ const cache=c.narracao&&buffers.has(vkey(c.narracao));
+ return `<div class="card"><h3><span class="n">Cena ${i+1}</span><select data-i="${i}" data-k="tipo">${Object.entries(TIPOS).map(([k,v])=>`<option value="${k}"${k===c.tipo?" selected":""}>${v}</option>`).join("")}</select>
+  <span class="sp"></span><button class="b sm" data-up="${i}" aria-label="Subir cena">↑</button><button class="b sm" data-rm="${i}" aria-label="Remover cena">✕</button></h3>
+  ${c.tipo==="frases"?f("titulo","Três frases (uma por linha, *destaque*)","ta"):f("titulo","Título (*destaque*)")}
+  ${extra}${f("legenda","Legenda embaixo")}${f("narracao","Narração (o que a voz fala)","ta")}
+  <div class="row"><span class="pill ${cache?"p-ok":"p-no"}">${cache?"voz pronta":"sem voz ainda"}</span></div></div>`}
+function render(){
+ $("#proj").innerHTML=projetos.map((p,i)=>`<option value="${i}"${i===atual?" selected":""}>${esc(p.nome)}</option>`).join("");
+ $("#p-chip").value=P().chip||"";$("#p-offs").value=P().offs||"";$("#p-off").value=P().off||"";$("#p-ctan").value=P().ctan||"";
+ $("#s-wa").value=cfg.wa;$("#s-tag").value=cfg.tag;$("#s-key").value=cfg.key;$("#s-base").value=cfg.base;$("#s-voice").value=cfg.voice;
+ $("#scenes").innerHTML=P().cenas.map(campoCena).join("");desenhoParado()}
+function desenhoParado(){if(running)return;const T=linha();const c=T.cenas[0];frame(c.s+3,T)}
+document.addEventListener("input",e=>{const el=e.target;
+ if(el.dataset.k){const c=P().cenas[+el.dataset.i];c[el.dataset.k]=el.value;if(el.dataset.k==="tipo"){Object.assign(c,{itens:c.itens||"Item | valor",topo:c.topo||"Título do cartão"});salvar();return render()}}
+ const map={"p-chip":"chip","p-offs":"offs","p-off":"off","p-ctan":"ctan"};if(map[el.id])P()[map[el.id]]=el.value;
+ const sm={"s-wa":"wa","s-tag":"tag","s-key":"key","s-base":"base","s-voice":"voice"};if(sm[el.id])cfg[sm[el.id]]=el.value.trim();
+ salvar();desenhoParado()});
+document.addEventListener("focusin",e=>{const i=e.target.dataset&&e.target.dataset.i;if(i!==undefined&&!running){const T=linha();const c=T.cenas[+i];frame(c.s+3.5,T)}});
+document.addEventListener("click",e=>{const t=e.target;
+ if(t.dataset.rm!==undefined){P().cenas.splice(+t.dataset.rm,1);salvar();render()}
+ if(t.dataset.up!==undefined){const i=+t.dataset.up;if(i>0){const a=P().cenas;[a[i-1],a[i]]=[a[i],a[i-1]];salvar();render()}}});
+$("#add").onclick=()=>{P().cenas.push({tipo:"lista",titulo:"Novo *título*",topo:"Título do cartão",itens:"Item | valor",legenda:"legenda curta",narracao:"Texto que a voz vai falar."});salvar();render()};
+$("#proj").onchange=e=>{atual=+e.target.value;render()};
+$("#dup").onclick=()=>{const c=clone(P());c.nome+=" (cópia)";projetos.push(c);atual=projetos.length-1;salvar();render()};
+$("#del").onclick=()=>{if(projetos.length<2)return st("Precisa sobrar pelo menos um projeto.",true);if($("#del").dataset.ok!=="1"){$("#del").dataset.ok="1";$("#del").textContent="Confirmar exclusão";setTimeout(()=>{$("#del").dataset.ok="";$("#del").textContent="Excluir"},3000);return}
+ projetos.splice(atual,1);atual=0;$("#del").dataset.ok="";$("#del").textContent="Excluir";salvar();render()};
+$("#novo").onclick=()=>{const nomes=Object.entries(MODELOS);const box=document.createElement("div");box.className="card";box.style.cssText="position:fixed;inset:auto 14px 14px 14px;z-index:9;max-width:420px;margin:auto";
+ box.innerHTML=`<h3>Escolha um modelo</h3>${nomes.map(([k,m])=>`<button class="b" data-mod="${k}">${m.nome}</button>`).join("")}<label>Nome do novo anúncio<input id="nm" placeholder="Ex.: Salão Bela Vista"></label><button class="b sm" data-x>Cancelar</button>`;
+ document.body.appendChild(box);box.onclick=ev=>{const m=ev.target.dataset.mod;if(m){const c=clone(MODELOS[m]);c.nome=box.querySelector("#nm").value.trim()||m.nome+" "+(projetos.length+1);projetos.push(c);atual=projetos.length-1;salvar();render();box.remove()}if(ev.target.dataset.x!==undefined)box.remove()}};
+$("#play").onclick=previa;
+$("#voz").onclick=async()=>{try{await gerarTodas();render()}catch(e){st(e.message,true)}};
+$("#exp").onclick=()=>exportar().catch(e=>st("Erro ao exportar: "+e.message,true));
+(async()=>{try{await document.fonts.load(F(800,40));await document.fonts.load(F(700,40,true))}catch(e){}
+ // carrega vozes já guardadas
+ for(const c of [...P().cenas,{narracao:P().ctan}]){if(c.narracao){const ab=await cacheGet(vkey(c.narracao));if(ab){try{buffers.set(vkey(c.narracao),trimSilence(await AC().decodeAudioData(ab.slice(0))))}catch(e){}}}}
+ render()})();
+</script>
+</body>
+</html>
